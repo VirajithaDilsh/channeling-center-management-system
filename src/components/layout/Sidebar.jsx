@@ -5,7 +5,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
     const links = [
         { name: "Dashboard", to: "/dashboard", icon: <House size={20} /> },
-        { name: "Doctors", to: "/dashboard/doctors", icon: <Stethoscope size={20} /> },
+        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} /> }, 
         { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} /> },
         { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} /> },
         { name: "Payments", to: "/dashboard/payments", icon: <DollarSign size={20} /> },
@@ -19,6 +19,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 z-40 md:hidden bg-black bg-opacity-30 backdrop-blur-sm"
+         
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
