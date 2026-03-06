@@ -4,7 +4,7 @@ import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
 import Doctors from "../pages/dashboard/Doctors.jsx";
 import Patients from "../pages/dashboard/Patients.jsx";
 import Inventory from "../pages/dashboard/Inventory.jsx";
-import AddMedicines from "../pages/dashboard/Add-Medicine.jsx";
+import AddMedicines from "../pages/dashboard/AddMedicine.jsx";
 import Payments from "../pages/dashboard/Payments.jsx";
 import Reports from "../pages/dashboard/Reports.jsx";
 import Settings from "../pages/dashboard/Settings.jsx";
