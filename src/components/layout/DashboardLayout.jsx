@@ -8,7 +8,7 @@ const DashboardLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden">
+        <div className="flex flex-col  h-screen overflow-hidden">
 
             {/* Navbar */}
             <Navbar setSidebarOpen={setSidebarOpen} />
@@ -26,7 +26,7 @@ const DashboardLayout = () => {
                 <div className="flex flex-col flex-1 overflow-hidden">
 
                     {/* Main Content */}
-                    <main className="flex-1 bg-gray-100 p-4 md:p-6 overflow-auto">
+                    <main className="flex-1 bg-[#F0F9FF] p-4 md:p-6 overflow-auto">
                         <Outlet />
                     </main>
 
