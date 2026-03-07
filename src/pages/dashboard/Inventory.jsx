@@ -14,7 +14,7 @@ const Inventory = () => {
                     Medicine Inventory
                 </h1>
 
-                <p className="text-sm sm:text-xl text-start mt-1 text-gray-600">
+                <p className="text-sm sm:text-base text-start mt-1 text-gray-600">
                     Manage the clinic's stock of medicines.
                 </p>
             </div>
