@@ -9,14 +9,14 @@ import {
   Link
 } from "@mui/material";
 import LockIcon from "@mui/icons-material/Lock";
-import bgImage from "../assets/login-bg.webp";
+
 
 
 const Login = () => {
   return (
      <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      style={{ backgroundImage: `url(/login-bg.webp)` }}
     >
       <Paper elevation={3} className="w-[380px] p-6 text-center">
         
