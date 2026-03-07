@@ -1,6 +1,6 @@
 import React from 'react';
-import SearchBar from "../../components/SearchBar.jsx";
-import AddButton from "../../components/AddButton.jsx";
+import SearchBar from "../../../components/SearchBar.jsx";
+import AddButton from "../../../components/AddButton.jsx";
 import { useNavigate } from "react-router-dom";
 
 const Inventory = () => {
