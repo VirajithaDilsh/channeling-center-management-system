@@ -7,14 +7,14 @@ import Appointments from "../pages/dashboard/Appointments.jsx";
 import Payments from "../pages/dashboard/Payments.jsx";
 import Reports from "../pages/dashboard/Reports.jsx";
 import Settings from "../pages/dashboard/Settings.jsx";
-{/*import Login from "../pages/auth/Login.jsx";*/}
+import Login from "../pages/Login.jsx";
 
 const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
                 {/* <Route path="/login" element={<Login />} />*/}
-
+                 <Route path="/" element={<Login />} />
                 <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardHome />} />
                     <Route path="doctors" element={<Doctors />} />
