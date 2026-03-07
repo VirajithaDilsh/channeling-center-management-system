@@ -8,6 +8,7 @@ import Payments from "../pages/dashboard/Payments.jsx";
 import Reports from "../pages/dashboard/Reports.jsx";
 import Settings from "../pages/dashboard/Settings.jsx";
 import Login from "../pages/Login.jsx";
+import ForgotPassword from "../pages/ForgotPassword.jsx";
 
 const AppRoutes = () => {
     return (
@@ -15,6 +16,7 @@ const AppRoutes = () => {
             <Routes>
               
                  <Route path="/" element={<Login />} />
+                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardHome />} />
                     <Route path="doctors" element={<Doctors />} />

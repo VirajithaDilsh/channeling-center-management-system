@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import {
   TextField,
   Button,
@@ -9,10 +9,36 @@ import {
   Link
 } from "@mui/material";
 import LockIcon from "@mui/icons-material/Lock";
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 
 
 const Login = () => {
+
+   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+    const navigate = useNavigate();
+
+ const handleLogin = async () => {
+  console.log("Login clicked");
+  try {
+    const res = await axios.post("http://localhost:5000/api/login", {
+      email,
+      password,
+    });
+    console.log(res.data);
+    setError(""); // clear error
+    // alert("Login successful!");
+    navigate("/dashboard")
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    setError(err.response?.data?.message || "Login failed");
+  }
+};
+
   return (
      <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -41,6 +67,8 @@ const Login = () => {
             variant="outlined"
             size="small"
             placeholder="your@example.com"
+            value={email} // bind state
+           onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -53,6 +81,8 @@ const Login = () => {
             variant="outlined"
             size="small"
             placeholder="Enter your password"
+             value={password} // bind state
+             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
@@ -63,19 +93,21 @@ const Login = () => {
             label="Remember me"
           />
 
-          <Link href="#" underline="hover" className="text-sm">
+          <Link
+            component="button"
+            underline="hover"
+            className="text-sm"
+            onClick={() => navigate("/forgot-password")} // ✅ navigate to forgot page
+          >
             Forgot password?
           </Link>
         </div>
 
         {/* Login button */}
-        <Button
-          variant="contained"
-          fullWidth
-          className="!bg-blue-500 hover:!bg-blue-600"
-        >
-          Login
-        </Button>
+       <Button variant="contained" onClick={handleLogin} fullWidth>
+  Login
+  {error && <Typography color="error">{error}</Typography>}
+</Button>
 
         
 
