@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
-import Doctors from "../pages/dashboard/Doctors.jsx";
+import Doctors from "../pages/dashboard/Doctors/AddDoctor.jsx";
+import DoctorManagement from "../pages/dashboard/Doctors/DoctorManagement.jsx";
 import Patients from "../pages/dashboard/Patients.jsx";
 import Inventory from "../pages/dashboard/Inventory.jsx";
 import AddMedicines from "../pages/dashboard/AddMedicine.jsx";
@@ -14,11 +15,13 @@ const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
+                
                 {/* <Route path="/login" element={<Login />} />*/}
 
                 <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardHome />} />
-                    <Route path="doctors" element={<Doctors />} />
+                    <Route path="doctor-management/add-doctors" element={<Doctors />} />
+                    <Route path="doctor-management" element={<DoctorManagement />} />
                     <Route path="patients" element={<Patients />} />
                     <Route path="inventory" element={<Inventory />}/>
                     <Route path="inventory/add-medicine" element={<AddMedicines />}/>
