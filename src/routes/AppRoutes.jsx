@@ -3,12 +3,12 @@ import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
 import Doctors from "../pages/dashboard/Doctors/AddDoctor.jsx";
 import DoctorManagement from "../pages/dashboard/Doctors/DoctorManagement.jsx";
-import Patients from "../pages/dashboard/Patients.jsx";
-import Inventory from "../pages/dashboard/Inventory.jsx";
-import AddMedicines from "../pages/dashboard/AddMedicine.jsx";
-import Payments from "../pages/dashboard/Payments.jsx";
-import Reports from "../pages/dashboard/Reports.jsx";
-import Settings from "../pages/dashboard/Settings.jsx";
+import Patients from "../pages/dashboard/Patients/Patients.jsx";
+import Inventory from "../pages/dashboard/Inventory/Inventory.jsx";
+import AddMedicines from "../pages/dashboard/Inventory/AddMedicine.jsx";
+import Payments from "../pages/dashboard/Payments/Payments.jsx";
+import Reports from "../pages/dashboard/Reports/Reports.jsx";
+import Settings from "../pages/dashboard/Settings/Settings.jsx";
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
 const AppRoutes = () => {
