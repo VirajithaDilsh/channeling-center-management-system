@@ -8,7 +8,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         { name: "Doctors", to: "/dashboard/doctors", icon: <Stethoscope size={20} /> },
         { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} /> },
         { name: "Appointments", to: "/dashboard/appointments", icon: <Package size={20} /> },
-        { name: "Payments", to: "/dashboard/payments", icon: <DollarSign size={20} /> },
+        { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} /> },
         { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} /> },
         { name: "Settings", to: "/dashboard/settings", icon: <Settings size={20} /> },
     ];
