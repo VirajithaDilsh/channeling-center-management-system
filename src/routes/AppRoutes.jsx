@@ -10,6 +10,7 @@ import Settings from "../pages/dashboard/Settings.jsx";
 import Login from "../pages/Login.jsx";
 import ForgotPassword from "../pages/ForgotPassword.jsx";
 import CreateInvoice from "../pages/dashboard/CreateInvoice.jsx";
+import RegisterPatient from "../pages/dashboard/RegisterPatient.jsx";
 
 const AppRoutes = () => {
     return (
@@ -24,6 +25,7 @@ const AppRoutes = () => {
                     <Route path="patients" element={<Patients />} />
                     <Route path="appointments" element={<Appointments />} />
                      <Route path="create-invoice" element={<CreateInvoice />} />
+                     <Route path="register-patient" element={<RegisterPatient/>} />
                     <Route path="billing" element={<Billing />} />
                     <Route path="reports" element={<Reports />} />
                     <Route path="settings" element={<Settings />} />
