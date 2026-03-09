@@ -1,47 +1,34 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
 import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
+import axios from "axios";
+import { useState, useEffect } from "react";
 
-const doctors = [
-  {
-    name: "Dr. Sarah Jenkins",
-    specialty: "Cardiology",
-    initials: "SJ",
-    status: "Available",
-    phone: "+1 (555) 123-4567",
-    email: "s.jenkins@medichannel.com",
-    patients: 1240,
-    rating: 4.9,
-    experience: "12y",
-  },
-  {
-    name: "Dr. Michael Chen",
-    specialty: "Neurology",
-    initials: "MC",
-    status: "Busy",
-    phone: "+1 (555) 234-5678",
-    email: "m.chen@medichannel.com",
-    patients: 890,
-    rating: 4.8,
-    experience: "8y",
-  },
-  {
-    name: "Dr. Emily Rodriguez",
-    specialty: "Pediatrics",
-    initials: "ER",
-    status: "Available",
-    phone: "+1 (555) 345-6789",
-    email: "e.rodriguez@medichannel.com",
-    patients: 2100,
-    rating: 5,
-    experience: "15y",
-  },
-];
+
 
 const DoctorManagement = () => {
+
+const [doctors, setDoctors] = useState([]);
+  
+  useEffect(() => {
+
+  axios.get("http://localhost:5000/api/doctors")
+       .then((res) =>{
+         setDoctors(res.data);
+        })
+       .catch((err) => {
+         console.error("Error fetching doctors:", err);
+        });
+}, []);
+
+
+  const navigate = useNavigate();
+
+
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
 
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -52,7 +39,7 @@ const DoctorManagement = () => {
           </p>
         </div>
 
-        <AddButton label="Add New Doctor" />
+        <AddButton label="Add New Doctor" onClick={() => navigate("add-doctors")} />
       </div>
 
       {/* Search and Filters */}
@@ -61,14 +48,14 @@ const DoctorManagement = () => {
           <SearchBar placeholder="Search doctors by name or ID..." />
         </div>
 
-        <select className="border rounded-md px-3 py-2 text-sm">
+        <select className="outline-blue-600 5rem; px-3 py-2 text-sm flex-0.2 mb-2">
           <option>All Specialties</option>
           <option>Cardiology</option>
           <option>Neurology</option>
           <option>Pediatrics</option>
         </select>
 
-        <select className="border rounded-md px-3 py-2 text-sm">
+        <select className="outline-blue-600 5rem; px-3 py-2 text-sm flex-0.2 mb-2">
           <option>Availability</option>
           <option>Available</option>
           <option>Busy</option>
@@ -142,7 +129,7 @@ const DoctorManagement = () => {
 
       {/* Pagination */}
       <div className="flex justify-center mt-8 gap-2">
-        <button className="px-3 py-1 border rounded">Prev</button>
+        <button className="px-3 py-1 border rounded hover:bg-gray-100">Prev</button>
         <button className="px-3 py-1 bg-blue-500 text-white rounded">1</button>
         <button className="px-3 py-1 border rounded">2</button>
         <button className="px-3 py-1 border rounded">3</button>

@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
+import axios from "axios";
+
+
+
 
 const AddDoctor = () => {
 
@@ -16,33 +20,31 @@ const AddDoctor = () => {
     active: true
   });
 
-  const handleSave = () => {
-    const doctor = {
-      name: "Dr. John",
-      specialization: "Cardiology",
-      fee: "150",
-      status: "Active"
-    };
-
-    addDoctor(doctor);
-  };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setDoctor({
-      ...doctor,
-      [name]: type === "checkbox" ? checked : value
-    });
+    setDoctor({...doctor,[e.target.name]: e.target.value});
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  //  connect API here
+ const handleSubmit = async () => {
 
-    console.log("Doctor Data:", doctor);
+    try {
 
-    // later connect API here
+      await axios.post("http://localhost:5000/api/doctors", doctor);
+
+      alert("Doctor added successfully ✅");
+
+      navigate("/dashboard/doctor-management");
+
+    } catch (error) {
+
+      alert("Error adding doctor ❌");
+
+      console.error(error);
+
+    }
   };
+
 
   return (
     <div className="space-y-6">
@@ -172,13 +174,17 @@ const AddDoctor = () => {
 
             <AddButton
                 label="Save Doctor"
-                onClick={() => navigate("/dashboard/doctor-management/add-doctors")}
+                onClick={handleSubmit}
                 bgColor="#1FB1F9"
             />
 
-            <button className="border px-4 py-2 rounded">
-                Cancel
-            </button>
+            <AddButton
+                label="cancel"
+                onClick={() => navigate("/dashboard/doctor-management")}
+                bgColor="#1FB1F9"
+            />
+
+            
 
             </div>
 
