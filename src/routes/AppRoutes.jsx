@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
 import Doctors from "../pages/dashboard/Doctors/AddDoctor.jsx";
@@ -9,12 +9,16 @@ import AddMedicines from "../pages/dashboard/Inventory/AddMedicine.jsx";
 import Payments from "../pages/dashboard/Payments/Payments.jsx";
 import Reports from "../pages/dashboard/Reports/Reports.jsx";
 import Settings from "../pages/dashboard/Settings/Settings.jsx";
+
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
 const AppRoutes = () => {
     return (
         <BrowserRouter>
             <Routes>
+
+                 {/* Redirect root URL to dashboard */}
+                <Route path="/" element={<Navigate to="/dashboard" />} />
                 
                 {/* <Route path="/login" element={<Login />} />*/}
 
