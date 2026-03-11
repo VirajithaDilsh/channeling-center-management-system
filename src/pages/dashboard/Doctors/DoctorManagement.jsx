@@ -119,8 +119,8 @@ const [doctors, setDoctors] = useState([]);
             {/* Buttons */}
             <div className="flex gap-3">
              <TableActionButtons
-                    onView={() => console.log("Profile")}
-                    onEdit={() => console.log("Shedule")}
+                    onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
+                    onEdit={() => navigate(`/dashboard/doctor/edit/${doc._id}`)}
             />
             </div>
           </div>

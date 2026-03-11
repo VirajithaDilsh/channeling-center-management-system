@@ -9,6 +9,8 @@ import AddMedicines from "../pages/dashboard/Inventory/AddMedicine.jsx";
 import Payments from "../pages/dashboard/Payments/Payments.jsx";
 import Reports from "../pages/dashboard/Reports/Reports.jsx";
 import Settings from "../pages/dashboard/Settings/Settings.jsx";
+import DoctorView from "../pages/dashboard/Doctors/DoctorView.jsx";
+import DoctorEdit from "../pages/dashboard/Doctors/DoctorEdit.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
@@ -26,6 +28,8 @@ const AppRoutes = () => {
                     <Route index element={<DashboardHome />} />
                     <Route path="doctor-management/add-doctors" element={<Doctors />} />
                     <Route path="doctor-management" element={<DoctorManagement />} />
+                    <Route path="doctor/:id" element={<DoctorView />} />
+                    <Route path="doctor/edit/:id" element={<DoctorEdit />} />
                     <Route path="patients" element={<Patients />} />
                     <Route path="inventory" element={<Inventory />}/>
                     <Route path="inventory/add-medicine" element={<AddMedicines />}/>
