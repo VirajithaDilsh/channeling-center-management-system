@@ -1,14 +1,26 @@
 import React,{useState} from 'react';
 import { useNavigate } from 'react-router-dom'
 import {ArrowLeft,Pill,FileText,Layers,Building2,Hash,Package,DollarSign,AlertCircle ,Thermometer,Calendar,Loader2} from 'lucide-react';
+import { useMedicines } from "../../../context/MedicineContext.jsx";
 
 const AddMedicine = () => {
     const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { addMedicine } = useMedicines();
 
-    const [category, setCategory] = useState({});
-    const [unitType, setUnitType] = useState({});
-    const [storageCondition, setStorageCondition] = useState({});
     const [form, setForm] = useState({
+        name:"",
+        genericName:"",
+        manufacturer:"",
+        category:"",
+        description:"",
+        stockQuantity:"",
+        unitType:"",
+        unitPrice:"",
+        reorderLevel:"",
+        batchNumber:"",
+        expiryDate:"",
+        storageCondition:"",
         prescriptionRequired: false
     });
     const categories=[
@@ -44,20 +56,35 @@ const AddMedicine = () => {
     ];
 
     const handleChange = (e) => {
-        setCategory(e.target.value);
-        setUnitType(e.target.value);
-        setStorageCondition(e.target.value);
-        console.log(e.target.value);
-    };
-    const updateField = (field, value) => {
+        const { name, value } = e.target;
+
         setForm(prev => ({
             ...prev,
-            [field]: value
+            [name]: value
         }));
-    }; {/*Tempory*/}
+    };
+
     const handleSubmit = (e) => {
-        e.preventDefault(); // stop page refresh
-        console.log("Form submitted");
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        // Ensure stockQuantity is a number
+        const medicineData = {
+            ...form,
+            stockQuantity: parseInt(form.stockQuantity || 0),
+            unitPrice: parseFloat(form.unitPrice || 0)
+        };
+
+        // Add or update medicine in context
+        addMedicine(medicineData);
+
+        console.log("Medicine added/updated:", medicineData);
+
+        // Reset submitting & navigate back
+        setTimeout(() => {
+            setIsSubmitting(false);
+            navigate("/dashboard/inventory");
+        }, 500);
     };
 
     return (
@@ -95,11 +122,11 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Pill className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"name"}
                                                 required
                                                 type="text"
-                                                /* value={form.name}*/
-
-                                                /* onChange={(e) => updateField('name', e.target.value)}*/
+                                                value={form.name}
+                                                onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. Amoxicillin 500mg"
                                             />
@@ -112,11 +139,10 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <FileText className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"genericName"}
                                                 type="text"
-                                                /*value={form.genericName}*/
-                                                /* onChange={(e) =>
-                                                     updateField('genericName', e.target.value)
-                                                 }*/
+                                                value={form.genericName}
+                                                onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. Amoxicillin"
                                             />
@@ -132,13 +158,11 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Building2 className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"manufacturer"}
                                                 required
                                                 type="text"
-                                                /*value={form.manufacturer}*/
-
-                                                /*onChange={(e) =>
-                                                    updateField('manufacturer', e.target.value)
-                                                } */
+                                                value={form.manufacturer}
+                                                onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50 border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. PharmaCorp Inc."
                                             />
@@ -151,8 +175,9 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Layers className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <select
+                                                name={"category"}
                                                 required
-                                                value={category}
+                                                value={form.category}
                                                 onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 appearance-none transition-shadow"
                                             >
@@ -173,9 +198,10 @@ const AddMedicine = () => {
                                         Description
                                     </label>
                                     <textarea
+                                        name={"description"}
                                         rows={3}
-                                        /*value={form.description}
-                                        onChange={(e) => updateField('description', e.target.value)}*/
+                                        value={form.description}
+                                        onChange={handleChange}
                                         className="w-full px-4 py-2.5 bg-white/50 border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none transition-shadow"
                                         placeholder="Brief description of the medicine, usage instructions, or notes..."
                                     />
@@ -198,11 +224,12 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Hash className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"stockQuantity"}
                                                 required
                                                 type="number"
                                                 min="0"
-                                                /*value={form.stock}*/
-                                                /*onChange={(e) => updateField('stock', e.target.value)}*/
+                                                value={form.stockQuantity}
+                                                onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. 500"
                                             />
@@ -215,8 +242,9 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Package className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <select
+                                                name={"unitType"}
                                                 required
-                                                value={unitType}
+                                                value={form.unitType}
                                                 onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 appearance-none transition-shadow"
                                             >
@@ -238,12 +266,13 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <DollarSign className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"unitPrice"}
                                                 required
                                                 type="number"
                                                 min="0"
                                                 step="0.01"
-                                                /* value={form.price}*/
-                                                /* onChange={(e) => updateField('price', e.target.value)}*/
+                                                value={form.unitPrice}
+                                                onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. 12.50"
                                             />
@@ -256,12 +285,11 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <AlertCircle className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"reorderLevel"}
                                                 type="number"
                                                 min="0"
-                                                /*value={form.reorderLevel}
-                                                onChange={(e) =>
-                                                    updateField('reorderLevel', e.target.value)
-                                                }*/
+                                                value={form.reorderLevel}
+                                                onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50 border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. 50 (alert when below)"
                                             />
@@ -285,12 +313,11 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Hash className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"batchNumber"}
                                                 required
                                                 type="text"
-                                                /* value={form.batchNumber}
-                                                 onChange={(e) =>
-                                                     updateField('batchNumber', e.target.value)
-                                                 }*/
+                                                 value={form.batchNumber}
+                                                 onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50 border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                                 placeholder="e.g. BATCH-2026-0315"
                                             />
@@ -303,12 +330,11 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Calendar className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <input
+                                                name={"expiryDate"}
                                                 required
                                                 type="date"
-                                                /* value={form.expiryDate}
-                                                 onChange={(e) =>
-                                                     updateField('expiryDate', e.target.value)
-                                                 } */
+                                                value={form.expiryDate}
+                                                 onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50 border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
                                             />
                                         </div>
@@ -323,7 +349,8 @@ const AddMedicine = () => {
                                         <div className="relative">
                                             <Thermometer className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                             <select
-                                                value={storageCondition}
+                                                name={"storageCondition"}
+                                                value={form.storageCondition}
                                                  onChange={handleChange}
                                                 className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 appearance-none transition-shadow"
                                             >
@@ -343,10 +370,9 @@ const AddMedicine = () => {
                                         <div
                                             className="flex items-center h-[42px] cursor-pointer"
                                             onClick={() =>
-                                                updateField(
-                                                    "prescriptionRequired",
-                                                    !form.prescriptionRequired
-                                                )
+                                                handleChange({
+                                                    target: { name: "prescriptionRequired", value: !form.prescriptionRequired }
+                                                })
                                             }
                                         >
                                             {/* Toggle Background */}
@@ -386,80 +412,78 @@ const AddMedicine = () => {
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Name</span>
                                     <span className="font-medium text-slate-900  text-right max-w-[140px] truncate">
-                      { '—'}{/*form.name ||*/}
-                    </span>
+                                         {form.name || '—'}
+                                     </span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Manufacturer</span>
                                     <span className="font-medium text-slate-900  text-right max-w-[140px] truncate">
-                      { '—'}{/*form.manufacturer ||*/}
-                    </span>
+                                         {form.manufacturer || '—'}
+                                     </span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Category</span>
                                     <span className="font-medium text-slate-900 ">
-                      {'—'}{/*form.category || */}
-                    </span>
+                                         {form.category ||'—'}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Stock</span>
                                     <span className="font-medium text-slate-900 ">
-                      { '—'}{/*form.stock ? `${form.stock} ${form.unit}` :*/}
-                    </span>
+                                     {form.stockQuantity ? `${form.stockQuantity} ${form.unitType}` : '—'}
+                                </span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Unit Price</span>
                                     <span className="font-medium text-slate-900 ">
-                      {'—'}{/*form.price
-                          ? `$${parseFloat(form.price).toFixed(2)}`
-                          : */}
-                    </span>
+                                      {form.unitPrice
+                                          ? `$${parseFloat(form.unitPrice).toFixed(2)}`
+                                          : '—'}
+                                     </span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Batch</span>
                                     <span className="font-medium text-slate-900  text-right max-w-[140px] truncate">
-                      { '—'}{/*form.batchNumber ||*/}
-                    </span>
+                                      { form.batchNumber ||'—'}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-slate-100 ">
                                     <span className="text-slate-500">Expiry</span>
                                     <span className="font-medium text-slate-900 ">
-                      { '—'}{/*form.expiryDate ||*/}
-                    </span>
+                                      {form.expiryDate || '—'}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                     <span className="text-slate-500">Prescription</span>
                                     <span
                                         className={`font-medium  'text-amber-600 ' : 'text-slate-900 '}`}/*${form.prescriptionRequired ?*/
                                     >
-                      {/*form.prescriptionRequired ? 'Required' : 'Not Required'*/}
-                    </span>
+                                      {form.prescriptionRequired ? 'Required' : 'Not Required'}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* {form.stock && form.price && (
+                           {form.stockQuantity && form.unitPrice && (
                                 <div className="mt-4 p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl">
-                                    <div className="flex justify-between text-sm">*/}
-                      <span className="text-sky-700 ">
-                        Total Value
-                      </span>
-                            {/*<span className="font-bold text-sky-900 dark:text-sky-100">
-                            $
-                                            {(
-                                                parseFloat(form.stock) * parseFloat(form.price)
-                                            ).toFixed(2)}
+                                    <div className="flex justify-between text-sm">
+                              <span className="text-sky-700 ">
+                                Total Value
+                              </span>
+                            <span className="font-bold text-sky-900 dark:text-sky-100">
+                            ${(parseFloat(form.stockQuantity) * parseFloat(form.unitPrice)
+                            ).toFixed(2)}
                             </span>
                                     </div>
                                 </div>
-                            )}*/}
+                            )}
                         </div>
 
                         <button
                             type="submit"
-                            /*disabled={isSubmitting}*/
+                            disabled={isSubmitting}
                             className="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-xl shadow-md shadow-sky-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
                         >
-                            {/* {isSubmitting ? (
+                            {isSubmitting ? (
                                 <>
                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                     Adding Medicine...
@@ -469,12 +493,12 @@ const AddMedicine = () => {
                                     <Pill className="w-4 h-4 mr-2" />
                                     Add Medicine
                                 </>
-                            )}*/}
+                            )}
                         </button>
 
                         <button
                             type="button"
-                            onClick={() => navigate('/inventory')}
+                            onClick={() => navigate('/dashboard/inventory')}
                             className="w-full mt-3 py-2.5 border border-slate-200 text-slate-700  font-medium rounded-xl hover:bg-slate-50  transition-colors text-sm"
                         >
                             Cancel

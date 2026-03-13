@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SearchBar from "../../../components/SearchBar.jsx";
 import AddButton from "../../../components/AddButton.jsx";
 import { useNavigate } from "react-router-dom";
+import InventoryTable from "../../../components/tables/InventoryTable.jsx"; // import the table
+import { useMedicines } from "../../../context/MedicineContext.jsx";
 
 const Inventory = () => {
     const navigate = useNavigate();
+    const { medicines } = useMedicines();
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Filter medicines based on search
+    const filteredMedicines = medicines.filter(
+        med =>
+            med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            med.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            med.batchNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="space-y-4">
 
@@ -26,7 +39,7 @@ const Inventory = () => {
                 <div className="w-full md:w-1/2">
                     <SearchBar
                         placeholder="Search Medicines..."
-                        onChange={(e) => console.log(e.target.value)}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
@@ -39,6 +52,11 @@ const Inventory = () => {
                     />
                 </div>
 
+            </div>
+
+            {/* Inventory Table */}
+            <div className="mt-4">
+                <InventoryTable medicines={filteredMedicines} />
             </div>
 
         </div>
