@@ -1,13 +1,11 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
 import axios from "axios";
 
+const DoctorEdit = () => {
 
-
-
-const AddDoctor = () => {
-
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [doctor, setDoctor] = useState({
@@ -20,41 +18,59 @@ const AddDoctor = () => {
     active: true
   });
 
+  // get doctor data
+  useEffect(() => {
+    axios.get(`http://localhost:5000/api/doctors/${id}`)
+      .then((res) => {
+        setDoctor(res.data);
+      })
+      .catch((err) => {
+        console.error("Error fetching doctor:", err);
+      });
+  }, [id]);
 
+  // handle change
   const handleChange = (e) => {
-    setDoctor({...doctor,[e.target.name]: e.target.value});
+
+    const { name, value, type, checked } = e.target;
+
+    setDoctor({
+      ...doctor,
+      [name]: type === "checkbox" ? checked : value
+    });
+
   };
 
-  //  connect API here
- const handleSubmit = async () => {
+  // update doctor
+  const handleSubmit = async (e) => {
+
+    e.preventDefault();
 
     try {
 
-      await axios.post("http://localhost:5000/api/doctors", doctor);
+      await axios.put(`http://localhost:5000/api/doctors/${id}`, doctor);
 
-      alert("Doctor added successfully ✅");
+      alert("Doctor updated successfully ✅");
 
       navigate("/dashboard/doctor-management");
 
     } catch (error) {
 
-      alert("Error adding doctor ❌");
-
       console.error(error);
 
-    }
-  };
+      alert("Error updating doctor ❌");
 
+    }
+
+  };
 
   return (
     <div className="space-y-6">
 
-      {/* Page Title */}
       <h1 className="text-2xl font-semibold">
-        Add New Doctor
+        Edit Doctor
       </h1>
 
-      {/* Card */}
       <div className="bg-white rounded-xl shadow p-6">
 
         <h2 className="text-lg font-semibold mb-6">
@@ -72,7 +88,7 @@ const AddDoctor = () => {
             <input
               type="text"
               name="name"
-              placeholder="Dr. Jane Doe"
+              value={doctor.name}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
@@ -87,7 +103,7 @@ const AddDoctor = () => {
             <input
               type="text"
               name="specialization"
-              placeholder="Pediatrics"
+              value={doctor.specialization}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
@@ -102,7 +118,7 @@ const AddDoctor = () => {
             <input
               type="text"
               name="qualifications"
-              placeholder="MD, FAAP"
+              value={doctor.qualifications}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
@@ -117,7 +133,7 @@ const AddDoctor = () => {
             <input
               type="number"
               name="fee"
-              placeholder="150.00"
+              value={doctor.fee}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
@@ -132,7 +148,7 @@ const AddDoctor = () => {
             <input
               type="text"
               name="phone"
-              placeholder="555-123-4567"
+              value={doctor.phone}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
@@ -147,13 +163,13 @@ const AddDoctor = () => {
             <input
               type="email"
               name="email"
-              placeholder="jane.doe@clinicconnect.com"
+              value={doctor.email}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
           </div>
 
-          {/* Active Checkbox */}
+          {/* Active */}
           <div className="col-span-2 flex items-center gap-2">
 
             <input
@@ -173,20 +189,18 @@ const AddDoctor = () => {
           <div className="col-span-2 flex gap-3">
 
             <AddButton
-                label="Save Doctor"
-                onClick={handleSubmit}
-                bgColor="#1FB1F9"
+              label="Update Doctor"
+              onClick={handleSubmit}
+              bgColor="#1FB1F9"
             />
 
             <AddButton
-                label="cancel"
-                onClick={() => navigate("/dashboard/doctor-management")}
-                bgColor="#1FB1F9"
+              label="Cancel"
+              onClick={() => navigate("/dashboard/doctor-management")}
+              bgColor="#1FB1F9"
             />
 
-            
-
-            </div>
+          </div>
 
         </form>
 
@@ -196,4 +210,4 @@ const AddDoctor = () => {
   );
 };
 
-export default AddDoctor;
+export default DoctorEdit;
