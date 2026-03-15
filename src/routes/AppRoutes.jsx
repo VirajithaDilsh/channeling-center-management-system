@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
 import Doctors from "../pages/dashboard/Doctors.jsx";
-import Patients from "../pages/dashboard/Patients.jsx";
+import Patients from "../pages/dashboard/Patients/Patients.jsx";
 import Appointments from "../pages/dashboard/Appointments.jsx";
 import Billing from "../pages/dashboard/Billing.jsx";
 import Reports from "../pages/dashboard/Reports.jsx";
@@ -10,7 +10,10 @@ import Settings from "../pages/dashboard/Settings.jsx";
 import Login from "../pages/Login.jsx";
 import ForgotPassword from "../pages/ForgotPassword.jsx";
 import CreateInvoice from "../pages/dashboard/CreateInvoice.jsx";
-import RegisterPatient from "../pages/dashboard/RegisterPatient.jsx";
+import RegisterPatient from "../pages/dashboard/Patients/RegisterPatient.jsx";
+import ViewPatient from "../pages/dashboard/Patients/ViewPatient.jsx";
+import EditPatient from "../pages/dashboard/Patients/EditPatient.jsx";
+
 
 const AppRoutes = () => {
     return (
@@ -28,6 +31,8 @@ const AppRoutes = () => {
                      <Route path="register-patient" element={<RegisterPatient/>} />
                     <Route path="billing" element={<Billing />} />
                     <Route path="reports" element={<Reports />} />
+                    <Route path="patients/view/:id" element={<ViewPatient />} />
+                    <Route path="patients/edit/:id" element={<EditPatient />} />
                     <Route path="settings" element={<Settings />} />
                 </Route>
             </Routes>
