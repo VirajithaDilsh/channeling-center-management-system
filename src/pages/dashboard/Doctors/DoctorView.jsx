@@ -39,6 +39,13 @@ const DoctorView = () => {
     );
   }
 
+  const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
   return (
     <div className="bg-white shadow-2xl rounded-2xl  p-16 ">
 
@@ -48,11 +55,16 @@ const DoctorView = () => {
 
       {/* Profile Picture */}
       <div className="flex justify-center mb-4">
-        <img
+          <div className="w-28 h-28 rounded-full shadow-lg">
+             <div className="bg-blue-100 text-blue-500 font-semibold  flex items-center w-28 h-28 justify-center rounded-full">
+                      {getInitials(doctor.name)}
+                </div>
+          </div>
+        {/* <img
           src="https://randomuser.me/api/portraits/women/44.jpg"
           alt="Doctor Profile"
           className="w-28 h-28 rounded-full shadow-lg"
-        />
+        /> */}
       </div>
 
       {/* Name & Qualifications */}

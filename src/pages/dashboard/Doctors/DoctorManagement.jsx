@@ -26,6 +26,13 @@ const [doctors, setDoctors] = useState([]);
 
   const navigate = useNavigate();
 
+  const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 
   return (
     <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
@@ -65,35 +72,35 @@ const [doctors, setDoctors] = useState([]);
 
       {/* Doctor Cards */}
       <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 py-6">
-        {doctors.map((doc) => (
+        {doctors.map((doctor) => (
           <div
-            key={doc.id}
+            key={doctor._id}
             className="bg-white rounded-xl shadow-sm p-6 border-gray-200"
           >
             {/* Top */}
             <div className="flex justify-between items-start mb-3">
               <div className="flex gap-3">
                 <div className="bg-blue-100 text-blue-600 font-semibold w-10 h-10 flex items-center justify-center rounded-full">
-                  {doc.initials}
+                      {getInitials(doctor.name)}
                 </div>
 
                 <div>
-                  <h3 className="font-semibold">{doc.name}</h3>
+                  <h3 className="font-semibold">{doctor.name}</h3>
                   <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                    {doc.specialty}
+                    {doctor.specialization}
                   </span>
                 </div>
               </div>
 
               <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                {doc.status}
+                {doctor.active?"Active" : "Inactive"}
               </span>
             </div>
 
             {/* Contact */}
             <div className="text-sm text-gray-500 space-y-1 mb-3">
-              <p>{doc.phone}</p>
-              <p>{doc.email}</p>
+              <p>{doctor.phone}</p>
+              <p>{doctor.email}</p>
             </div>
 
             <hr className="my-3" />
@@ -101,17 +108,17 @@ const [doctors, setDoctors] = useState([]);
             {/* Stats */}
             <div className="flex justify-between text-center text-sm mb-4">
               <div>
-                <p className="font-semibold">{doc.patients}</p>
+                <p className="font-semibold">{doctor.patients}</p>
                 <p className="text-gray-400 text-xs">PATIENTS</p>
               </div>
 
               <div>
-                <p className="font-semibold">{doc.rating}</p>
+                <p className="font-semibold">{doctor.rating}</p>
                 <p className="text-gray-400 text-xs">RATING</p>
               </div>
 
               <div>
-                <p className="font-semibold">{doc.experience}</p>
+                <p className="font-semibold">{doctor.experience}</p>
                 <p className="text-gray-400 text-xs">EXPERIENCE</p>
               </div>
             </div>
@@ -119,8 +126,8 @@ const [doctors, setDoctors] = useState([]);
             {/* Buttons */}
             <div className="flex gap-3">
              <TableActionButtons
-                    onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
-                    onEdit={() => navigate(`/dashboard/doctor/edit/${doc._id}`)}
+                    onView={() => navigate(`/dashboard/doctor/${doctor._id}`)}
+                    onEdit={() => navigate(`/dashboard/doctor/edit/${doctor._id}`)}
             />
             </div>
           </div>

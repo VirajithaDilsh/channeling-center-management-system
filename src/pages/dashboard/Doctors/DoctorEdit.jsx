@@ -170,19 +170,14 @@ const DoctorEdit = () => {
           </div>
 
           {/* Active */}
-          <div className="col-span-2 flex items-center gap-2">
-
-            <input
-              type="checkbox"
-              name="active"
-              checked={doctor.active}
-              onChange={handleChange}
-            />
-
-            <label className="text-sm text-gray-700">
-              Active
-            </label>
-
+          <div className="flex items-center justify-between rounded-lg border p-3">
+              <label className="text-sm text-gray-600">Active</label>
+              <input
+                type="checkbox"
+                name="active"
+                checked={doctor.active}
+                onChange={(e) => setDoctor({...doctor, active: e.target.checked})}
+              />
           </div>
 
           {/* Buttons */}
