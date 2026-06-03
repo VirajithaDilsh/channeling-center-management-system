@@ -55,7 +55,7 @@ const [doctors, setDoctors] = useState([]);
           <option>Pediatrics</option>
         </select>
 
-        <select className="outline-blue-600 5rem; px-3 py-2 text-sm flex-0.2 mb-2">
+        <select className="outline-blue-600 5rem px-3 py-2 text-sm flex-0.2 mb-2">
           <option>Availability</option>
           <option>Available</option>
           <option>Busy</option>
@@ -65,9 +65,9 @@ const [doctors, setDoctors] = useState([]);
 
       {/* Doctor Cards */}
       <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 py-6">
-        {doctors.map((doc, index) => (
+        {doctors.map((doc) => (
           <div
-            key={index}
+            key={doc.id}
             className="bg-white rounded-xl shadow-sm p-6 border-gray-200"
           >
             {/* Top */}
