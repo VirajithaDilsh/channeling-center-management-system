@@ -4,11 +4,13 @@ import AddIcon from "@mui/icons-material/Add";
 const AddButton = ({
                        label = "Add",
                        onClick,
-                       bgColor = "#1976d2"
+                       bgColor = "#1976d2",
+                       type = "button"
                    }) => {
     return (
         <Button
             variant="contained"
+            type={type}
             //startIcon={<AddIcon />}
             onClick={onClick}
             sx={{

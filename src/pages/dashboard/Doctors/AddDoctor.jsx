@@ -18,16 +18,21 @@ const AddDoctor = () => {
     fee: "",
     phone: "",
     email: "",
-    active: true,
+    status: "Active",
   });
 
 
-  const handleChange = (e) => {
-    setDoctor({...doctor,[e.target.name]: e.target.value});
-  };
+ const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  setDoctor({
+    ...doctor,
+    [name]: type === "checkbox" ? checked : value
+  });
+};
 
   //  connect API here
- const handleSubmit = async () => {
+ const handleSubmit = async (e) => {
+    e.preventDefault();
 
     try {
 
@@ -155,15 +160,15 @@ const AddDoctor = () => {
           </div>
 
           {/*Active Switch */}
-          <div className="flex items-center justify-between rounded-lg border p-3">
-              <label className="text-sm text-gray-600">Active</label>
-              <input
-                type="checkbox"
-                name="active"
-                checked={doctor.active}
-                onChange={(e) => setDoctor({...doctor, active: e.target.checked})}
-              />
-          </div>
+          <input
+              type="checkbox"
+              name="status"
+              checked={doctor.status === "Active"}
+              onChange={(e) => setDoctor({
+                ...doctor,
+                status: e.target.checked ? "Active" : "Inactive"
+              })}
+            />
 
           {/* Buttons */}
           <div className="col-span-2 flex gap-3">

@@ -15,7 +15,7 @@ const DoctorEdit = () => {
     fee: "",
     phone: "",
     email: "",
-    active: true
+    status: "Active",
   });
 
   // get doctor data
@@ -30,16 +30,15 @@ const DoctorEdit = () => {
   }, [id]);
 
   // handle change
-  const handleChange = (e) => {
-
-    const { name, value, type, checked } = e.target;
-
-    setDoctor({
-      ...doctor,
-      [name]: type === "checkbox" ? checked : value
-    });
-
-  };
+  // ✅ Handle status checkbox separately
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  if (name === "status") {
+    setDoctor({ ...doctor, status: checked ? "Active" : "Inactive" });
+  } else {
+    setDoctor({ ...doctor, [name]: type === "checkbox" ? checked : value });
+  }
+};
 
   // update doctor
   const handleSubmit = async (e) => {
@@ -55,12 +54,9 @@ const DoctorEdit = () => {
       navigate("/dashboard/doctor-management");
 
     } catch (error) {
-
-      console.error(error);
-
-      alert("Error updating doctor ❌");
-
-    }
+              console.error("Full error:", error.response?.data); // ✅ see exact backend message
+              alert("Error updating doctor ❌");
+            }
 
   };
 
@@ -174,9 +170,9 @@ const DoctorEdit = () => {
               <label className="text-sm text-gray-600">Active</label>
               <input
                 type="checkbox"
-                name="active"
-                checked={doctor.active}
-                onChange={(e) => setDoctor({...doctor, active: e.target.checked})}
+                name="status"
+                checked={doctor.status === "Active"}
+                onChange={handleChange}
               />
           </div>
 
