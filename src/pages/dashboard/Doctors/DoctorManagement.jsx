@@ -64,18 +64,17 @@ const [doctors, setDoctors] = useState([]);
 
         <select className="outline-blue-600 5rem px-3 py-2 text-sm flex-0.2 mb-2">
           <option>Availability</option>
-          <option>Available</option>
-          <option>Busy</option>
-          <option>On Leave</option>
+          <option>Active</option>
+          <option>Inactive</option>
         </select>
       </div>
 
       {/* Doctor Cards */}
-      <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 py-6">
+      <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 py-17">
         {doctors.map((doctor) => (
           <div
             key={doctor._id}
-            className="bg-white rounded-xl shadow-sm p-6 border-gray-200"
+            className="bg-white rounded-xl shadow-sm p-2 border-gray-200"
           >
             {/* Top */}
             <div className="flex justify-between items-start mb-3">
@@ -92,13 +91,13 @@ const [doctors, setDoctors] = useState([]);
                 </div>
               </div>
 
-              {/* fixed — uses doc.active boolean */}
+              {/* fixed — uses doc.status */}
               <span className={`text-xs px-2 py-1 rounded ${
-                doctor.active 
+                doctor.status === "Active"
                   ? "bg-green-100 text-green-600" 
                   : "bg-red-100 text-red-600"
               }`}>
-                {doctor.active ? "Active" : "Inactive"}
+                {doctor.status}
               </span>
             </div>
 
@@ -133,7 +132,20 @@ const [doctors, setDoctors] = useState([]);
              <TableActionButtons
                     onView={() => navigate(`/dashboard/doctor/${doctor._id}`)}
                     onEdit={() => navigate(`/dashboard/doctor/edit/${doctor._id}`)}
-            />
+                    onDelete={() => {
+                      if (window.confirm("Are you sure you want to delete this doctor?")) {
+                        axios.delete(`http://localhost:5000/api/doctors/${doctor._id}`)
+                          .then(() => {
+                            // Remove the doctor from the UI or refresh the list
+                            setDoctors(doctors.filter((d) => d._id !== doctor._id));
+                          })
+                          .catch((error) => {
+                            console.error("Error deleting doctor:", error);
+                          });
+                      }
+                    }}
+                    onShedule={() => navigate(`/dashboard/doctor/schedule/${doctor._id}`)}
+                  />
             </div>
           </div>
         ))}
