@@ -1,5 +1,6 @@
 import Button from "@mui/material/Button";
 
+
 const TableActionButtons = ({ onView, onEdit, onDelete, onSchedule }) => {
   return (
     <div className="flex gap-1 justify-center">
@@ -25,7 +26,7 @@ const TableActionButtons = ({ onView, onEdit, onDelete, onSchedule }) => {
       <Button 
         size = "Small"
         color = "red"
-        onclick = {onDelete}
+        onClick = {onDelete}
         sx = {{textTransform: "none"}}
         >
           Delete
@@ -34,7 +35,7 @@ const TableActionButtons = ({ onView, onEdit, onDelete, onSchedule }) => {
       <Button 
         size = "Small"
         color = "green"
-        onclick = {onSchedule}
+        onClick = {onSchedule}
         sx = {{textTransform: "none"}}
         >
           Schedule

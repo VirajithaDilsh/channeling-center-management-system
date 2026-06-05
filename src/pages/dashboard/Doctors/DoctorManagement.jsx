@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
 import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
+import DoctorScheduleDialog from "../../../components/ScheduleDialog";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
@@ -11,6 +12,7 @@ import { useState, useEffect } from "react";
 const DoctorManagement = () => {
 
 const [doctors, setDoctors] = useState([]);
+const [selectDoctor, setSelectDoctor] = useState(null);
   
   useEffect(() => {
 
@@ -33,7 +35,19 @@ const [doctors, setDoctors] = useState([]);
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
+const handleDelete = async (id) => {
+      const confirmed = window.confirm("Are you sureyou want to delete this doctor?");
+      if(!confirmed) return;
 
+      try {
+        await axios.delete(`http://localhost:5000/api/doctors/${id}`);
+        setDoctors(doctors.filter((doctor)=>  doctor._id !== id));
+        alert("Doctor delete successfuly");
+      } catch (error) {
+        console.error(error);
+        alert("Error deleting doctor:");
+      }
+};
   return (
     <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
 
@@ -70,7 +84,7 @@ const [doctors, setDoctors] = useState([]);
       </div>
 
       {/* Doctor Cards */}
-      <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 py-17">
+      <div className="grid grid-cols-3 gap-4 border-t border-b border-gray-50 py-8">
         {doctors.map((doctor) => (
           <div
             key={doctor._id}
@@ -132,19 +146,8 @@ const [doctors, setDoctors] = useState([]);
              <TableActionButtons
                     onView={() => navigate(`/dashboard/doctor/${doctor._id}`)}
                     onEdit={() => navigate(`/dashboard/doctor/edit/${doctor._id}`)}
-                    onDelete={() => {
-                      if (window.confirm("Are you sure you want to delete this doctor?")) {
-                        axios.delete(`http://localhost:5000/api/doctors/${doctor._id}`)
-                          .then(() => {
-                            // Remove the doctor from the UI or refresh the list
-                            setDoctors(doctors.filter((d) => d._id !== doctor._id));
-                          })
-                          .catch((error) => {
-                            console.error("Error deleting doctor:", error);
-                          });
-                      }
-                    }}
-                    onShedule={() => navigate(`/dashboard/doctor/schedule/${doctor._id}`)}
+                    onDelete={() =>handleDelete(doctor._id)}
+                    onSchedule={() => setSelectDoctor(doctor._id)}
                   />
             </div>
           </div>
@@ -159,6 +162,16 @@ const [doctors, setDoctors] = useState([]);
         <button className="px-3 py-1 border rounded">3</button>
         <button className="px-3 py-1 border rounded">Next</button>
       </div>
+
+      {/* 👇 Dialog renders here when a doctor is selected */}
+      {selectDoctor && (
+        <DoctorScheduleDialog
+          doctor={selectDoctor}
+          onClose={() => setSelectDoctor(null)}
+        />
+      )}
+
+
     </div>
   );
 };
