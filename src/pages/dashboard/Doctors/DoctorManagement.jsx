@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 const DoctorManagement = () => {
 
 const [doctors, setDoctors] = useState([]);
-const [selectDoctor, setSelectDoctor] = useState(null);
+const [selectedDoctor, setSelectedDoctor] = useState(null); 
   
   useEffect(() => {
 
@@ -147,7 +147,9 @@ const handleDelete = async (id) => {
                     onView={() => navigate(`/dashboard/doctor/${doctor._id}`)}
                     onEdit={() => navigate(`/dashboard/doctor/edit/${doctor._id}`)}
                     onDelete={() =>handleDelete(doctor._id)}
-                    onSchedule={() => setSelectDoctor(doctor._id)}
+                    onSchedule={() =>{
+                      console.log("Passing to dialog:", doctor)
+                      setSelectedDoctor(doctor)}}
                   />
             </div>
           </div>
@@ -164,10 +166,10 @@ const handleDelete = async (id) => {
       </div>
 
       {/* 👇 Dialog renders here when a doctor is selected */}
-      {selectDoctor && (
+      {selectedDoctor && (
         <DoctorScheduleDialog
-          doctor={selectDoctor}
-          onClose={() => setSelectDoctor(null)}
+          doctor={selectedDoctor}
+          onClose={() => setSelectedDoctor(null)} 
         />
       )}
 

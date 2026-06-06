@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+ 
+
 const DoctorScheduleDialog = ({ doctor, onClose }) => {
+
+console.log("Doctor object:", doctor);
 
   const [schedules, setSchedules] = useState([]);
   const [form, setForm] = useState({
@@ -13,30 +17,48 @@ const DoctorScheduleDialog = ({ doctor, onClose }) => {
 
   // Fetch existing schedules
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/schedules/${doctor._id}`)
-      .then((res) => setSchedules(res.data))
-      .catch((err) => console.error("Error fetching schedules:", err));
-  }, [doctor._id]);
+  axios.get(`http://localhost:5000/api/doctors/${doctor._id}/schedules`)
+    .then((res) => setSchedules(res.data))
+    .catch((err) => console.error(err));
+}, [doctor._id]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async () => {
-    try {
-      const res = await axios.post("http://localhost:5000/api/schedules", {
-        ...form,
-        doctorId: doctor._id,
-      });
-      setSchedules([...schedules, res.data]);
-      setForm({ date: "", startTime: "", endTime: "", maxPatients: "" });
-      alert("Schedule added successfully ✅");
-    } catch (error) {
-      console.error(error);
-      alert("Error adding schedule ❌");
-    }
-  };
+ const handleSubmit = async () => {
 
+  const doctorId = doctor?._id;
+
+  // ✅ Validate before sending
+  if (!doctorId) {
+    alert("Doctor ID is missing ❌");
+    return;
+  }
+
+  if (!form.date || !form.startTime || !form.endTime || !form.maxPatients) {
+    alert("Please fill all fields ❌");
+    return;
+  }
+
+  try {
+    const res = await axios.post("http://localhost:5000/api/doctors/schedules", {
+      doctorId: doctorId,        // ✅ explicitly added
+      date: form.date,
+      startTime: form.startTime,
+      endTime: form.endTime,
+      maxPatients: form.maxPatients,
+    });
+
+    setSchedules([...schedules, res.data]);
+    setForm({ date: "", startTime: "", endTime: "", maxPatients: "" });
+    alert("Schedule added successfully ✅");
+
+  } catch (error) {
+    console.error(error);
+    alert("Error adding schedule ❌");
+  }
+};
   return (
 
     // Backdrop
