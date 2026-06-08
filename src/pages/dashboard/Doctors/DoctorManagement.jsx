@@ -99,7 +99,7 @@ const handleDelete = async (id) => {
 
                 <div>
                   <h3 className="font-semibold">{doctor.name}</h3>
-                  <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                  <span className="text-xs text-black bg-gray-100 px-2 py-1 rounded">
                     {doctor.specialization}
                   </span>
                 </div>
@@ -123,23 +123,6 @@ const handleDelete = async (id) => {
 
             <hr className="my-3" />
 
-            {/* Stats */}
-            <div className="flex justify-between text-center text-sm mb-4">
-              <div>
-                <p className="font-semibold">{doctor.patients}</p>
-                <p className="text-gray-400 text-xs">PATIENTS</p>
-              </div>
-
-              <div>
-                <p className="font-semibold">{doctor.rating}</p>
-                <p className="text-gray-400 text-xs">RATING</p>
-              </div>
-
-              <div>
-                <p className="font-semibold">{doctor.experience}</p>
-                <p className="text-gray-400 text-xs">EXPERIENCE</p>
-              </div>
-            </div>
 
             {/* Buttons */}
             <div className="flex gap-3">

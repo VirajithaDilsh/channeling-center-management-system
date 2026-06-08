@@ -103,6 +103,11 @@ const DoctorView = () => {
           <span className="text-gray-800 font-semibold">${doctor.fee}</span>
         </div>
 
+        <div>
+          <span className="font-medium text-gray-600 gap-2">Experience:</span>
+          <span className="text-gray-800 font-semibold">{doctor.experience} years</span>
+        </div>
+
         <div className="flex gap-2 items-center">
           <span className="font-medium text-gray-600">Status:</span>
           <span

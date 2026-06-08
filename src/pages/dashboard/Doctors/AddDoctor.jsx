@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
 import axios from "axios";
+import { experimental_sx } from "@mui/material";
 
 
 
@@ -18,6 +19,7 @@ const AddDoctor = () => {
     fee: "",
     phone: "",
     email: "",
+    experience: "",
     status: "Active",
   });
 
@@ -90,13 +92,18 @@ const AddDoctor = () => {
               Specialization
             </label>
 
-            <input
-              type="text"
+            <select
+              placeholder = "select specialaization"
               name="specialization"
-              placeholder="Pediatrics"
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Specialization</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Pediatrics">Pediatrics</option>
+            </select>
+            
           </div>
 
           {/* Qualifications */}
@@ -159,8 +166,32 @@ const AddDoctor = () => {
             />
           </div>
 
+          <div>
+            <label>
+              Experience (Years)
+            </label>
+
+            <input
+              type ="experience"
+              name = "experience"
+              placeholder = "3"
+              className = "w-full border rounded-lg p-2 mt-1"
+              onChange = {handleChange}
+            />
+          </div>
+
+
+
           {/*Active Switch */}
+
+          <div>
+
+            <labale>
+              Active 
+            </labale>
+
           <input
+              className="ml-2"
               type="checkbox"
               name="status"
               checked={doctor.status === "Active"}
@@ -169,6 +200,7 @@ const AddDoctor = () => {
                 status: e.target.checked ? "Active" : "Inactive"
               })}
             />
+            </div>
 
           {/* Buttons */}
           <div className="col-span-2 flex gap-3">

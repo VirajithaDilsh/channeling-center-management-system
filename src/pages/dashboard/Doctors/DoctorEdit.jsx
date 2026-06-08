@@ -15,6 +15,7 @@ const DoctorEdit = () => {
     fee: "",
     phone: "",
     email: "",
+    experience: "",
     status: "Active",
   });
 
@@ -96,13 +97,18 @@ const handleChange = (e) => {
               Specialization
             </label>
 
-            <input
-              type="text"
+            <select
+              placeholder = "select specialaization"
               name="specialization"
-              value={doctor.specialization}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Specialization</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Pediatrics">Pediatrics</option>
+            </select>
+
           </div>
 
           {/* Qualifications */}
@@ -160,6 +166,21 @@ const handleChange = (e) => {
               type="email"
               name="email"
               value={doctor.email}
+              className="w-full border rounded-lg p-2 mt-1"
+              onChange={handleChange}
+            />
+          </div>
+
+          {/* Experience */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Experience (Years)
+            </label>
+            
+            <input
+              type="number"
+              name="experience"
+              value={doctor.experience}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
