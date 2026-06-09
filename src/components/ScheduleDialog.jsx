@@ -62,7 +62,7 @@ console.log("Doctor object:", doctor);
   return (
 
     // Backdrop
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50">
 
       {/* Dialog Box */}
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">

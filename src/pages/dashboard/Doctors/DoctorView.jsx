@@ -49,9 +49,10 @@ const DoctorView = () => {
   return (
     <div className="bg-white shadow-2xl rounded-2xl  p-16 ">
 
-      <h1 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-        Doctor Details
-      </h1>
+     <h1 className="text-xl font-bold" >Doctor Details</h1>
+      <p className="text-sm text-gray-500">
+            Doctor profiles and availability
+      </p>
 
       {/* Profile Picture */}
       <div className="flex justify-center mb-4">
@@ -100,7 +101,7 @@ const DoctorView = () => {
 
         <div className="flex gap-2">
           <span className="font-medium text-gray-600">Consultation Fee:</span>
-          <span className="text-gray-800 font-semibold">${doctor.fee}</span>
+          <span className="text-gray-800 font-semibold">Rs.{doctor.fee}</span>
         </div>
 
         <div>

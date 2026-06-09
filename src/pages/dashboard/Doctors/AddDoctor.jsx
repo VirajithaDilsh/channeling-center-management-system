@@ -23,6 +23,21 @@ const AddDoctor = () => {
     status: "Active",
   });
 
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const errors = {};
+
+    if (!doctor.name.trim()) errors.name = "Name is required";
+    if (!doctor.specialization.trim()) errors.specialization = "Specialization is required";
+    if (!doctor.qualifications.trim()) errors.qualifications = "Qualifications is required";
+    if (!doctor.fee || doctor.fee <= 0) errors.fee = "Fee must be a positive number";
+    if (!/^\d{10}$/.test(doctor.phone)) errors.phone = "Enter a valid 10-digit phone";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(doctor.email)) errors.email = "Enter a valid email";
+
+  return errors;
+};
+
 
  const handleChange = (e) => {
   const { name, value, type, checked } = e.target;
@@ -35,6 +50,12 @@ const AddDoctor = () => {
   //  connect API here
  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const errors = validate();
+      if (Object.keys(errors).length > 0) {
+        setErrors(errors); // add: const [errors, setErrors] = useState({});
+        return;
+      }
 
     try {
 
@@ -80,10 +101,15 @@ const AddDoctor = () => {
             <input
               type="text"
               name="name"
-              placeholder="Dr. Jane Doe"
+              placeholder="Jane Doe"
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+
+
+              {/* Error Message */}
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+
           </div>
 
           {/* Specialization */}
@@ -103,6 +129,9 @@ const AddDoctor = () => {
               <option value="Neurology">Neurology</option>
               <option value="Pediatrics">Pediatrics</option>
             </select>
+
+              {/* Error Message */}
+            {errors.specialization && <p className = "text-red-500 text-xs mt-1">{errors.specialization}</p>}
             
           </div>
 
@@ -119,6 +148,10 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+
+
+            {/* Error Message */}
+            {errors.qualifications && <p className = "text-red-500 text-xs mt-1">{errors.qualifications}</p>}
           </div>
 
           {/* Fee */}
@@ -134,6 +167,9 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+
+            {/* Error Message */}
+            {errors.fee && <p className = "text-red-500 text-xs mt-1">{errors.fee}</p>}
           </div>
 
           {/* Contact Phone */}
@@ -149,6 +185,8 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+            {/* Error Message */}
+            {errors.phone && <p className = "text-red-500 text-xs mt-1">{errors.phone}</p>}
           </div>
 
           {/* Email */}
@@ -164,6 +202,8 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+            {/* Error Message */}
+            {errors.email && <p className = "text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
           <div>

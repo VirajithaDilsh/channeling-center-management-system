@@ -49,7 +49,9 @@ const handleDelete = async (id) => {
       }
 };
   return (
-    <div className="p-6 bg-gray-50 rounded-lg shadow-sm">
+    <>
+     <div className={selectedDoctor ? "blur-sm pointer-events-none" : ""}>
+      <div className="p-6 bg-gray-50 rounded-lg shadow-sm"> 
 
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -133,6 +135,7 @@ const handleDelete = async (id) => {
                     onSchedule={() =>{
                       console.log("Passing to dialog:", doctor)
                       setSelectedDoctor(doctor)}}
+                      isActive={doctor.status === "Active"}
                   />
             </div>
           </div>
@@ -158,6 +161,17 @@ const handleDelete = async (id) => {
 
 
     </div>
+    </div>
+
+    {/* 👇 Dialog renders here when a doctor is selected */}
+      {selectedDoctor && (
+        <DoctorScheduleDialog
+          doctor={selectedDoctor}
+          onClose={() => setSelectedDoctor(null)} 
+        />
+      )}
+    </>
+
   );
 };
 

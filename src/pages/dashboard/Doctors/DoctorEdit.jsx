@@ -30,6 +30,23 @@ const DoctorEdit = () => {
       });
   }, [id]);
 
+  {/* Validations */}
+  const [errors, setErrors] = useState({});
+  
+    const validate = () => {
+      const errors = {};
+  
+      if (!doctor.name.trim()) errors.name = "Name is required";
+      if (!doctor.specialization.trim()) errors.specialization = "Specialization is required";
+      if (!doctor.qualifications.trim()) errors.qualifications = "Qualifications is required";
+      if (!doctor.fee || doctor.fee <= 0) errors.fee = "Fee must be a positive number";
+      if (!/^\d{10}$/.test(doctor.phone)) errors.phone = "Enter a valid 10-digit phone";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(doctor.email)) errors.email = "Enter a valid email";
+  
+    return errors;
+  };
+  
+
   // handle change
   // ✅ Handle status checkbox separately
 const handleChange = (e) => {
@@ -43,8 +60,13 @@ const handleChange = (e) => {
 
   // update doctor
   const handleSubmit = async (e) => {
+          e.preventDefault();
 
-    e.preventDefault();
+          const errors = validate();
+            if (Object.keys(errors).length > 0) {
+              setErrors(errors); // add: const [errors, setErrors] = useState({});
+              return;
+            }
 
     try {
 
@@ -89,6 +111,8 @@ const handleChange = (e) => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+            {/* Error Message */}
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
           {/* Specialization */}
@@ -108,6 +132,9 @@ const handleChange = (e) => {
               <option value="Neurology">Neurology</option>
               <option value="Pediatrics">Pediatrics</option>
             </select>
+
+            {/* Error Message */}
+            {errors.specialization && <p className = "text-red-500 text-xs mt-1">{errors.specialization}</p>}
 
           </div>
 
@@ -139,6 +166,9 @@ const handleChange = (e) => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+
+            {/* Error Message */}
+            {errors.fee && <p className = "text-red-500 text-xs mt-1">{errors.fee}</p>}
           </div>
 
           {/* Contact Phone */}
@@ -154,6 +184,10 @@ const handleChange = (e) => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+
+            {/* Error Message */}
+            {errors.phone && <p className = "text-red-500 text-xs mt-1">{errors.phone}</p>}
+
           </div>
 
           {/* Email */}
@@ -169,6 +203,9 @@ const handleChange = (e) => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+            {/* Error Message */}
+            {errors.email && <p className = "text-red-500 text-xs mt-1">{errors.email}</p>}
+            
           </div>
 
           {/* Experience */}
@@ -184,6 +221,10 @@ const handleChange = (e) => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
+
+            {/* Error Message */}
+            {errors.experience && <p className = "text-red-500 text-xs mt-1">{errors.experience}</p>}
+            
           </div>
 
           {/* Active */}
