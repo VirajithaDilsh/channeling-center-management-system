@@ -9,6 +9,8 @@ import AddMedicines from "../pages/dashboard/Inventory/AddMedicine.jsx";
 import Payments from "../pages/dashboard/Payments/Payments.jsx";
 import Reports from "../pages/dashboard/Reports/Reports.jsx";
 import Settings from "../pages/dashboard/Settings/Settings.jsx";
+import Appoiments from "../pages/dashboard/Appoiments/Appoiments.jsx";
+
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
 const AppRoutes = () => {
@@ -28,6 +30,7 @@ const AppRoutes = () => {
                     <Route path="payments" element={<Payments />} />
                     <Route path="reports" element={<Reports />} />
                     <Route path="settings" element={<Settings />} />
+                    <Route path="appoiments" element={<Appoiments />} />
                 </Route>
             </Routes>
         </BrowserRouter>
