@@ -43,7 +43,7 @@ const Login = () => {
       switch (role) {
         case "admin":
           // Roles Management
-          navigate("/admin"); 
+          navigate("/dashboard/admin"); 
           break;
         case "reception":
           // Doctors Management & Appointment Management
