@@ -52,7 +52,7 @@ const AppRoutes = () => {
                 </Route>
             </Routes>
         </BrowserRouter>
-    );
+    )
 };
 
 export default AppRoutes;
