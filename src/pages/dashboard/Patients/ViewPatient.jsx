@@ -11,7 +11,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import SummarizeIcon from "@mui/icons-material/Summarize";
-import { getPatientById } from "../../../api/patientApi";
+import { getPatientById } from "../../../api/PatientApi";
 
 const ViewPatient = () => {
   const { id } = useParams(); // get patient id from route

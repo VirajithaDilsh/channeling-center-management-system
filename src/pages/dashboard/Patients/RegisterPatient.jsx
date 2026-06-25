@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import SummarizeIcon from "@mui/icons-material/Summarize";
-import { createPatient } from "../../../api/patientApi";
+import { createPatient } from "../../../api/PatientApi";
 
 const doctors = [
   "Dr. John Smith",
