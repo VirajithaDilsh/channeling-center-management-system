@@ -18,7 +18,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 
-import { updatePatient, getPatientById } from "../../../api/patientApi";
+import { updatePatient, getPatientById } from "../../../api/PatientApi";
 
 const doctors = [
   "Dr. John Smith",
