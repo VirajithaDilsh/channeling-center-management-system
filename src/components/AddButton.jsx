@@ -9,7 +9,7 @@ const AddButton = ({
     return (
         <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            //startIcon={<AddIcon />}
             onClick={onClick}
             sx={{
                 backgroundColor: bgColor,
