@@ -63,6 +63,7 @@ const AppRoutes = () => {
       {/* Inventory */}
       <Route path="inventory" element={<Inventory />} />
       <Route path="inventory/add-medicine" element={<AddMedicines />} />
+      <Route path="inventory/edit-medicine/:id" element={<AddMedicines />} />
 
       {/* Billing */}
       <Route path="billing" element={<Billing />} />

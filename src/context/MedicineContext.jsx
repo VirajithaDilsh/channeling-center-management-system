@@ -1,50 +1,93 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import {
+    getMedicines,
+    addMedicine as addApi,
+    updateMedicine as updateApi,
+    deleteMedicine as deleteApi
+} from "../api/MedicineApi";
 
-// Create context
 const MedicineContext = createContext();
 
-// Custom hook to use medicines
 export const useMedicines = () => useContext(MedicineContext);
 
-// Provider component
 export const MedicineProvider = ({ children }) => {
     const [medicines, setMedicines] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
 
-    const addMedicine = (newMedicine) => {
-        setMedicines(prev => {
-            // Check if medicine with same name + manufacturer + batch exists
-            const existingIndex = prev.findIndex(
-                m =>
-                    m.name === newMedicine.name &&
-                    m.manufacturer === newMedicine.manufacturer &&
-                    m.batchNumber === newMedicine.batchNumber
+    // FETCH
+    const fetchMedicines = async () => {
+        try {
+            setLoading(true);
+            const data = await getMedicines();
+            setMedicines(data);
+        } catch (err) {
+            console.error("Fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMedicines();
+    }, []);
+
+    // ADD
+    const addMedicine = async (medicine) => {
+        try {
+            setActionLoading(true);
+            const saved = await addApi(medicine);
+            setMedicines(prev => [...prev, saved]);
+        } catch (err) {
+            console.error("Add error:", err);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // UPDATE
+    const updateMedicine = async (id, updatedData) => {
+        try {
+            setActionLoading(true);
+            const res = await updateApi(id, updatedData);
+
+            // handle both res.data or direct object
+            const updated = res?.data || res;
+
+            setMedicines(prev =>
+                prev.map(m => (m._id === id ? updated : m))
             );
+        } catch (err) {
+            console.error("Update error:", err);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
-            if (existingIndex !== -1) {
-                // Update existing quantity
-                const updated = [...prev];
-                updated[existingIndex].stockQuantity =
-                    parseInt(updated[existingIndex].stockQuantity) + parseInt(newMedicine.stockQuantity);
+    // DELETE
+    const deleteMedicine = async (id) => {
+        try {
+            setActionLoading(true);
+            await deleteApi(id);
 
-                // Optional: update unit price if you want latest
-                updated[existingIndex].unitPrice = newMedicine.unitPrice;
-
-                return updated;
-            } else {
-                // Add new medicine with unique id
-                return [
-                    ...prev,
-                    {
-                        ...newMedicine,
-                        id: Date.now() // simple unique id
-                    }
-                ];
-            }
-        });
+            setMedicines(prev => prev.filter(m => m._id !== id));
+        } catch (err) {
+            console.error("Delete error:", err);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     return (
-        <MedicineContext.Provider value={{ medicines, addMedicine }}>
+        <MedicineContext.Provider value={{
+            medicines,
+            loading,
+            actionLoading,
+            fetchMedicines,
+            addMedicine,
+            updateMedicine,
+            deleteMedicine
+        }}>
             {children}
         </MedicineContext.Provider>
     );
