@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X } from "lucide-react";
+import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X, Shield } from "lucide-react";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
@@ -11,6 +11,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} /> },
         { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} /> },
         { name: "Settings", to: "/dashboard/settings", icon: <Settings size={20} /> },
+        { name: "Admin", to: "/dashboard/Admin", icon: <Shield size={20} /> },
+        
     ];
 
     return (

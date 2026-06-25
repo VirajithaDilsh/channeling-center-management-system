@@ -19,6 +19,7 @@ import {
   DialogTitle,
   Pagination,
 } from "@mui/material";
+
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 
@@ -45,20 +46,22 @@ export default function AdminManagement() {
     fetchAdmins();
   }, []);
 
- const fetchAdmins = async () => {
-  try {
-    const data = await getAdmins();
+  // ✅ FIXED: normalize properly
+  const fetchAdmins = async () => {
+    try {
+      const data = await getAdmins();
 
-    const normalized = data.map((a) => ({
-      ...a,
-      id: a._id,
-    }));
+      const normalized = data.map((a) => ({
+        ...a,
+        id: a._id, // IMPORTANT: single source of truth
+      }));
 
-    setAdmins(normalized);
-  } catch (err) {
-    console.error(err);
-  }
-};
+      setAdmins(normalized);
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to fetch admins", "error");
+    }
+  };
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbarMessage(message);
@@ -72,79 +75,57 @@ export default function AdminManagement() {
   };
 
   const handleDeleteConfirm = async () => {
-  try {
-    await deleteAdmin(selectedAdminId);
+    try {
+      await deleteAdmin(selectedAdminId);
 
-    fetchAdmins();
+      fetchAdmins();
 
-    showSnackbar(
-      "Admin deleted successfully",
-      "success"
-    );
-
-  } catch (err) {
-    console.error(err);
-
-    showSnackbar(
-      "Failed to delete admin",
-      "error"
-    );
-
-  } finally {
-    setDeleteDialogOpen(false);
-    setSelectedAdminId(null);
-  }
-};
+      showSnackbar("Admin deleted successfully", "success");
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to delete admin", "error");
+    } finally {
+      setDeleteDialogOpen(false);
+      setSelectedAdminId(null);
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      {/* Header */}
-<div className="relative flex items-center justify-between mb-6">
-  
-  {/* Center Title */}
-  <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-    <h1 className="text-2xl font-semibold">
-      Admin Management
-    </h1>
 
-    <p className="text-gray-500 text-sm">
-      View and manage admin users
-    </p>
-  </div>
+      {/* HEADER */}
+      <div className="relative flex items-center justify-between mb-6">
 
-  {/* Empty div for spacing */}
-  <div></div>
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+          <h1 className="text-2xl font-semibold">Admin Management</h1>
+          <p className="text-gray-500 text-sm">
+            View and manage admin users
+          </p>
+        </div>
 
-  {/* Right Buttons */}
-  <div className="flex gap-3 ml-auto">
-    <Button
-      variant="contained"
-      color="primary"
-      onClick={() => navigate("/register-role")}
-    >
-      + Add New Role
-    </Button>
+        <div className="flex gap-3 ml-auto">
+          <Button
+            variant="contained"
+            onClick={() => navigate("/register-role")}
+          >
+            + Add New Role
+          </Button>
 
-    <Button
-      variant="outlined"
-      color="error"
-      startIcon={<LogoutIcon />}
-      onClick={() => {
-        localStorage.clear();
-        navigate("/");
-      }}
-      sx={{
-        textTransform: "none",
-        borderRadius: "10px",
-      }}
-    >
-      Logout
-    </Button>
-  </div>
-</div>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<LogoutIcon />}
+            onClick={() => {
+              localStorage.clear();
+              navigate("/");
+            }}
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
 
-      {/* Search */}
+      {/* SEARCH */}
       <div className="mb-6">
         <TextField
           fullWidth
@@ -153,9 +134,10 @@ export default function AdminManagement() {
         />
       </div>
 
-      {/* Table */}
+      {/* TABLE */}
       <TableContainer component={Paper}>
         <Table>
+
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
@@ -169,8 +151,8 @@ export default function AdminManagement() {
           <TableBody>
             {admins.map((admin) => (
               <TableRow key={admin.id} hover>
-                <TableCell>{admin.name}</TableCell>
 
+                <TableCell>{admin.name}</TableCell>
                 <TableCell>{admin.email}</TableCell>
 
                 <TableCell>
@@ -179,9 +161,12 @@ export default function AdminManagement() {
                   </span>
                 </TableCell>
 
+                {/* FIXED: correct field */}
                 <TableCell>{admin.contact}</TableCell>
 
                 <TableCell>
+
+                  {/* VIEW */}
                   <IconButton
                     color="primary"
                     onClick={() =>
@@ -191,29 +176,33 @@ export default function AdminManagement() {
                     <VisibilityIcon />
                   </IconButton>
 
+                  {/* EDIT */}
                   <IconButton
                     color="success"
                     onClick={() =>
-                     navigate(`/edit-admin/${admin.id}`)
+                      navigate(`/edit-admin/${admin.id}`)
                     }
                   >
                     <EditIcon />
                   </IconButton>
 
+                  {/* DELETE */}
                   <IconButton
                     color="error"
                     onClick={() => handleDeleteClick(admin.id)}
                   >
                     <DeleteIcon />
                   </IconButton>
+
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
+
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
+      {/* PAGINATION */}
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-500">
           Showing {admins.length} admins
@@ -227,23 +216,19 @@ export default function AdminManagement() {
         />
       </div>
 
-      {/* Snackbar */}
+      {/* SNACKBAR */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          variant="filled"
-        >
+        <Alert severity={snackbarSeverity} variant="filled">
           {snackbarMessage}
         </Alert>
       </Snackbar>
 
-      {/* Delete Dialog */}
+      {/* DELETE DIALOG */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -266,6 +251,7 @@ export default function AdminManagement() {
           </Button>
         </DialogActions>
       </Dialog>
+
     </div>
   );
 }

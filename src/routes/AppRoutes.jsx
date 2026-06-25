@@ -28,11 +28,14 @@ const AppRoutes = () => {
               
                  <Route path="/" element={<Login />} />
                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                 <Route path="/admin" element={<Admin />} />
+                 {/* <Route path="/admin" element={<Admin />} /> */}
                   <Route path="/register-role" element={<RegisterRole />} />
                   <Route path="/edit-admin/:id" element={<EditAdmin />} />
                 <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardHome />} />
+                    <Route path="admin" element={<Admin />} />
+                   
+                    
                     <Route path="doctors" element={<Doctors />} />
                     <Route path="patients" element={<Patients />} />
                     <Route path="appointments" element={<Appointments />} />

@@ -115,7 +115,7 @@ const RegisterRole = () => {
         <div className="flex items-center gap-3 mb-8">
           {/* Back Button */}
           <Button
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate("dashboard/admin")}
             sx={{
               minWidth: "40px",
               width: "40px",
