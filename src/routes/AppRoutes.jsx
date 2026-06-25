@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
 
@@ -10,26 +11,18 @@ import ForgotPassword from "../pages/ForgotPassword.jsx";
 import RegisterPatient from "../pages/dashboard/Patients/RegisterPatient.jsx";
 import ViewPatient from "../pages/dashboard/Patients/ViewPatient.jsx";
 import EditPatient from "../pages/dashboard/Patients/EditPatient.jsx";
-import CreateInvoice from "../pages/dashboard/Billing/CreateInvoice.jsx";
 
-import Admin from '../pages/dashboard/Admin/Admin.jsx'
-import RegisterRole from '../pages/dashboard/Admin/RegisterRole.jsx';
-import EditAdmin from '../pages/dashboard/Admin/EditAdmin.jsx'
+import Admin from "../pages/dashboard/Admin/Admin.jsx";
+import RegisterRole from "../pages/dashboard/Admin/RegisterRole.jsx";
+import EditAdmin from "../pages/dashboard/Admin/EditAdmin.jsx";
 
-
-import Doctors from "../pages/dashboard/Doctors/AddDoctor.jsx";
+import AddDoctors from "../pages/dashboard/Doctors/AddDoctor.jsx";
 import DoctorManagement from "../pages/dashboard/Doctors/DoctorManagement.jsx";
-import Patients from "../pages/dashboard/Patients/Patients.jsx";
-import Inventory from "../pages/dashboard/Inventory/Inventory.jsx";
-import AddMedicines from "../pages/dashboard/Inventory/AddMedicine.jsx";
-import Payments from "../pages/dashboard/Payments/Payments.jsx";
-import Reports from "../pages/dashboard/Reports/Reports.jsx";
-import Settings from "../pages/dashboard/Settings/Settings.jsx";
-import Appoiments from "../pages/dashboard/Appoiments/Appoiments.jsx";
 import DoctorView from "../pages/dashboard/Doctors/DoctorView.jsx";
 import DoctorEdit from "../pages/dashboard/Doctors/DoctorEdit.jsx";
 
-{/*import Login from "../pages/auth/Login.jsx";*/}
+import Payments from "../pages/dashboard/Payments/Payments.jsx";
+import Appoiments from "../pages/dashboard/Appoiments/Appoiments.jsx";
 
 const AppRoutes = () => {
     return (
