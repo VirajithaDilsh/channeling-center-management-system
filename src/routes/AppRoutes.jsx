@@ -3,7 +3,8 @@ import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
 import Doctors from "../pages/dashboard/Doctors.jsx";
 import Patients from "../pages/dashboard/Patients/Patients.jsx";
-import Appointments from "../pages/dashboard/Appointments.jsx";
+import Inventory from "../pages/dashboard/Inventory.jsx";
+import AddMedicines from "../pages/dashboard/AddMedicine.jsx";
 import Billing from "../pages/dashboard/Billing/Billing.jsx";
 import Reports from "../pages/dashboard/Reports.jsx";
 import Settings from "../pages/dashboard/Settings.jsx";
@@ -38,7 +39,8 @@ const AppRoutes = () => {
                     
                     <Route path="doctors" element={<Doctors />} />
                     <Route path="patients" element={<Patients />} />
-                    <Route path="appointments" element={<Appointments />} />
+                    <Route path="inventory" element={<Inventory />}/>
+                    <Route path="inventory/add-medicine" element={<AddMedicines />}/>
                    
                      <Route path="register-patient" element={<RegisterPatient/>} />
                     <Route path="billing" element={<Billing />} />
