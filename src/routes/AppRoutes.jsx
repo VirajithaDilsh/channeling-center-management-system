@@ -1,13 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import DashboardHome from "../pages/dashboard/DashBoardHome.jsx";
-import Doctors from "../pages/dashboard/Doctors.jsx";
-import Patients from "../pages/dashboard/Patients/Patients.jsx";
-import Inventory from "../pages/dashboard/Inventory.jsx";
-import AddMedicines from "../pages/dashboard/AddMedicine.jsx";
+
 import Billing from "../pages/dashboard/Billing/Billing.jsx";
-import Reports from "../pages/dashboard/Reports.jsx";
-import Settings from "../pages/dashboard/Settings.jsx";
+
 import Login from "../pages/Login.jsx";
 import ForgotPassword from "../pages/ForgotPassword.jsx";
 
@@ -45,20 +41,10 @@ const AppRoutes = () => {
                  {/* <Route path="/admin" element={<Admin />} /> */}
                   <Route path="/register-role" element={<RegisterRole />} />
                   <Route path="/edit-admin/:id" element={<EditAdmin />} />
+             
                 <Route path="/dashboard" element={<DashboardLayout />}>
                     <Route index element={<DashboardHome />} />
-                    <Route path="admin" element={<Admin />} />
-                   
-                    
-                    <Route path="doctors" element={<Doctors />} />
-
-                 {/* Redirect root URL to dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-                
-                {/* <Route path="/login" element={<Login />} />*/}
-
-                <Route path="/dashboard" element={<DashboardLayout />}>
-                    <Route index element={<DashboardHome />} />
+                      <Route path="admin" element={<Admin />} />
                     <Route path="doctor-management/add-doctors" element={<Doctors />} />
                     <Route path="doctor-management" element={<DoctorManagement />} />
                     <Route path="doctor/:id" element={<DoctorView />} />
@@ -78,7 +64,7 @@ const AppRoutes = () => {
                 </Route>
             </Routes>
         </BrowserRouter>
-    );
+    )
 };
 
 export default AppRoutes;
