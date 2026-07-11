@@ -1,7 +1,6 @@
 import React, { useState,useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   Pill,
   FileText,
   Layers,
@@ -15,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useMedicines } from "../../../context/MedicineContext.jsx";
+import BackButton from "../../../components/BackButton";
 
 const AddMedicine = () => {
   const { id } = useParams();
@@ -119,16 +119,12 @@ const AddMedicine = () => {
 
   return (
     <div>
-      <button
-        onClick={() => navigate("/dashboard/inventory")}
-        className="inline-flex items-center text-sm text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 mb-2 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4 mr-1" />
-        Back to Inventory
-      </button>
-      <h2 className="text-xl sm:text-2xl font-semibold text-start">
-        Add New Medicine
-      </h2>
+      <div className="flex items-center gap-3 mb-2">
+        <BackButton to="/dashboard/inventory" />
+        <h2 className="text-xl sm:text-2xl font-semibold text-start">
+          {isEdit ? "Edit Medicine" : "Add New Medicine"}
+        </h2>
+      </div>
 
       <p className="text-sm sm:text-base text-start mt-1 text-gray-600">
         Register a new medicine to the pharmacy inventory

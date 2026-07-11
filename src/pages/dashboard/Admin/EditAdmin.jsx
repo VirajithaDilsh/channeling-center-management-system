@@ -10,10 +10,10 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
 
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BackButton from "../../../components/BackButton";
 
 import {
   getAdminById,
@@ -106,22 +106,9 @@ const EditAdmin = () => {
         className="p-8 rounded-3xl shadow-sm w-full max-w-2xl"
       >
         {/* Header */}
-       {/* Header */}
 <div className="flex items-center gap-3 mb-8">
 
-  {/* Back Button */}
-  <Button
-    onClick={() => navigate("dashboard/admin")}
-    sx={{
-      minWidth: "40px",
-      width: "40px",
-      height: "40px",
-      borderRadius: "50%",
-      backgroundColor: "#e0f2fe",
-    }}
-  >
-    <ArrowBackIcon className="text-blue-600" />
-  </Button>
+  <BackButton to="/dashboard/admin" />
 
   {/* Icon */}
   <div className="bg-blue-100 p-3 rounded-2xl">
@@ -226,7 +213,7 @@ const EditAdmin = () => {
           <Button
             variant="outlined"
             fullWidth
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate("/dashboard/admin")}
             sx={{
               borderRadius: "12px",
               textTransform: "none",

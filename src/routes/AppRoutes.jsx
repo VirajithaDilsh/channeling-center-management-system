@@ -26,8 +26,13 @@ import Payments from "../pages/dashboard/Payments/Payments.jsx";
 import Appoiments from "../pages/dashboard/Appoiments/Appoiments.jsx";
 import DoctorView from "../pages/dashboard/Doctors/DoctorView.jsx";
 import DoctorEdit from "../pages/dashboard/Doctors/DoctorEdit.jsx";
+import ProtectedRoute from "../components/ProtectedRoute.jsx";
+import DoctorHome from "../pages/dashboard/DoctorPortal/DoctorHome.jsx";
+import Consultation from "../pages/dashboard/DoctorPortal/Consultation.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
+
+const PATIENT_ROLES = ["admin", "doctor", "patient_manager"];
 
 const AppRoutes = () => {
     return (
@@ -54,11 +59,15 @@ const AppRoutes = () => {
       <Route path="doctor/:id" element={<DoctorView />} />
       <Route path="doctor/edit/:id" element={<DoctorEdit />} />
 
+      {/* Doctor Portal */}
+      <Route path="doctor-home" element={<ProtectedRoute allowedRoles={["doctor"]}><DoctorHome /></ProtectedRoute>} />
+      <Route path="doctor/consultation/:appointmentId" element={<ProtectedRoute allowedRoles={["doctor"]}><Consultation /></ProtectedRoute>} />
+
       {/* Patients */}
-      <Route path="patients" element={<Patients />} />
-      <Route path="register-patient" element={<RegisterPatient />} />
-      <Route path="patients/view/:id" element={<ViewPatient />} />
-      <Route path="patients/edit/:id" element={<EditPatient />} />
+      <Route path="patients" element={<ProtectedRoute allowedRoles={PATIENT_ROLES}><Patients /></ProtectedRoute>} />
+      <Route path="register-patient" element={<ProtectedRoute allowedRoles={PATIENT_ROLES}><RegisterPatient /></ProtectedRoute>} />
+      <Route path="patients/view/:id" element={<ProtectedRoute allowedRoles={PATIENT_ROLES}><ViewPatient /></ProtectedRoute>} />
+      <Route path="patients/edit/:id" element={<ProtectedRoute allowedRoles={PATIENT_ROLES}><EditPatient /></ProtectedRoute>} />
 
       {/* Inventory */}
       <Route path="inventory" element={<Inventory />} />

@@ -9,7 +9,13 @@ import {
   Autocomplete,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from "@mui/material";
 
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,8 +23,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import BackButton from "../../../components/BackButton";
 
 import { updatePatient, getPatientById } from "../../../api/PatientApi";
+import { getChannelingHistory, addChannelingRecord } from "../../../api/ChannelingApi";
 
 const doctors = [
   "Dr. John Smith",
@@ -47,13 +55,38 @@ const EditPatient = () => {
     age: "",
     gender: "",
     address: "",
+    bloodGroup: ""
+  });
+
+  const emptyVisit = {
     doctor: "",
     disease: "",
     date: "",
-    bloodGroup: "",
     medicalHistory: "",
-    description: ""
-  });
+    bloodPressureSystolic: "",
+    bloodPressureDiastolic: "",
+    heartRate: "",
+    temperature: "",
+    weight: "",
+    height: "",
+    cholesterol: "",
+    sugarLevel: "",
+    allergies: "",
+    notes: ""
+  };
+
+  const [visitData, setVisitData] = useState(emptyVisit);
+  const [channelingHistory, setChannelingHistory] = useState([]);
+  const [savingVisit, setSavingVisit] = useState(false);
+
+  const loadChannelingHistory = async () => {
+    try {
+      const history = await getChannelingHistory(id);
+      setChannelingHistory(history);
+    } catch (error) {
+      console.error("Fetch channeling history error:", error);
+    }
+  };
 
   // Load patient data
   useEffect(() => {
@@ -72,12 +105,7 @@ const EditPatient = () => {
       age: data.age || "",
       gender: data.gender || "",
       address: data.address || "",
-      doctor: data.doctor || "",
-      disease: data.disease || "",
-      date: data.visit || "",
-      bloodGroup: data.blood || "",
-      medicalHistory: data.history || "",
-      description: data.description || ""
+      bloodGroup: data.blood || ""
     });
 
   } catch (error) {
@@ -87,22 +115,44 @@ const EditPatient = () => {
     };
 
     fetchPatient();
+    loadChannelingHistory();
   }, [id]);
+
+  const handleVisitChange = (e) => {
+    setVisitData({
+      ...visitData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleVisitDoctorChange = (event, value) => {
+    setVisitData({
+      ...visitData,
+      doctor: value || ""
+    });
+  };
+
+  const handleAddVisit = async () => {
+    setSavingVisit(true);
+    try {
+      const { date, ...rest } = visitData;
+      await addChannelingRecord(id, { ...rest, recordedAt: date || undefined });
+      setVisitData(emptyVisit);
+      await loadChannelingHistory();
+      setSnackbar({ open: true, message: "Visit recorded successfully.", severity: "success" });
+    } catch (error) {
+      console.error("Add visit error:", error);
+      setSnackbar({ open: true, message: "Failed to record visit.", severity: "error" });
+    } finally {
+      setSavingVisit(false);
+    }
+  };
 
   const handleChange = (e) => {
 
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    });
-
-  };
-
-  const handleDoctorChange = (event, value) => {
-
-    setFormData({
-      ...formData,
-      doctor: value || ""
     });
 
   };
@@ -117,12 +167,7 @@ const EditPatient = () => {
       gender: formData.gender,
       phone: formData.contact,
       address: formData.address,
-      blood: formData.bloodGroup,
-      doctor: formData.doctor,
-      disease: formData.disease,
-      visit: formData.date,
-      history: formData.medicalHistory,
-      description: formData.description
+      blood: formData.bloodGroup
     };
 
     try {
@@ -168,15 +213,19 @@ const EditPatient = () => {
 
       {/* Page Title */}
 
-      <div className="mb-6">
+      <div className="flex items-center gap-3 mb-6">
 
-        <Typography variant="h5" className="font-semibold">
-          Edit Patient
-        </Typography>
+        <BackButton to="/dashboard/patients" />
 
-        <p className="text-gray-500">
-          Update patient medical details
-        </p>
+        <div>
+          <Typography variant="h5" className="font-semibold">
+            Edit Patient
+          </Typography>
+
+          <p className="text-gray-500">
+            Update patient medical details
+          </p>
+        </div>
 
       </div>
 
@@ -237,59 +286,6 @@ const EditPatient = () => {
               </TextField>
 
               <TextField
-                label="Address"
-                name="address"
-                multiline
-                rows={2}
-                fullWidth
-                className="col-span-2"
-                value={formData.address}
-                onChange={handleChange}
-              />
-
-            </div>
-
-          </Paper>
-
-          {/* Medical Details */}
-
-          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm">
-
-            <div className="flex items-center gap-2 mb-4">
-              <MedicalInformationIcon className="text-green-500" />
-              <Typography variant="h6">Medical Details</Typography>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-
-              <Autocomplete
-                options={doctors}
-                value={formData.doctor}
-                onChange={handleDoctorChange}
-                renderInput={(params) => (
-                  <TextField {...params} label="Select Doctor" />
-                )}
-              />
-
-              <TextField
-                label="Disease"
-                name="disease"
-                fullWidth
-                value={formData.disease}
-                onChange={handleChange}
-              />
-
-              <TextField
-                type="date"
-                label="Date"
-                name="date"
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                value={formData.date}
-                onChange={handleChange}
-              />
-
-              <TextField
                 select
                 label="Blood Group"
                 name="bloodGroup"
@@ -310,27 +306,108 @@ const EditPatient = () => {
               </TextField>
 
               <TextField
-                label="Medical History"
-                name="medicalHistory"
+                label="Address"
+                name="address"
                 multiline
                 rows={2}
-                className="col-span-2"
-                value={formData.medicalHistory}
-                onChange={handleChange}
-              />
-
-              <TextField
-                label="Description / Medical Test Results"
-                name="description"
-                multiline
-                rows={10}
-                className="col-span-2"
                 fullWidth
-                value={formData.description}
+                className="col-span-2"
+                value={formData.address}
                 onChange={handleChange}
               />
 
             </div>
+
+          </Paper>
+
+          {/* Record New Channeling Visit */}
+
+          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm">
+
+            <div className="flex items-center gap-2 mb-4">
+              <MedicalInformationIcon className="text-red-500" />
+              <Typography variant="h6">Record New Channeling Visit</Typography>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Autocomplete options={doctors} value={visitData.doctor} onChange={handleVisitDoctorChange} renderInput={(params) => <TextField {...params} label="Select Doctor" />} />
+              <TextField label="Disease" name="disease" fullWidth value={visitData.disease} onChange={handleVisitChange} />
+              <TextField type="date" label="Date" name="date" fullWidth InputLabelProps={{ shrink: true }} value={visitData.date} onChange={handleVisitChange} />
+              <TextField label="Medical History" name="medicalHistory" multiline rows={2} className="col-span-2" value={visitData.medicalHistory} onChange={handleVisitChange} />
+              <TextField label="Blood Pressure - Systolic" name="bloodPressureSystolic" type="number" fullWidth value={visitData.bloodPressureSystolic} onChange={handleVisitChange} />
+              <TextField label="Blood Pressure - Diastolic" name="bloodPressureDiastolic" type="number" fullWidth value={visitData.bloodPressureDiastolic} onChange={handleVisitChange} />
+              <TextField label="Heart Rate (bpm)" name="heartRate" type="number" fullWidth value={visitData.heartRate} onChange={handleVisitChange} />
+              <TextField label="Temperature (°C)" name="temperature" type="number" fullWidth value={visitData.temperature} onChange={handleVisitChange} />
+              <TextField label="Weight (kg)" name="weight" type="number" fullWidth value={visitData.weight} onChange={handleVisitChange} />
+              <TextField label="Height (cm)" name="height" type="number" fullWidth value={visitData.height} onChange={handleVisitChange} />
+              <TextField label="Cholesterol" name="cholesterol" type="number" fullWidth value={visitData.cholesterol} onChange={handleVisitChange} />
+              <TextField label="Sugar Level" name="sugarLevel" type="number" fullWidth value={visitData.sugarLevel} onChange={handleVisitChange} />
+              <TextField label="Allergies" name="allergies" fullWidth className="col-span-2" value={visitData.allergies} onChange={handleVisitChange} />
+              <TextField label="Notes" name="notes" multiline rows={3} fullWidth className="col-span-2" value={visitData.notes} onChange={handleVisitChange} />
+            </div>
+
+            <div className="mt-4">
+              <Button variant="contained" sx={{ borderRadius: "14px", textTransform: "none" }} onClick={handleAddVisit} disabled={savingVisit}>
+                {savingVisit ? <CircularProgress size={20} /> : "Add Visit"}
+              </Button>
+            </div>
+
+          </Paper>
+
+          {/* Channeling History */}
+
+          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm">
+
+            <div className="flex items-center gap-2 mb-4">
+              <MedicalInformationIcon className="text-green-500" />
+              <Typography variant="h6">Channeling History</Typography>
+            </div>
+
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Doctor</TableCell>
+                    <TableCell>Disease</TableCell>
+                    <TableCell>BP</TableCell>
+                    <TableCell>Heart Rate</TableCell>
+                    <TableCell>Temp</TableCell>
+                    <TableCell>Weight</TableCell>
+                    <TableCell>Height</TableCell>
+                    <TableCell>Cholesterol</TableCell>
+                    <TableCell>Sugar</TableCell>
+                    <TableCell>Allergies</TableCell>
+                    <TableCell>Medical History</TableCell>
+                    <TableCell>Notes</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {channelingHistory.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={13} className="text-gray-500">No visits recorded yet.</TableCell>
+                    </TableRow>
+                  )}
+                  {channelingHistory.map((v) => (
+                    <TableRow key={v._id}>
+                      <TableCell>{new Date(v.recordedAt).toLocaleString()}</TableCell>
+                      <TableCell>{v.doctor || "-"}</TableCell>
+                      <TableCell>{v.disease || "-"}</TableCell>
+                      <TableCell>{v.bloodPressureSystolic || v.bloodPressureDiastolic ? `${v.bloodPressureSystolic || "-"}/${v.bloodPressureDiastolic || "-"}` : "-"}</TableCell>
+                      <TableCell>{v.heartRate || "-"}</TableCell>
+                      <TableCell>{v.temperature || "-"}</TableCell>
+                      <TableCell>{v.weight || "-"}</TableCell>
+                      <TableCell>{v.height || "-"}</TableCell>
+                      <TableCell>{v.cholesterol || "-"}</TableCell>
+                      <TableCell>{v.sugarLevel || "-"}</TableCell>
+                      <TableCell>{v.allergies || "-"}</TableCell>
+                      <TableCell>{v.medicalHistory || "-"}</TableCell>
+                      <TableCell>{v.notes || "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
           </Paper>
 
@@ -374,21 +451,6 @@ const EditPatient = () => {
               <div className="flex justify-between">
                 <span>Contact</span>
                 <span>{formData.contact || "-"}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Doctor</span>
-                <span>{formData.doctor || "-"}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Disease</span>
-                <span>{formData.disease || "-"}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Date</span>
-                <span>{formData.date || "-"}</span>
               </div>
 
               <div className="flex justify-between">

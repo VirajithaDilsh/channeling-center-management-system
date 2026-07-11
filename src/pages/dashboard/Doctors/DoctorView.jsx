@@ -1,12 +1,12 @@
 import React from "react";
-import { useParams,useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import BackButton from "../../../components/BackButton";
 
 const DoctorView = () => {
 
   const { id } = useParams(); // Get doctor ID from URL
-  const navigate = useNavigate();
 
   const [doctor, setDoctor] = useState(null); // state for single doctor
   const [loading, setLoading] = useState(true);
@@ -45,9 +45,12 @@ const DoctorView = () => {
 
       <div className="bg-light-blue shadow-2xl rounded-2xl h-full p-8">
 
-        <h1 className="text-2xl font-bold mb-6 text-gray-800 text-center">
-        Doctor Details
-      </h1>
+        <div className="flex items-center gap-3 mb-6">
+          <BackButton to="/dashboard/doctor-management" />
+          <h1 className="text-2xl font-bold text-gray-800">
+            Doctor Details
+          </h1>
+        </div>
         
         {/* Profile Picture */}
         <div className="flex justify-center mb-4">

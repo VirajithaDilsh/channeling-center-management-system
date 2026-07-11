@@ -71,9 +71,9 @@ export default function Billing() {
           <Tooltip title="Edit Invoice">
             <IconButton
               size="small"
-              className="hover:bg-yellow-100 transition"
+              className="hover:bg-green-100 transition"
             >
-              <EditIcon color="warning" />
+              <EditIcon color="success" />
             </IconButton>
           </Tooltip>
 

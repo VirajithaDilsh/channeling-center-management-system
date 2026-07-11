@@ -4,7 +4,8 @@ import {
   Button,
   Typography,
   InputAdornment,
-  Link
+  Link,
+  Paper
 } from "@mui/material";
 
 import LockIcon from "@mui/icons-material/Lock";
@@ -38,25 +39,24 @@ const ForgotPassword = () => {
 
   return (
 
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
+    <div className="min-h-screen flex items-center justify-center bg-slate-100">
 
-      {/* Glass Card */}
-      <div className="w-[420px] p-8 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.3)] text-center">
+      <Paper elevation={0} className="w-[420px] p-8 rounded-3xl shadow-sm text-center">
 
         {/* Lock Icon */}
         <div className="flex justify-center mb-4">
-          <div className="bg-white/20 p-3 rounded-xl">
-            <LockIcon className="text-white text-3xl" />
+          <div className="bg-blue-100 p-3 rounded-2xl">
+            <LockIcon className="text-blue-600 text-3xl" />
           </div>
         </div>
 
         {/* Title */}
         <div className="mb-6">
-          <Typography variant="h5" className="text-white font-bold">
+          <Typography variant="h5" className="font-bold">
             MediChannel Pro
           </Typography>
 
-          <Typography className="text-gray-200 text-sm">
+          <Typography className="text-gray-500 text-sm">
             Reset Your Password
           </Typography>
         </div>
@@ -72,26 +72,9 @@ const ForgotPassword = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <PersonIcon sx={{ color: "white" }} />
+                  <PersonIcon color="action" />
                 </InputAdornment>
               )
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                background: "rgba(59,130,246,0.15)",
-                backdropFilter: "blur(8px)",
-                borderRadius: "12px",
-                color: "white"
-              },
-              "& .MuiOutlinedInput-input": {
-                color: "white"
-              },
-              "& fieldset": {
-                border: "1px solid rgba(255,255,255,0.2)"
-              },
-              "& input::placeholder": {
-                color: "rgba(255,255,255,0.7)"
-              }
             }}
           />
         </div>
@@ -108,26 +91,9 @@ const ForgotPassword = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <LockIcon sx={{ color: "white" }} />
+                  <LockIcon color="action" />
                 </InputAdornment>
               )
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                background: "rgba(59,130,246,0.15)",
-                backdropFilter: "blur(8px)",
-                borderRadius: "12px",
-                color: "white"
-              },
-              "& .MuiOutlinedInput-input": {
-                color: "white"
-              },
-              "& fieldset": {
-                border: "1px solid rgba(255,255,255,0.2)"
-              },
-              "& input::placeholder": {
-                color: "rgba(255,255,255,0.7)"
-              }
             }}
           />
         </div>
@@ -137,7 +103,7 @@ const ForgotPassword = () => {
           variant="contained"
           fullWidth
           onClick={handleReset}
-          className="!bg-white !text-blue-700 !font-semibold !rounded-xl !py-2 hover:!bg-gray-200"
+          sx={{ borderRadius: "12px", py: 1.2 }}
         >
           Reset Password
         </Button>
@@ -146,7 +112,7 @@ const ForgotPassword = () => {
         <div className="mt-4">
           <Link
             component="button"
-            className="!text-white text-sm"
+            className="text-sm"
             onClick={() => navigate("/")}
           >
             Back to Login
@@ -155,12 +121,12 @@ const ForgotPassword = () => {
 
         {/* Message */}
         {message && (
-          <Typography className="mt-3 text-white">
+          <Typography className="mt-3 text-gray-700">
             {message}
           </Typography>
         )}
 
-      </div>
+      </Paper>
 
     </div>
   );

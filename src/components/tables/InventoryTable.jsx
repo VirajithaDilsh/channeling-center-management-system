@@ -1,12 +1,21 @@
 import React from "react";
-import { useMedicines } from "../../context/MedicineContext.jsx";
-import { Edit, Trash2, AlertTriangle } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
+import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useMedicines } from "../../context/MedicineContext.jsx";
+import TableActionButtons from "../TableActionButton.jsx";
 
 const InventoryTable = () => {
-  const { medicines } = useMedicines();
-   const navigate = useNavigate();
-  const { deleteMedicine } = useMedicines();
+  const { medicines, deleteMedicine } = useMedicines();
+  const navigate = useNavigate();
 
   if (!medicines || medicines.length === 0) {
     return (
@@ -15,7 +24,7 @@ const InventoryTable = () => {
       </div>
     );
   }
- 
+
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this medicine?",
@@ -31,38 +40,24 @@ const InventoryTable = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow overflow-x-auto">
-      <table className="min-w-full text-sm text-left">
-        {/* Table Head */}
-        <thead className="bg-gray-50 border-b">
-          <tr>
-            <th className="px-4 py-3 font-medium text-gray-600">Medicine</th>
-            <th className="px-4 py-3 font-medium text-gray-600">
-              Manufacturer
-            </th>
-            <th className="px-4 py-3 font-medium text-gray-600">Category</th>
-            <th className="px-4 py-3 font-medium text-gray-600">Batch</th>
-            <th className="px-4 py-3 font-medium text-gray-600">Expiry</th>
-            <th className="px-4 py-3 font-medium text-gray-600 text-right">
-              Stock
-            </th>
-            <th className="px-4 py-3 font-medium text-gray-600 text-right">
-              Unit Price
-            </th>
-            <th className="px-4 py-3 font-medium text-gray-600 text-right">
-              Total Value
-            </th>
-            <th className="px-4 py-3 font-medium text-gray-600 text-center">
-              Status
-            </th>
-            <th className="px-4 py-3 font-medium text-gray-600 text-center">
-              Actions
-            </th>
-          </tr>
-        </thead>
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Medicine</TableCell>
+            <TableCell>Manufacturer</TableCell>
+            <TableCell>Category</TableCell>
+            <TableCell>Batch</TableCell>
+            <TableCell>Expiry</TableCell>
+            <TableCell align="right">Stock</TableCell>
+            <TableCell align="right">Unit Price</TableCell>
+            <TableCell align="right">Total Value</TableCell>
+            <TableCell align="center">Status</TableCell>
+            <TableCell align="center">Actions</TableCell>
+          </TableRow>
+        </TableHead>
 
-        {/* Table Body */}
-        <tbody className="divide-y">
+        <TableBody>
           {medicines.map((med) => {
             const totalValue =
               parseFloat(med.stockQuantity || 0) *
@@ -73,43 +68,22 @@ const InventoryTable = () => {
               parseInt(med.stockQuantity) <= parseInt(med.reorderLevel);
 
             return (
-              <tr key={med._id} className="hover:bg-gray-50 transition">
-                {/* Medicine Name */}
-                <td className="px-4 py-3 font-medium text-gray-900">
-                  {med.name}
-                </td>
-
-                {/* Manufacturer */}
-                <td className="px-4 py-3 text-gray-600">{med.manufacturer}</td>
-
-                {/* Category */}
-                <td className="px-4 py-3 text-gray-600">
-                  {med.category || "—"}
-                </td>
-
-                {/* Batch */}
-                <td className="px-4 py-3 text-gray-600">{med.batchNumber}</td>
-
-                {/* Expiry */}
-                <td className="px-4 py-3 text-gray-600">{med.expiryDate}</td>
-
-                {/* Stock */}
-                <td className="px-4 py-3 text-right font-medium">
+              <TableRow key={med._id} hover>
+                <TableCell className="font-medium">{med.name}</TableCell>
+                <TableCell>{med.manufacturer}</TableCell>
+                <TableCell>{med.category || "—"}</TableCell>
+                <TableCell>{med.batchNumber}</TableCell>
+                <TableCell>{med.expiryDate}</TableCell>
+                <TableCell align="right">
                   {med.stockQuantity} {med.unitType}
-                </td>
-
-                {/* Unit Price */}
-                <td className="px-4 py-3 text-right">
+                </TableCell>
+                <TableCell align="right">
                   ${parseFloat(med.unitPrice || 0).toFixed(2)}
-                </td>
-
-                {/* Total Value */}
-                <td className="px-4 py-3 text-right font-semibold text-sky-600">
+                </TableCell>
+                <TableCell align="right" className="font-semibold">
                   ${totalValue.toFixed(2)}
-                </td>
-
-                {/* Status */}
-                <td className="px-4 py-3 text-center">
+                </TableCell>
+                <TableCell align="center">
                   {lowStock ? (
                     <span className="inline-flex items-center text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded-lg">
                       <AlertTriangle className="w-3 h-3 mr-1" />
@@ -120,30 +94,21 @@ const InventoryTable = () => {
                       In Stock
                     </span>
                   )}
-                </td>
-
-                {/* Actions */}
-                <td className="px-4 py-3 text-center space-x-2">
-                  <button
-                    onClick={() => navigate(`/dashboard/inventory/edit-medicine/${med._id}`)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <Edit className="w-4 h-4 inline" />
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(med._id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="w-4 h-4 inline" />
-                  </button>
-                </td>
-              </tr>
+                </TableCell>
+                <TableCell align="center">
+                  <TableActionButtons
+                    onEdit={() =>
+                      navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
+                    }
+                    onDelete={() => handleDelete(med._id)}
+                  />
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
-    </div>
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 

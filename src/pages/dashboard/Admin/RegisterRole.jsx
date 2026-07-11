@@ -9,10 +9,10 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BackButton from "../../../components/BackButton";
 import { createAdmin } from "../../../api/AdminApi";
 
 const RegisterRole = () => {
@@ -113,19 +113,7 @@ const RegisterRole = () => {
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          {/* Back Button */}
-          <Button
-            onClick={() => navigate("dashboard/admin")}
-            sx={{
-              minWidth: "40px",
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "#e0f2fe",
-            }}
-          >
-            <ArrowBackIcon className="text-blue-600" />
-          </Button>
+          <BackButton to="/dashboard/admin" />
 
           {/* Icon */}
           <div className="bg-blue-100 p-3 rounded-2xl">
@@ -191,6 +179,10 @@ const RegisterRole = () => {
             <MenuItem value="patient_manager">
               Patient Manager (Patient Management)
             </MenuItem>
+
+            <MenuItem value="doctor">
+              Doctor (Appointments & Prescriptions)
+            </MenuItem>
           </TextField>
 
           <TextField
@@ -240,7 +232,7 @@ const RegisterRole = () => {
               textTransform: "none",
               py: 1.4,
             }}
-            onClick={() => navigate("/dashboard/admin-management")}
+            onClick={() => navigate("/dashboard/admin")}
           >
             Cancel
           </Button>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
+import BackButton from "../../../components/BackButton";
 import axios from "axios";
 
 const DoctorEdit = () => {
@@ -67,9 +68,12 @@ const DoctorEdit = () => {
   return (
     <div className="space-y-6">
 
-      <h1 className="text-2xl font-semibold">
-        Edit Doctor
-      </h1>
+      <div className="flex items-center gap-3">
+        <BackButton to="/dashboard/doctor-management" />
+        <h1 className="text-2xl font-semibold">
+          Edit Doctor
+        </h1>
+      </div>
 
       <div className="bg-white rounded-xl shadow p-6">
 
@@ -191,13 +195,12 @@ const DoctorEdit = () => {
             <AddButton
               label="Update Doctor"
               onClick={handleSubmit}
-              bgColor="#1FB1F9"
             />
 
             <AddButton
               label="Cancel"
+              color="inherit"
               onClick={() => navigate("/dashboard/doctor-management")}
-              bgColor="#1FB1F9"
             />
 
           </div>

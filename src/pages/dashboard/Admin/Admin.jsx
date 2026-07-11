@@ -9,7 +9,6 @@ import {
   Paper,
   Button,
   TextField,
-  IconButton,
   Snackbar,
   Alert,
   Dialog,
@@ -23,11 +22,10 @@ import {
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-
+import TableActionButtons from "../../../components/TableActionButton";
 import { getAdmins, deleteAdmin } from "../../../api/AdminApi";
+
+const ROWS_PER_PAGE = 8;
 
 export default function AdminManagement() {
   const [admins, setAdmins] = useState([]);
@@ -90,6 +88,9 @@ export default function AdminManagement() {
     }
   };
 
+  const pageCount = Math.max(1, Math.ceil(admins.length / ROWS_PER_PAGE));
+  const visibleAdmins = admins.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
 
@@ -149,7 +150,7 @@ export default function AdminManagement() {
           </TableHead>
 
           <TableBody>
-            {admins.map((admin) => (
+            {visibleAdmins.map((admin) => (
               <TableRow key={admin.id} hover>
 
                 <TableCell>{admin.name}</TableCell>
@@ -165,35 +166,11 @@ export default function AdminManagement() {
                 <TableCell>{admin.contact}</TableCell>
 
                 <TableCell>
-
-                  {/* VIEW */}
-                  <IconButton
-                    color="primary"
-                    onClick={() =>
-                      navigate(`/dashboard/admin/view/${admin.id}`)
-                    }
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
-
-                  {/* EDIT */}
-                  <IconButton
-                    color="success"
-                    onClick={() =>
-                      navigate(`/edit-admin/${admin.id}`)
-                    }
-                  >
-                    <EditIcon />
-                  </IconButton>
-
-                  {/* DELETE */}
-                  <IconButton
-                    color="error"
-                    onClick={() => handleDeleteClick(admin.id)}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-
+                  <TableActionButtons
+                    onView={() => navigate(`/dashboard/admin/view/${admin.id}`)}
+                    onEdit={() => navigate(`/edit-admin/${admin.id}`)}
+                    onDelete={() => handleDeleteClick(admin.id)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -208,12 +185,14 @@ export default function AdminManagement() {
           Showing {admins.length} admins
         </p>
 
-        <Pagination
-          count={5}
-          page={page}
-          onChange={(e, value) => setPage(value)}
-          color="primary"
-        />
+        {pageCount > 1 && (
+          <Pagination
+            count={pageCount}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+          />
+        )}
       </div>
 
       {/* SNACKBAR */}

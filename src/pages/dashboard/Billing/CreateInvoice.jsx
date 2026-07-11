@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  User, Phone, Stethoscope, Activity, DollarSign, 
-  Search, Plus, Pill, Receipt, ArrowLeft
+import { useNavigate } from 'react-router-dom';
+import {
+  User, Phone, Stethoscope, Activity, DollarSign,
+  Search, Plus, Pill, Receipt
 } from 'lucide-react';
+import BackButton from '../../../components/BackButton';
 
 // Mock database for medicine search (Replace with your actual API/data)
 const MEDICINE_DB = [
@@ -13,6 +15,8 @@ const MEDICINE_DB = [
 ];
 
 export default function CreateInvoice() {
+  const navigate = useNavigate();
+
   // --- STATE MANAGEMENT ---
   const [patientDetails, setPatientDetails] = useState({
     name: '',
@@ -64,12 +68,12 @@ export default function CreateInvoice() {
     <div className="flex-1 p-8 bg-[#f8fafc] min-h-screen">
       
       {/* Page Header */}
-      <div className="mb-6">
-        <button className="flex items-center text-slate-500 hover:text-slate-700 text-sm font-medium mb-2">
-          <ArrowLeft size={16} className="mr-1" /> Back to Billing
-        </button>
-        <h1 className="text-2xl font-bold text-slate-800">Create New Bill</h1>
-        <p className="text-slate-500 text-sm mt-1">Generate a bill for patient consultation and pharmacy items</p>
+      <div className="mb-6 flex items-center gap-3">
+        <BackButton to="/dashboard/billing" />
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Create New Bill</h1>
+          <p className="text-slate-500 text-sm mt-1">Generate a bill for patient consultation and pharmacy items</p>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -275,7 +279,10 @@ export default function CreateInvoice() {
 
             {/* Actions */}
             <div className="flex gap-3">
-              <button className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+              <button
+                onClick={() => navigate('/dashboard/billing')}
+                className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
                 Cancel
               </button>
               <button className="flex-1 px-4 py-2 bg-[#008bc9] text-white rounded-lg text-sm font-medium hover:bg-[#0073a8] transition-colors">
