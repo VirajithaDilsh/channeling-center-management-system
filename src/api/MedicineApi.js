@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-const API_URL = "https://musical-giggle-q7xx6pvw47vr369gj-5000.app.github.dev/api/medicines";
+const API_URL = "http://localhost:5000/api/medicines";
 
 //GET
 export const getMedicines = async () => {
