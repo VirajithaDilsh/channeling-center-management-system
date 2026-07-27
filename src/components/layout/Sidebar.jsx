@@ -1,21 +1,31 @@
-import { NavLink } from "react-router-dom";
-import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X, Shield, LogOut } from "lucide-react";
-
+import { NavLink, useNavigate } from "react-router-dom";
+import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X, Shield, LogOut, Pill } from "lucide-react";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+    const navigate = useNavigate();
+    const userPermissions = JSON.parse(localStorage.getItem("userPermissions") || "[]");
 
     const links = [
         { name: "Dashboard", to: "/dashboard", icon: <House size={20} /> },
-        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} /> }, 
-        { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} /> },
-        { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} /> },
-        { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} /> },
-        { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} /> },
-        { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} /> },
+        { name: "My Appointments", to: "/dashboard/doctor-home", icon: <Stethoscope size={20} />, permission: "doctor_portal" },
+        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} />, permission: "view_doctors" },
+        { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} />, permission: "manage_patients" },
+        { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} />, permission: "view_appointments" },
+        { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} />, permission: "manage_inventory" },
+        { name: "Pharmacy Queue", to: "/dashboard/pharmacy", icon: <Pill size={20} />, permission: "manage_pharmacy" },
+        { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} />, permission: "manage_billing" },
+        { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} />, permission: "view_reports" },
         { name: "Settings", to: "/dashboard/settings", icon: <Settings size={20} /> },
-        { name: "Admin", to: "/dashboard/Admin", icon: <Shield size={20} /> },
-        
-    ];
+        { name: "Admin", to: "/dashboard/Admin", icon: <Shield size={20} />, permission: "manage_admins" },
+
+    ].filter((link) => !link.permission || userPermissions.includes(link.permission));
+
+    const handleLogout = () => {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("userPermissions");
+        navigate("/");
+    };
 
     return (
         <>
@@ -59,7 +69,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     <div className="pt-2 ">
                         <button
                             className="flex items-center gap-3 p-2 w-full rounded hover:bg-red-100 text-red-600 transition"
-                            onClick={() => console.log("Logout clicked")}
+                            onClick={handleLogout}
                         >
                             <LogOut size={20} />
                             <span>Logout</span>

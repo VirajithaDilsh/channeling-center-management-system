@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   MenuItem,
@@ -9,11 +9,12 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BackButton from "../../../components/BackButton";
 import { createAdmin } from "../../../api/AdminApi";
+import { getRoles } from "../../../api/RoleApi";
 
 const RegisterRole = () => {
   const navigate = useNavigate();
@@ -26,7 +27,14 @@ const RegisterRole = () => {
     password: "",
   });
 
+  const [roleOptions, setRoleOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getRoles()
+      .then(setRoleOptions)
+      .catch((err) => console.error("Failed to load roles", err));
+  }, []);
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -113,19 +121,7 @@ const RegisterRole = () => {
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
-          {/* Back Button */}
-          <Button
-            onClick={() => navigate("dashboard/admin")}
-            sx={{
-              minWidth: "40px",
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "#e0f2fe",
-            }}
-          >
-            <ArrowBackIcon className="text-blue-600" />
-          </Button>
+          <BackButton to="/dashboard/admin" />
 
           {/* Icon */}
           <div className="bg-blue-100 p-3 rounded-2xl">
@@ -165,7 +161,7 @@ const RegisterRole = () => {
             onChange={handleChange}
           />
 
-          {/* UPDATED ROLE DROPDOWN */}
+          {/* ROLE DROPDOWN — populated from Roles & Permissions */}
           <TextField
             select
             label="Role"
@@ -175,22 +171,11 @@ const RegisterRole = () => {
             value={formData.role}
             onChange={handleChange}
           >
-            {/* Values now perfectly match the Login.jsx switch cases */}
-            <MenuItem value="admin">
-              Admin (Roles Management)
-            </MenuItem>
-
-            <MenuItem value="reception">
-              Receptionist (Doctors & Appointments)
-            </MenuItem>
-
-            <MenuItem value="billing">
-              Billing (Pharmacy Management)
-            </MenuItem>
-
-            <MenuItem value="patient_manager">
-              Patient Manager (Patient Management)
-            </MenuItem>
+            {roleOptions.map((role) => (
+              <MenuItem key={role._id} value={role.name}>
+                {role.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
@@ -240,7 +225,7 @@ const RegisterRole = () => {
               textTransform: "none",
               py: 1.4,
             }}
-            onClick={() => navigate("/dashboard/admin-management")}
+            onClick={() => navigate("/dashboard/admin")}
           >
             Cancel
           </Button>

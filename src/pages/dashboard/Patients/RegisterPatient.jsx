@@ -15,7 +15,9 @@ import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import BackButton from "../../../components/BackButton";
 import { createPatient } from "../../../api/PatientApi";
+import { addChannelingRecord } from "../../../api/ChannelingApi";
 
 const doctors = [
   "Dr. John Smith",
@@ -25,22 +27,33 @@ const doctors = [
   "Dr. David Lee"
 ];
 
+const emptyFormData = {
+  patientName: "",
+  contact: "",
+  age: "",
+  gender: "",
+  address: "",
+  doctor: "",
+  disease: "",
+  date: "",
+  bloodGroup: "",
+  medicalHistory: "",
+  bloodPressureSystolic: "",
+  bloodPressureDiastolic: "",
+  heartRate: "",
+  temperature: "",
+  weight: "",
+  height: "",
+  cholesterol: "",
+  sugarLevel: "",
+  allergies: "",
+  notes: ""
+};
+
 const RegisterPatient = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    patientName: "",
-    contact: "",
-    age: "",
-    gender: "",
-    address: "",
-    doctor: "",
-    disease: "",
-    date: "",
-    bloodGroup: "",
-    medicalHistory: "",
-    description: `BP:\nCholesterol:\nSugar Level:\nAllergies:\nHeart Rate:\nTemperature:\nWeight:\nHeight:\nNotes:`
-  });
+  const [formData, setFormData] = useState(emptyFormData);
 
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
@@ -48,41 +61,44 @@ const RegisterPatient = () => {
   const handleSubmit = async () => {
     setLoading(true);
 
+    const patientId = `P-${Date.now()}`;
+
     const patientData = {
-      patientId: `P-${Date.now()}`,
+      patientId,
       name: formData.patientName,
       age: formData.age,
       gender: formData.gender,
       phone: formData.contact,
       address: formData.address,
-      blood: formData.bloodGroup,
+      blood: formData.bloodGroup
+    };
+
+    const channelingData = {
       doctor: formData.doctor,
       disease: formData.disease,
-      visit: formData.date,
-      history: formData.medicalHistory,
-      description: formData.description
+      medicalHistory: formData.medicalHistory,
+      recordedAt: formData.date || undefined,
+      bloodPressureSystolic: formData.bloodPressureSystolic,
+      bloodPressureDiastolic: formData.bloodPressureDiastolic,
+      heartRate: formData.heartRate,
+      temperature: formData.temperature,
+      weight: formData.weight,
+      height: formData.height,
+      cholesterol: formData.cholesterol,
+      sugarLevel: formData.sugarLevel,
+      allergies: formData.allergies,
+      notes: formData.notes
     };
 
     try {
       await createPatient(patientData);
+      await addChannelingRecord(patientId, channelingData);
 
       // show a professional success notification
       setSnackbar({ open: true, message: "Patient successfully registered.", severity: "success" });
 
       // reset form immediately (optional) and navigate to patient management page
-      setFormData({
-        patientName: "",
-        contact: "",
-        age: "",
-        gender: "",
-        address: "",
-        doctor: "",
-        disease: "",
-        date: "",
-        bloodGroup: "",
-        medicalHistory: "",
-        description: `BP:\nCholesterol:\nSugar Level:\nAllergies:\nHeart Rate:\nTemperature:\nWeight:\nHeight:\nNotes:`
-      });
+      setFormData(emptyFormData);
 
       // Navigate after a short delay so the user can briefly read the notification.
       // If you'd prefer to navigate immediately, change the timeout to 0 or call navigate() directly.
@@ -113,11 +129,14 @@ const RegisterPatient = () => {
 
   return (
     <div className="p-6 bg-slate-100 min-h-screen">
-      <div className="mb-6">
-        <Typography variant="h5" className="font-semibold">
-          Register Patient
-        </Typography>
-        <p className="text-gray-500">Add a new patient with medical details</p>
+      <div className="flex items-center gap-3 mb-6">
+        <BackButton to="/dashboard/patients" />
+        <div>
+          <Typography variant="h5" className="font-semibold">
+            Register Patient
+          </Typography>
+          <p className="text-gray-500">Add a new patient with medical details</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
@@ -141,23 +160,6 @@ const RegisterPatient = () => {
                 <MenuItem value="Other">Other</MenuItem>
               </TextField>
 
-              <TextField label="Address" name="address" multiline rows={2} fullWidth className="col-span-2" value={formData.address} onChange={handleChange} />
-            </div>
-          </Paper>
-
-          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-2 mb-4">
-              <MedicalInformationIcon className="text-green-500" />
-              <Typography variant="h6">Medical Details</Typography>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Autocomplete options={doctors} value={formData.doctor} onChange={handleDoctorChange} renderInput={(params) => <TextField {...params} label="Select Doctor" />} />
-
-              <TextField label="Disease" name="disease" fullWidth value={formData.disease} onChange={handleChange} />
-
-              <TextField type="date" label="Date" name="date" fullWidth InputLabelProps={{ shrink: true }} value={formData.date} onChange={handleChange} />
-
               <TextField select label="Blood Group" name="bloodGroup" fullWidth value={formData.bloodGroup} onChange={handleChange}>
                 <MenuItem value="A+">A+</MenuItem>
                 <MenuItem value="A-">A-</MenuItem>
@@ -169,9 +171,44 @@ const RegisterPatient = () => {
                 <MenuItem value="AB-">AB-</MenuItem>
               </TextField>
 
-              <TextField label="Medical History" name="medicalHistory" multiline rows={2} className="col-span-2" value={formData.medicalHistory} onChange={handleChange} />
+              <TextField label="Address" name="address" multiline rows={2} fullWidth className="col-span-2" value={formData.address} onChange={handleChange} />
+            </div>
+          </Paper>
 
-              <TextField label="Description / Medical Test Results" name="description" multiline rows={10} className="col-span-2" fullWidth value={formData.description} onChange={handleChange} placeholder={`BP:\nCholesterol:\nSugar Level:\nAllergies:\nHeart Rate:\nTemperature:\nWeight:\nHeight:\nNotes:`} />
+          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <MedicalInformationIcon className="text-green-500" />
+              <Typography variant="h6">Channeling Record</Typography>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Autocomplete options={doctors} value={formData.doctor} onChange={handleDoctorChange} renderInput={(params) => <TextField {...params} label="Select Doctor" />} />
+
+              <TextField label="Disease" name="disease" fullWidth value={formData.disease} onChange={handleChange} />
+
+              <TextField type="date" label="Date" name="date" fullWidth InputLabelProps={{ shrink: true }} value={formData.date} onChange={handleChange} />
+
+              <TextField label="Medical History" name="medicalHistory" multiline rows={2} className="col-span-2" value={formData.medicalHistory} onChange={handleChange} />
+            </div>
+          </Paper>
+
+          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <MedicalInformationIcon className="text-red-500" />
+              <Typography variant="h6">Vitals</Typography>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <TextField label="Blood Pressure - Systolic" name="bloodPressureSystolic" type="number" fullWidth value={formData.bloodPressureSystolic} onChange={handleChange} />
+              <TextField label="Blood Pressure - Diastolic" name="bloodPressureDiastolic" type="number" fullWidth value={formData.bloodPressureDiastolic} onChange={handleChange} />
+              <TextField label="Heart Rate (bpm)" name="heartRate" type="number" fullWidth value={formData.heartRate} onChange={handleChange} />
+              <TextField label="Temperature (°C)" name="temperature" type="number" fullWidth value={formData.temperature} onChange={handleChange} />
+              <TextField label="Weight (kg)" name="weight" type="number" fullWidth value={formData.weight} onChange={handleChange} />
+              <TextField label="Height (cm)" name="height" type="number" fullWidth value={formData.height} onChange={handleChange} />
+              <TextField label="Cholesterol" name="cholesterol" type="number" fullWidth value={formData.cholesterol} onChange={handleChange} />
+              <TextField label="Sugar Level" name="sugarLevel" type="number" fullWidth value={formData.sugarLevel} onChange={handleChange} />
+              <TextField label="Allergies" name="allergies" fullWidth className="col-span-2" value={formData.allergies} onChange={handleChange} />
+              <TextField label="Notes" name="notes" multiline rows={3} fullWidth className="col-span-2" value={formData.notes} onChange={handleChange} />
             </div>
           </Paper>
         </div>
@@ -207,17 +244,18 @@ const RegisterPatient = () => {
                 {loading ? <CircularProgress size={20} /> : "Register Patient"}
               </Button>
 
-                          <Button
-              variant="outlined"
-              fullWidth
-              sx={{
-                borderRadius: "14px",
-                textTransform: "none",
-                mt: 2
-              }}
-            >
-              Cancel
-            </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                sx={{
+                  borderRadius: "14px",
+                  textTransform: "none",
+                  mt: 2
+                }}
+                onClick={() => navigate("/dashboard/patients")}
+              >
+                Cancel
+              </Button>
             </div>
           </Paper>
         </div>

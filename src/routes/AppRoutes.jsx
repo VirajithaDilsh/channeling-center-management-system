@@ -18,6 +18,7 @@ import CreateInvoice from "../pages/dashboard/Billing/CreateInvoice.jsx";
 import Admin from '../pages/dashboard/Admin/Admin.jsx'
 import RegisterRole from '../pages/dashboard/Admin/RegisterRole.jsx';
 import EditAdmin from '../pages/dashboard/Admin/EditAdmin.jsx'
+import RoleManagement from '../pages/dashboard/Admin/RoleManagement.jsx'
 
 
 import AddDoctors from "../pages/dashboard/Doctors/AddDoctor.jsx";
@@ -26,6 +27,10 @@ import Payments from "../pages/dashboard/Payments/Payments.jsx";
 import Appoiments from "../pages/dashboard/Appoiments/Appoiments.jsx";
 import DoctorView from "../pages/dashboard/Doctors/DoctorView.jsx";
 import DoctorEdit from "../pages/dashboard/Doctors/DoctorEdit.jsx";
+import ProtectedRoute from "../components/ProtectedRoute.jsx";
+import DoctorHome from "../pages/dashboard/DoctorPortal/DoctorHome.jsx";
+import Consultation from "../pages/dashboard/DoctorPortal/Consultation.jsx";
+import DispenseQueue from "../pages/dashboard/Pharmacy/DispenseQueue.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
@@ -46,6 +51,7 @@ const AppRoutes = () => {
 
       {/* Admin */}
       <Route path="admin" element={<Admin />} />
+      <Route path="roles" element={<RoleManagement />} />
 
       {/* Doctors */}
       <Route path="doctors" element={<Doctors />} />
@@ -54,11 +60,15 @@ const AppRoutes = () => {
       <Route path="doctor/:id" element={<DoctorView />} />
       <Route path="doctor/edit/:id" element={<DoctorEdit />} />
 
+      {/* Doctor Portal */}
+      <Route path="doctor-home" element={<ProtectedRoute requiredPermission="doctor_portal"><DoctorHome /></ProtectedRoute>} />
+      <Route path="doctor/consultation/:appointmentId" element={<ProtectedRoute requiredPermission="doctor_portal"><Consultation /></ProtectedRoute>} />
+
       {/* Patients */}
-      <Route path="patients" element={<Patients />} />
-      <Route path="register-patient" element={<RegisterPatient />} />
-      <Route path="patients/view/:id" element={<ViewPatient />} />
-      <Route path="patients/edit/:id" element={<EditPatient />} />
+      <Route path="patients" element={<ProtectedRoute requiredPermission="manage_patients"><Patients /></ProtectedRoute>} />
+      <Route path="register-patient" element={<ProtectedRoute requiredPermission="manage_patients"><RegisterPatient /></ProtectedRoute>} />
+      <Route path="patients/view/:id" element={<ProtectedRoute requiredPermission="manage_patients"><ViewPatient /></ProtectedRoute>} />
+      <Route path="patients/edit/:id" element={<ProtectedRoute requiredPermission="manage_patients"><EditPatient /></ProtectedRoute>} />
 
       {/* Inventory */}
       <Route path="inventory" element={<Inventory />} />
@@ -67,7 +77,10 @@ const AppRoutes = () => {
 
       {/* Billing */}
       <Route path="billing" element={<Billing />} />
-      <Route path="create-invoice" element={<CreateInvoice />} />
+      <Route path="billing/:id" element={<CreateInvoice />} />
+
+      {/* Pharmacy */}
+      <Route path="pharmacy" element={<ProtectedRoute requiredPermission="manage_pharmacy"><DispenseQueue /></ProtectedRoute>} />
 
       {/* Others */}
       <Route path="reports" element={<Reports />} />

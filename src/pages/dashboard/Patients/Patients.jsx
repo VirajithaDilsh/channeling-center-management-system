@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Button, TextField, Select, MenuItem, Pagination, IconButton,
+  Paper, Button, TextField, Select, MenuItem, Pagination,
   Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import TableActionButtons from "../../../components/TableActionButton";
 import { getPatients, deletePatient } from "../../../api/PatientApi";
+
+const ROWS_PER_PAGE = 8;
 
 export default function PatientManagement() {
   const [patients, setPatients] = useState([]);
@@ -60,6 +60,9 @@ export default function PatientManagement() {
     }
   };
 
+  const pageCount = Math.max(1, Math.ceil(patients.length / ROWS_PER_PAGE));
+  const visiblePatients = patients.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -103,16 +106,12 @@ export default function PatientManagement() {
               <TableCell>Patient Info</TableCell>
               <TableCell>Contact</TableCell>
               <TableCell>Blood Group</TableCell>
-              <TableCell>Doctor</TableCell>
-              <TableCell>Disease</TableCell>
               <TableCell>Last Visit</TableCell>
-              <TableCell>Medical History</TableCell>
-              <TableCell>Description</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {patients.map((p) => (
+            {visiblePatients.map((p) => (
               <TableRow key={p.patientId} hover>
                 <TableCell>
                   <div className="flex flex-col gap-1">
@@ -128,25 +127,13 @@ export default function PatientManagement() {
                     {p.blood || "-"}
                   </span>
                 </TableCell>
-                <TableCell>{p.doctor || "-"}</TableCell>
+                <TableCell>{p.lastVisit ? new Date(p.lastVisit).toLocaleDateString() : "-"}</TableCell>
                 <TableCell>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
-                    {p.disease || "-"}
-                  </span>
-                </TableCell>
-                <TableCell>{p.visit ? new Date(p.visit).toLocaleDateString() : "-"}</TableCell>
-                <TableCell className="text-gray-600 text-sm">{p.history || "-"}</TableCell>
-                <TableCell className="text-gray-600 text-sm">{p.description || "-"}</TableCell>
-                <TableCell>
-                  <IconButton color="primary" onClick={() => navigate(`/dashboard/patients/view/${p.patientId}`)}>
-                    <VisibilityIcon />
-                  </IconButton>
-                  <IconButton color="success" onClick={() => navigate(`/dashboard/patients/edit/${p.patientId}`)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => handleDeleteClick(p.patientId)}>
-                    <DeleteIcon />
-                  </IconButton>
+                  <TableActionButtons
+                    onView={() => navigate(`/dashboard/patients/view/${p.patientId}`)}
+                    onEdit={() => navigate(`/dashboard/patients/edit/${p.patientId}`)}
+                    onDelete={() => handleDeleteClick(p.patientId)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -157,7 +144,9 @@ export default function PatientManagement() {
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-500">Showing {patients.length} patients</p>
-        <Pagination count={5} page={page} onChange={(e, value) => setPage(value)} color="primary" />
+        {pageCount > 1 && (
+          <Pagination count={pageCount} page={page} onChange={(e, value) => setPage(value)} color="primary" />
+        )}
       </div>
 
       {/* Snackbar */}

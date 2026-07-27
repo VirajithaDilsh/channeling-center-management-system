@@ -48,7 +48,6 @@ const Inventory = () => {
                     <AddButton
                         label="Add Medicine"
                         onClick={() => navigate("/dashboard/inventory/add-medicine")}
-                        bgColor="#1FB1F9"
                     />
                 </div>
 

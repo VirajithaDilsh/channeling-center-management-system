@@ -10,15 +10,16 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
 
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import BackButton from "../../../components/BackButton";
 
 import {
   getAdminById,
   updateAdmin,
 } from "../../../api/AdminApi";
+import { getRoles } from "../../../api/RoleApi";
 
 const EditAdmin = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const EditAdmin = () => {
     password: "",
   });
 
+  const [roleOptions, setRoleOptions] = useState([]);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -43,6 +46,9 @@ const EditAdmin = () => {
 
   useEffect(() => {
     fetchAdmin();
+    getRoles()
+      .then(setRoleOptions)
+      .catch((err) => console.error("Failed to load roles", err));
   }, []);
 
   const fetchAdmin = async () => {
@@ -106,22 +112,9 @@ const EditAdmin = () => {
         className="p-8 rounded-3xl shadow-sm w-full max-w-2xl"
       >
         {/* Header */}
-       {/* Header */}
 <div className="flex items-center gap-3 mb-8">
 
-  {/* Back Button */}
-  <Button
-    onClick={() => navigate("dashboard/admin")}
-    sx={{
-      minWidth: "40px",
-      width: "40px",
-      height: "40px",
-      borderRadius: "50%",
-      backgroundColor: "#e0f2fe",
-    }}
-  >
-    <ArrowBackIcon className="text-blue-600" />
-  </Button>
+  <BackButton to="/dashboard/admin" />
 
   {/* Icon */}
   <div className="bg-blue-100 p-3 rounded-2xl">
@@ -166,23 +159,11 @@ const EditAdmin = () => {
             value={formData.role}
             onChange={handleChange}
           >
-            <MenuItem value="admin">
-              Admin (Roles Management)
-            </MenuItem>
-
-           
-
-            <MenuItem value="reception">
-             Receptionist (Doctors & Appointments)
-            </MenuItem>
-
-            <MenuItem value="patient_manager">
-               Patient Manager (Patient Management)
-            </MenuItem>
-
-            <MenuItem value="billing">
-              Billing (Pharmacy Management)
-            </MenuItem>
+            {roleOptions.map((role) => (
+              <MenuItem key={role._id} value={role.name}>
+                {role.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
@@ -226,7 +207,7 @@ const EditAdmin = () => {
           <Button
             variant="outlined"
             fullWidth
-            onClick={() => navigate("/admin")}
+            onClick={() => navigate("/dashboard/admin")}
             sx={{
               borderRadius: "12px",
               textTransform: "none",
