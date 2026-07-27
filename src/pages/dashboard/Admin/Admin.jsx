@@ -106,10 +106,17 @@ export default function AdminManagement() {
 
         <div className="flex gap-3 ml-auto">
           <Button
+            variant="outlined"
+            onClick={() => navigate("/dashboard/roles")}
+          >
+            Manage Roles & Permissions
+          </Button>
+
+          <Button
             variant="contained"
             onClick={() => navigate("/register-role")}
           >
-            + Add New Role
+            + Add User
           </Button>
 
           <Button

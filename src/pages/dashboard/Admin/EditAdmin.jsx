@@ -19,6 +19,7 @@ import {
   getAdminById,
   updateAdmin,
 } from "../../../api/AdminApi";
+import { getRoles } from "../../../api/RoleApi";
 
 const EditAdmin = () => {
   const navigate = useNavigate();
@@ -35,6 +36,8 @@ const EditAdmin = () => {
     password: "",
   });
 
+  const [roleOptions, setRoleOptions] = useState([]);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -43,6 +46,9 @@ const EditAdmin = () => {
 
   useEffect(() => {
     fetchAdmin();
+    getRoles()
+      .then(setRoleOptions)
+      .catch((err) => console.error("Failed to load roles", err));
   }, []);
 
   const fetchAdmin = async () => {
@@ -153,23 +159,11 @@ const EditAdmin = () => {
             value={formData.role}
             onChange={handleChange}
           >
-            <MenuItem value="admin">
-              Admin (Roles Management)
-            </MenuItem>
-
-           
-
-            <MenuItem value="reception">
-             Receptionist (Doctors & Appointments)
-            </MenuItem>
-
-            <MenuItem value="patient_manager">
-               Patient Manager (Patient Management)
-            </MenuItem>
-
-            <MenuItem value="billing">
-              Billing (Pharmacy Management)
-            </MenuItem>
+            {roleOptions.map((role) => (
+              <MenuItem key={role._id} value={role.name}>
+                {role.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField

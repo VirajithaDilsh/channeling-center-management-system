@@ -18,6 +18,7 @@ axiosClient.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem("authToken");
       localStorage.removeItem("userRole");
+      localStorage.removeItem("userPermissions");
       window.location.href = "/";
     }
     return Promise.reject(err);

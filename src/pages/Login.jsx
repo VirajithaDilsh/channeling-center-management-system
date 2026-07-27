@@ -31,13 +31,14 @@ const Login = () => {
         password,
       });
 
-      // 1. Extract token and role from backend response
-      // Ensure your Node.js backend sends { token, role } on successful login
-      const { token, role } = res.data;
+      // 1. Extract token, role and permissions from backend response
+      // Ensure your Node.js backend sends { token, role, permissions } on successful login
+      const { token, role, permissions } = res.data;
 
       // 2. Save to local storage for route protection
       localStorage.setItem("authToken", token);
       localStorage.setItem("userRole", role);
+      localStorage.setItem("userPermissions", JSON.stringify(permissions || []));
 
       // 2b. For doctors, resolve which Doctor record this login belongs to
       // (backend doesn't return a doctorId today, so match by email against

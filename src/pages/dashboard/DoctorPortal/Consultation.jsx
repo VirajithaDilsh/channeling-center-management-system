@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   TextField, Paper, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Snackbar, Alert, Button, IconButton
+  TableHead, TableRow, Snackbar, Alert, Button, IconButton, Autocomplete
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
@@ -15,8 +15,10 @@ import { getAppointments, updateAppointment } from "../../../api/AppointmentApi"
 import { getPatientById } from "../../../api/PatientApi";
 import { getChannelingHistory } from "../../../api/ChannelingApi";
 import { getPrescriptionsByPatient, createPrescription } from "../../../api/PrescriptionApi";
+import { getMedicines } from "../../../api/MedicineApi";
+import { getVisitSessionByAppointment, finalizeConsultation } from "../../../api/VisitSessionApi";
 
-const emptyMedicine = { name: "", dosage: "", frequency: "", duration: "", instructions: "" };
+const emptyMedicine = { medicineId: "", name: "", dosage: "", frequency: "", duration: "", instructions: "", qtyPrescribed: 1 };
 
 export default function Consultation() {
   const { appointmentId } = useParams();
@@ -26,6 +28,8 @@ export default function Consultation() {
   const [patient, setPatient] = useState(null);
   const [channelingHistory, setChannelingHistory] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
+  const [medicineOptions, setMedicineOptions] = useState([]);
+  const [visitSession, setVisitSession] = useState(null);
 
   const [diagnosis, setDiagnosis] = useState("");
   const [notes, setNotes] = useState("");
@@ -67,6 +71,20 @@ export default function Consultation() {
       } catch (err) {
         console.error("Could not load prescriptions:", err);
       }
+
+      try {
+        const session = await getVisitSessionByAppointment(appointmentId);
+        setVisitSession(session);
+      } catch (err) {
+        console.error("Could not load visit session:", err);
+      }
+
+      try {
+        const meds = await getMedicines();
+        setMedicineOptions(meds || []);
+      } catch (err) {
+        console.error("Could not load medicine list:", err);
+      }
     } catch (err) {
       console.error(err);
       showSnackbar("Failed to load consultation details", "error");
@@ -77,6 +95,12 @@ export default function Consultation() {
     setMedicines((prev) => prev.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
   };
 
+  const handleMedicineSelect = (index, selected) => {
+    setMedicines((prev) => prev.map((m, i) => (i === index
+      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "" }
+      : m)));
+  };
+
   const addMedicineRow = () => setMedicines((prev) => [...prev, { ...emptyMedicine }]);
 
   const removeMedicineRow = (index) => {
@@ -84,7 +108,7 @@ export default function Consultation() {
   };
 
   const handleSavePrescription = async () => {
-    const validMedicines = medicines.filter((m) => m.name.trim());
+    const validMedicines = medicines.filter((m) => m.medicineId);
     if (!diagnosis.trim() || validMedicines.length === 0) {
       showSnackbar("Add a diagnosis and at least one medicine.", "error");
       return;
@@ -100,17 +124,26 @@ export default function Consultation() {
         doctorName,
         diagnosis,
         notes,
-        medicines: validMedicines,
+        items: validMedicines.map((m) => ({
+          medicineId: m.medicineId,
+          dosage: m.dosage,
+          frequency: m.frequency,
+          duration: m.duration,
+          instructions: m.instructions,
+          qtyPrescribed: Number(m.qtyPrescribed) || 1,
+        })),
       });
-      showSnackbar("Prescription saved.", "success");
+      showSnackbar("Prescription saved and queued to the pharmacy.", "success");
       setDiagnosis("");
       setNotes("");
       setMedicines([{ ...emptyMedicine }]);
       const patientPrescriptions = await getPrescriptionsByPatient(appointment.patientId).catch(() => []);
       setPrescriptions(patientPrescriptions || []);
+      const session = await getVisitSessionByAppointment(appointmentId).catch(() => null);
+      if (session) setVisitSession(session);
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to save prescription. Please try again.", "error");
+      showSnackbar(err.response?.data?.message || "Failed to save prescription. Please try again.", "error");
     } finally {
       setSavingPrescription(false);
     }
@@ -120,6 +153,14 @@ export default function Consultation() {
     setCompleting(true);
     try {
       await updateAppointment(appointmentId, { ...appointment, status: "Completed" });
+      if (visitSession?._id) {
+        // If no prescription was queued, this moves the ledger straight to
+        // READY_FOR_PAYMENT. If pharmacy items are queued, it stays
+        // PENDING_PHARMACY and resolves itself once dispensing is done.
+        await finalizeConsultation(visitSession._id).catch((err) =>
+          console.error("Could not finalize visit session:", err)
+        );
+      }
       showSnackbar("Appointment marked as completed.", "success");
       setTimeout(() => navigate("/dashboard/doctor-home"), 800);
     } catch (err) {
@@ -226,9 +267,13 @@ export default function Consultation() {
               <div key={p._id} className="border-b last:border-0 py-3">
                 <p className="text-sm text-gray-500">
                   {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""} • Dr. {p.doctorName} • {p.diagnosis}
+                  {" • "}
+                  <span className={p.status === "RESOLVED" ? "text-green-600" : "text-amber-600"}>
+                    {p.status === "RESOLVED" ? "Resolved" : "Pending at pharmacy"}
+                  </span>
                 </p>
                 <p className="text-sm">
-                  {(p.medicines || []).map((m) => m.name).join(", ")}
+                  {(p.items || []).map((m) => `${m.name} (${m.status})`).join(", ")}
                 </p>
               </div>
             ))}
@@ -251,24 +296,38 @@ export default function Consultation() {
             />
 
             <div className="space-y-3 mb-3">
-              {medicines.map((m, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                  <TextField className="col-span-3" label="Medicine" size="small" value={m.name} disabled={isCompleted}
-                    onChange={(e) => handleMedicineChange(i, "name", e.target.value)} />
-                  <TextField className="col-span-2" label="Dosage" size="small" value={m.dosage} disabled={isCompleted}
-                    onChange={(e) => handleMedicineChange(i, "dosage", e.target.value)} />
-                  <TextField className="col-span-2" label="Frequency" size="small" value={m.frequency} disabled={isCompleted}
-                    onChange={(e) => handleMedicineChange(i, "frequency", e.target.value)} />
-                  <TextField className="col-span-2" label="Duration" size="small" value={m.duration} disabled={isCompleted}
-                    onChange={(e) => handleMedicineChange(i, "duration", e.target.value)} />
-                  <TextField className="col-span-2" label="Instructions" size="small" value={m.instructions} disabled={isCompleted}
-                    onChange={(e) => handleMedicineChange(i, "instructions", e.target.value)} />
-                  <IconButton className="col-span-1" size="small" color="error" disabled={isCompleted || medicines.length === 1}
-                    onClick={() => removeMedicineRow(i)}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </div>
-              ))}
+              {medicines.map((m, i) => {
+                const selectedMedicine = medicineOptions.find((opt) => opt._id === m.medicineId) || null;
+                return (
+                  <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                    <Autocomplete
+                      className="col-span-3"
+                      size="small"
+                      options={medicineOptions}
+                      getOptionLabel={(opt) => opt.name ? `${opt.name} (${opt.stockQuantity} in stock)` : ""}
+                      value={selectedMedicine}
+                      disabled={isCompleted}
+                      onChange={(event, value) => handleMedicineSelect(i, value)}
+                      renderInput={(params) => <TextField {...params} label="Medicine" />}
+                    />
+                    <TextField className="col-span-1" label="Qty" type="number" size="small" value={m.qtyPrescribed} disabled={isCompleted}
+                      inputProps={{ min: 1 }}
+                      onChange={(e) => handleMedicineChange(i, "qtyPrescribed", e.target.value)} />
+                    <TextField className="col-span-2" label="Dosage" size="small" value={m.dosage} disabled={isCompleted}
+                      onChange={(e) => handleMedicineChange(i, "dosage", e.target.value)} />
+                    <TextField className="col-span-2" label="Frequency" size="small" value={m.frequency} disabled={isCompleted}
+                      onChange={(e) => handleMedicineChange(i, "frequency", e.target.value)} />
+                    <TextField className="col-span-2" label="Duration" size="small" value={m.duration} disabled={isCompleted}
+                      onChange={(e) => handleMedicineChange(i, "duration", e.target.value)} />
+                    <TextField className="col-span-1" label="Instructions" size="small" value={m.instructions} disabled={isCompleted}
+                      onChange={(e) => handleMedicineChange(i, "instructions", e.target.value)} />
+                    <IconButton className="col-span-1" size="small" color="error" disabled={isCompleted || medicines.length === 1}
+                      onClick={() => removeMedicineRow(i)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </div>
+                );
+              })}
             </div>
 
             {!isCompleted && (

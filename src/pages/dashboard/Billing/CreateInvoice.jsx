@@ -1,298 +1,197 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  User, Phone, Stethoscope, Activity, DollarSign,
-  Search, Plus, Pill, Receipt
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { User, Stethoscope, Receipt, DollarSign } from 'lucide-react';
 import BackButton from '../../../components/BackButton';
+import { getVisitSession, addPayment } from '../../../api/VisitSessionApi';
 
-// Mock database for medicine search (Replace with your actual API/data)
-const MEDICINE_DB = [
-  { id: 1, name: 'Amoxicillin 500mg', price: 12.50 },
-  { id: 2, name: 'Paracetamol 650mg', price: 5.00 },
-  { id: 3, name: 'Lisinopril 10mg', price: 18.75 },
-  { id: 4, name: 'Metformin 500mg', price: 8.20 },
-];
+const lineItemLabel = {
+  DOCTOR_FEE: 'Consultation Fee',
+  CENTER_FEE: 'Channeling Center Fee',
+  MEDICATION: 'Medication',
+  ADJUSTMENT: 'Adjustment',
+};
 
 export default function CreateInvoice() {
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  // --- STATE MANAGEMENT ---
-  const [patientDetails, setPatientDetails] = useState({
-    name: '',
-    phone: '',
-    doctor: '',
-    disease: '',
-    doctorFee: ''
-  });
+  const [session, setSession] = useState(null);
+  const [error, setError] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [submitting, setSubmitting] = useState(false);
 
-  const [currentMed, setCurrentMed] = useState({ name: '', price: 0, quantity: 1 });
-  const [billItems, setBillItems] = useState([]);
-  const [discount, setDiscount] = useState(0);
-
-  // --- HANDLERS ---
-  const handlePatientChange = (e) => {
-    const { name, value } = e.target;
-    setPatientDetails(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleMedicineSelect = (e) => {
-    const selected = MEDICINE_DB.find(m => m.name === e.target.value);
-    if (selected) {
-      setCurrentMed({ name: selected.name, price: selected.price, quantity: 1 });
-    } else {
-      setCurrentMed({ name: '', price: 0, quantity: 1 });
+  const load = async () => {
+    try {
+      const data = await getVisitSession(id);
+      setSession(data);
+    } catch (err) {
+      console.error(err);
+      setError('Could not load this visit session.');
     }
   };
 
-  const addMedicineToBill = () => {
-    if (currentMed.name && currentMed.quantity > 0) {
-      setBillItems([...billItems, { ...currentMed, total: currentMed.price * currentMed.quantity }]);
-      // Reset current medicine input
-      setCurrentMed({ name: '', price: 0, quantity: 1 });
+  useEffect(() => {
+    load();
+  }, [id]);
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <BackButton to="/dashboard/billing" />
+        <p className="text-red-600 mt-4">{error}</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <div className="p-8">Loading invoice...</div>;
+  }
+
+  const total = session.lineItems.reduce((sum, li) => sum + li.amount, 0);
+  const paid = session.payments.reduce((sum, p) => sum + p.amount, 0);
+  const balance = Math.max(0, Math.round((total - paid) * 100) / 100);
+  const canPay = session.status === 'READY_FOR_PAYMENT' && balance > 0;
+
+  const handlePay = async () => {
+    const amount = parseFloat(paymentAmount);
+    if (!(amount > 0)) return;
+    setSubmitting(true);
+    try {
+      const updated = await addPayment(id, { amount, method: paymentMethod });
+      setSession(updated);
+      setPaymentAmount('');
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Payment failed.');
+    } finally {
+      setSubmitting(false);
     }
   };
-
-  const removeMedicine = (index) => {
-    const newItems = billItems.filter((_, i) => i !== index);
-    setBillItems(newItems);
-  };
-
-  // --- CALCULATIONS ---
-  const doctorFeeNum = parseFloat(patientDetails.doctorFee) || 0;
-  const medicineTotal = billItems.reduce((sum, item) => sum + item.total, 0);
-  const subTotal = doctorFeeNum + medicineTotal;
-  const grandTotal = subTotal - (parseFloat(discount) || 0);
 
   return (
     <div className="flex-1 p-8 bg-[#f8fafc] min-h-screen">
-      
-      {/* Page Header */}
       <div className="mb-6 flex items-center gap-3">
         <BackButton to="/dashboard/billing" />
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Create New Bill</h1>
-          <p className="text-slate-500 text-sm mt-1">Generate a bill for patient consultation and pharmacy items</p>
+          <h1 className="text-2xl font-bold text-slate-800">Visit Invoice</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Status: <span className="font-medium">{session.status.replaceAll('_', ' ')}</span>
+          </p>
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        
-        {/* LEFT COLUMN: Input Forms */}
         <div className="flex-1 space-y-6">
-          
-          {/* Card 1: Patient & Doctor Details */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-5">
-              <div className="p-2 bg-blue-50 text-[#008bc9] rounded-lg">
-                <User size={20} />
-              </div>
-              <h2 className="text-lg font-semibold text-slate-800">Patient Details</h2>
+              <div className="p-2 bg-blue-50 text-[#008bc9] rounded-lg"><User size={20} /></div>
+              <h2 className="text-lg font-semibold text-slate-800">Patient & Doctor</h2>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">PATIENT NAME *</label>
-                <div className="relative">
-                  <User size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <input type="text" name="name" value={patientDetails.name} onChange={handlePatientChange} placeholder="e.g. John Doe" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">PHONE NUMBER</label>
-                <div className="relative">
-                  <Phone size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <input type="text" name="phone" value={patientDetails.phone} onChange={handlePatientChange} placeholder="e.g. +1 234 567 890" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">ASSIGNED DOCTOR *</label>
-                <div className="relative">
-                  <Stethoscope size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <input type="text" name="doctor" value={patientDetails.doctor} onChange={handlePatientChange} placeholder="e.g. Dr. Sarah Smith" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">DISEASE / DIAGNOSIS</label>
-                <div className="relative">
-                  <Activity size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <input type="text" name="disease" value={patientDetails.disease} onChange={handlePatientChange} placeholder="e.g. Viral Fever" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">DOCTOR FEE ($)</label>
-                <div className="relative">
-                  <DollarSign size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <input type="number" name="doctorFee" value={patientDetails.doctorFee} onChange={handlePatientChange} placeholder="e.g. 50.00" className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                </div>
-              </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><span className="text-slate-500">Patient:</span> <span className="font-medium">{session.patientName}</span></div>
+              <div className="flex items-center gap-1"><Stethoscope size={14} className="text-slate-400" /><span className="font-medium">{session.doctorName}</span></div>
             </div>
           </div>
 
-          {/* Card 2: Add Bill Items (Medicines) */}
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-5">
-              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                <Pill size={20} />
-              </div>
-              <h2 className="text-lg font-semibold text-slate-800">Add Medicines</h2>
+              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><Receipt size={20} /></div>
+              <h2 className="text-lg font-semibold text-slate-800">Bill Line Items</h2>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">SEARCH MEDICINE</label>
-                <div className="relative">
-                  <Search size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <select 
-                    value={currentMed.name} 
-                    onChange={handleMedicineSelect}
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm appearance-none bg-white"
-                  >
-                    <option value="">Select a medicine...</option>
-                    {MEDICINE_DB.map(med => (
-                      <option key={med.id} value={med.name}>{med.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">UNIT PRICE</label>
-                <div className="relative">
-                  <DollarSign size={16} className="absolute left-3 top-3 text-slate-400" />
-                  <input type="number" readOnly value={currentMed.price} className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 text-sm cursor-not-allowed" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">QUANTITY</label>
-                <input 
-                  type="number" 
-                  min="1" 
-                  value={currentMed.quantity} 
-                  onChange={(e) => setCurrentMed({...currentMed, quantity: parseInt(e.target.value) || 1})}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" 
-                />
-              </div>
-            </div>
-            
-            <div className="mt-4 flex justify-end">
-              <button 
-                onClick={addMedicineToBill}
-                disabled={!currentMed.name}
-                className="flex items-center gap-2 bg-[#008bc9] hover:bg-[#0073a8] disabled:bg-slate-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                <Plus size={16} /> Add to Bill
-              </button>
-            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-slate-400 text-xs uppercase">
+                  <th className="pb-2">Item</th>
+                  <th className="pb-2 text-right">Qty</th>
+                  <th className="pb-2 text-right">Unit Price</th>
+                  <th className="pb-2 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {session.lineItems.map((li) => (
+                  <tr key={li._id} className="border-t border-slate-100">
+                    <td className="py-2">{li.description || lineItemLabel[li.type]}</td>
+                    <td className="py-2 text-right">{li.qty}</td>
+                    <td className="py-2 text-right">Rs. {li.unitPrice.toFixed(2)}</td>
+                    <td className="py-2 text-right font-medium">Rs. {li.amount.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+
+          {session.payments.length > 0 && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-800 mb-4">Payment History</h2>
+              <table className="w-full text-sm">
+                <tbody>
+                  {session.payments.map((p) => (
+                    <tr key={p._id} className="border-t border-slate-100">
+                      <td className="py-2">{new Date(p.receivedAt).toLocaleString()}</td>
+                      <td className="py-2 capitalize">{p.method}</td>
+                      <td className="py-2 text-right font-medium">Rs. {p.amount.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: Bill Summary */}
         <div className="w-full lg:w-[400px]">
           <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm sticky top-6">
             <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
-              <div className="p-2 bg-blue-50 text-[#008bc9] rounded-lg">
-                <Receipt size={20} />
-              </div>
-              <h2 className="text-lg font-semibold text-slate-800">Bill Summary</h2>
+              <div className="p-2 bg-blue-50 text-[#008bc9] rounded-lg"><DollarSign size={20} /></div>
+              <h2 className="text-lg font-semibold text-slate-800">Payment Summary</h2>
             </div>
 
-            {/* Patient & Doctor Snapshot */}
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Patient:</span>
-                <span className="font-medium text-slate-800">{patientDetails.name || '—'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Phone:</span>
-                <span className="font-medium text-slate-800">{patientDetails.phone || '—'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Doctor:</span>
-                <span className="font-medium text-slate-800">{patientDetails.doctor || '—'}</span>
-              </div>
-            </div>
-
-            <hr className="border-slate-100 mb-4" />
-
-            {/* Itemized List */}
-            <div className="min-h-[150px] mb-6">
-              <div className="text-xs font-semibold text-slate-400 uppercase mb-3 flex justify-between">
-                <span>Items</span>
-                <span>Amount</span>
-              </div>
-              
-              {/* Doctor Fee Line Item */}
-              {doctorFeeNum > 0 && (
-                <div className="flex justify-between text-sm mb-3">
-                  <span className="text-slate-700">Consultation Fee</span>
-                  <span className="font-medium text-slate-800">${doctorFeeNum.toFixed(2)}</span>
-                </div>
-              )}
-
-              {/* Medicine Line Items */}
-              {billItems.map((item, index) => (
-                <div key={index} className="flex justify-between text-sm mb-3 group">
-                  <div className="flex flex-col">
-                    <span className="text-slate-700">{item.name}</span>
-                    <span className="text-xs text-slate-400">{item.quantity} x ${item.price.toFixed(2)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-slate-800">${item.total.toFixed(2)}</span>
-                    <button onClick={() => removeMedicine(index)} className="text-red-400 opacity-0 group-hover:opacity-100 text-xs">✕</button>
-                  </div>
-                </div>
-              ))}
-
-              {doctorFeeNum === 0 && billItems.length === 0 && (
-                <div className="text-center text-slate-400 text-sm mt-8">
-                  No items added yet.
-                </div>
-              )}
-            </div>
-
-            <hr className="border-slate-100 mb-4" />
-
-            {/* Totals */}
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Subtotal:</span>
-                <span className="font-medium text-slate-800">${subTotal.toFixed(2)}</span>
-              </div>
-              
-              <div className="flex justify-between text-sm items-center">
-                <span className="text-slate-500">Discount ($):</span>
-                <input 
-                  type="number" 
-                  value={discount} 
-                  onChange={(e) => setDiscount(e.target.value)}
-                  className="w-20 px-2 py-1 text-right border border-slate-200 rounded focus:outline-none focus:border-blue-500" 
-                />
-              </div>
+            <div className="space-y-3 mb-6 text-sm">
+              <div className="flex justify-between"><span className="text-slate-500">Total:</span><span className="font-medium">Rs. {total.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Paid:</span><span className="font-medium">Rs. {paid.toFixed(2)}</span></div>
             </div>
 
             <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg mb-6 border border-slate-100">
-              <span className="font-semibold text-slate-700">Grand Total</span>
-              <span className="text-xl font-bold text-[#008bc9]">${grandTotal.toFixed(2)}</span>
+              <span className="font-semibold text-slate-700">Balance Due</span>
+              <span className="text-xl font-bold text-[#008bc9]">Rs. {balance.toFixed(2)}</span>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => navigate('/dashboard/billing')}
-                className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="flex-1 px-4 py-2 bg-[#008bc9] text-white rounded-lg text-sm font-medium hover:bg-[#0073a8] transition-colors">
-                Generate Bill
-              </button>
-            </div>
-            
+            {canPay ? (
+              <div className="space-y-3">
+                <input
+                  type="number"
+                  placeholder={`Up to Rs. ${balance.toFixed(2)}`}
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
+                />
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                >
+                  <option value="cash">Cash</option>
+                  <option value="card">Card</option>
+                  <option value="insurance">Insurance</option>
+                </select>
+                <button
+                  onClick={handlePay}
+                  disabled={submitting || !paymentAmount}
+                  className="w-full px-4 py-2 bg-[#008bc9] text-white rounded-lg text-sm font-medium hover:bg-[#0073a8] disabled:bg-slate-300 transition-colors"
+                >
+                  {submitting ? 'Processing...' : 'Record Payment'}
+                </button>
+                <p className="text-xs text-slate-400">Partial payments are supported — record as many as needed until the balance reaches zero.</p>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400 text-center">
+                {session.status === 'CLOSED' ? 'Fully paid.' : `No payment can be collected while status is ${session.status.replaceAll('_', ' ')}.`}
+              </p>
+            )}
+
+            {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
           </div>
         </div>
-        
       </div>
     </div>
   );

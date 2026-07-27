@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   MenuItem,
@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BackButton from "../../../components/BackButton";
 import { createAdmin } from "../../../api/AdminApi";
+import { getRoles } from "../../../api/RoleApi";
 
 const RegisterRole = () => {
   const navigate = useNavigate();
@@ -26,7 +27,14 @@ const RegisterRole = () => {
     password: "",
   });
 
+  const [roleOptions, setRoleOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getRoles()
+      .then(setRoleOptions)
+      .catch((err) => console.error("Failed to load roles", err));
+  }, []);
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -153,7 +161,7 @@ const RegisterRole = () => {
             onChange={handleChange}
           />
 
-          {/* UPDATED ROLE DROPDOWN */}
+          {/* ROLE DROPDOWN — populated from Roles & Permissions */}
           <TextField
             select
             label="Role"
@@ -163,26 +171,11 @@ const RegisterRole = () => {
             value={formData.role}
             onChange={handleChange}
           >
-            {/* Values now perfectly match the Login.jsx switch cases */}
-            <MenuItem value="admin">
-              Admin (Roles Management)
-            </MenuItem>
-
-            <MenuItem value="reception">
-              Receptionist (Doctors & Appointments)
-            </MenuItem>
-
-            <MenuItem value="billing">
-              Billing (Pharmacy Management)
-            </MenuItem>
-
-            <MenuItem value="patient_manager">
-              Patient Manager (Patient Management)
-            </MenuItem>
-
-            <MenuItem value="doctor">
-              Doctor (Appointments & Prescriptions)
-            </MenuItem>
+            {roleOptions.map((role) => (
+              <MenuItem key={role._id} value={role.name}>
+                {role.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
