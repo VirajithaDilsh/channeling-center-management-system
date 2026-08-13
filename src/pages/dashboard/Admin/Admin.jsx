@@ -17,6 +17,8 @@ import {
   DialogContentText,
   DialogTitle,
   Pagination,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -30,6 +32,8 @@ const ROWS_PER_PAGE = 8;
 export default function AdminManagement() {
   const [admins, setAdmins] = useState([]);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All");
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -88,8 +92,27 @@ export default function AdminManagement() {
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(admins.length / ROWS_PER_PAGE));
-  const visibleAdmins = admins.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+  const roles = ["All", ...new Set(admins.map((a) => a.role).filter(Boolean))];
+
+  const filteredAdmins = admins.filter((admin) => {
+    if (roleFilter !== "All" && admin.role !== roleFilter) return false;
+
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+
+    return (
+      admin.name?.toLowerCase().includes(term) ||
+      admin.email?.toLowerCase().includes(term) ||
+      admin.role?.toLowerCase().includes(term)
+    );
+  });
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, roleFilter]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredAdmins.length / ROWS_PER_PAGE));
+  const visibleAdmins = filteredAdmins.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -133,13 +156,28 @@ export default function AdminManagement() {
         </div>
       </div>
 
-      {/* SEARCH */}
-      <div className="mb-6">
+      {/* SEARCH + ROLE FILTER */}
+      <div className="mb-6 flex gap-3">
         <TextField
           fullWidth
           size="small"
           placeholder="Search by name, email, or role..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
+
+        <Select
+          size="small"
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          sx={{ minWidth: 160 }}
+        >
+          {roles.map((role) => (
+            <MenuItem key={role} value={role}>
+              {role === "All" ? "All Roles" : role}
+            </MenuItem>
+          ))}
+        </Select>
       </div>
 
       {/* TABLE */}
@@ -189,7 +227,7 @@ export default function AdminManagement() {
       {/* PAGINATION */}
       <div className="flex justify-between items-center mt-4">
         <p className="text-sm text-gray-500">
-          Showing {admins.length} admins
+          Showing {filteredAdmins.length} of {admins.length} users
         </p>
 
         {pageCount > 1 && (

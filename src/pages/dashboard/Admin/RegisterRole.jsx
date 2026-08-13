@@ -89,7 +89,7 @@ const RegisterRole = () => {
       });
 
       setTimeout(() => {
-        navigate("/admin");
+        navigate("/dashboard/admin");
       }, 1000);
 
     } catch (err) {
