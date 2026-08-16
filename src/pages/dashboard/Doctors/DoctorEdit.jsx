@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Autocomplete, TextField } from "@mui/material";
 import AddButton from "../../../components/AddButton";
 import BackButton from "../../../components/BackButton";
-import axios from "axios";
+import { getDoctorById, updateDoctor } from "../../../api/DoctorApi";
+import { SPECIALIZATIONS } from "../../../constants/specializations";
+import { QUALIFICATIONS } from "../../../constants/qualifications";
 
 const DoctorEdit = () => {
 
@@ -16,14 +19,14 @@ const DoctorEdit = () => {
     fee: "",
     phone: "",
     email: "",
-    active: true
+    status: "Active"
   });
 
   // get doctor data
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/doctors/${id}`)
-      .then((res) => {
-        setDoctor(res.data);
+    getDoctorById(id)
+      .then((data) => {
+        setDoctor(data);
       })
       .catch((err) => {
         console.error("Error fetching doctor:", err);
@@ -49,7 +52,7 @@ const DoctorEdit = () => {
 
     try {
 
-      await axios.put(`http://localhost:5000/api/doctors/${id}`, doctor);
+      await updateDoctor(id, doctor);
 
       alert("Doctor updated successfully ✅");
 
@@ -104,13 +107,27 @@ const DoctorEdit = () => {
               Specialization
             </label>
 
-            <input
-              type="text"
+            <select
               name="specialization"
               value={doctor.specialization}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
-            />
+            >
+              <option value="" disabled>
+                Select specialization
+              </option>
+              {doctor.specialization &&
+                !SPECIALIZATIONS.includes(doctor.specialization) && (
+                  <option value={doctor.specialization}>
+                    {doctor.specialization}
+                  </option>
+                )}
+              {SPECIALIZATIONS.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Qualifications */}
@@ -119,12 +136,26 @@ const DoctorEdit = () => {
               Qualifications
             </label>
 
-            <input
-              type="text"
-              name="qualifications"
-              value={doctor.qualifications}
-              className="w-full border rounded-lg p-2 mt-1"
-              onChange={handleChange}
+            <Autocomplete
+              multiple
+              freeSolo
+              options={QUALIFICATIONS}
+              value={
+                doctor.qualifications
+                  ? doctor.qualifications.split(",").map((q) => q.trim()).filter(Boolean)
+                  : []
+              }
+              onChange={(e, newValue) =>
+                handleChange({ target: { name: "qualifications", value: newValue.join(", ") } })
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select or type qualifications"
+                  className="mt-1"
+                  size="small"
+                />
+              )}
             />
           </div>
 
@@ -173,20 +204,22 @@ const DoctorEdit = () => {
             />
           </div>
 
-          {/* Active */}
-          <div className="col-span-2 flex items-center gap-2">
-
-            <input
-              type="checkbox"
-              name="active"
-              checked={doctor.active}
-              onChange={handleChange}
-            />
-
-            <label className="text-sm text-gray-700">
-              Active
+          {/* Status */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Status
             </label>
 
+            <select
+              name="status"
+              value={doctor.status}
+              className="w-full border rounded-lg p-2 mt-1"
+              onChange={handleChange}
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="On Leave">On Leave</option>
+            </select>
           </div>
 
           {/* Buttons */}

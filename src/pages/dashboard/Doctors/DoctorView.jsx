@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { getDoctorById, updateDoctor } from "../../../api/DoctorApi";
 import BackButton from "../../../components/BackButton";
 
 const DoctorView = () => {
@@ -10,12 +10,14 @@ const DoctorView = () => {
 
   const [doctor, setDoctor] = useState(null); // state for single doctor
   const [loading, setLoading] = useState(true);
+  const [statusDraft, setStatusDraft] = useState("Available");
+  const [savingStatus, setSavingStatus] = useState(false);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/api/doctors/${id}`) // Fetch doctor by ID
-      .then((res) => {
-        setDoctor(res.data);
+    getDoctorById(id) // Fetch doctor by ID
+      .then((data) => {
+        setDoctor(data);
+        setStatusDraft(data.status || "Available");
         setLoading(false);
       })
       .catch((err) => {
@@ -23,6 +25,22 @@ const DoctorView = () => {
         setLoading(false);
       });
   }, [id]);
+
+  const handleStatusUpdate = async () => {
+    setSavingStatus(true);
+    try {
+      const res = await updateDoctor(id, {
+        ...doctor,
+        status: statusDraft,
+      });
+      setDoctor(res);
+    } catch (err) {
+      console.error("Error updating status:", err);
+      alert("Error updating status ❌");
+    } finally {
+      setSavingStatus(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -70,7 +88,7 @@ const DoctorView = () => {
         {/* Specialty */}
         <div className="text-center mb-4">
           <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-            {doctor.specialty}
+            {doctor.specialization}
           </span>
         </div>
 
@@ -88,6 +106,10 @@ const DoctorView = () => {
             <span className="font-medium text-gray-600">Email:</span>
             <span className="text-gray-800 font-semibold">{doctor.email}</span>
           </div>
+          <div className="flex justify-start">
+            <span className="font-medium text-gray-600">Fee:</span>
+            <span className="text-gray-800 font-semibold">{doctor.fee}</span>
+          </div>
           <div className="flex justify-start items-center">
             <span className="font-medium text-gray-600">Status:</span>
             <span
@@ -103,21 +125,33 @@ const DoctorView = () => {
             </span>
           </div>
 
-           {/* Experience & Availability */}
+          {/* Change Status */}
+          <div className="flex justify-start items-center gap-2">
+            <span className="font-medium text-gray-600">Update Status:</span>
+            <select
+              value={statusDraft}
+              onChange={(e) => setStatusDraft(e.target.value)}
+              className="border rounded-lg px-2 py-1 text-sm"
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="On Leave">On Leave</option>
+            </select>
+            <button
+              onClick={handleStatusUpdate}
+              disabled={savingStatus || statusDraft === doctor.status}
+              className="bg-blue-600 text-white text-sm px-3 py-1 rounded-lg disabled:opacity-50"
+            >
+              {savingStatus ? "Saving..." : "Save"}
+            </button>
+          </div>
+
+           {/* Experience */}
         <div className="space-y-2 mb-4">
              <div className="flex justify-start">
             <span className="font-medium text-gray-600">Experience:</span>
             <span className="text-gray-800 font-semibold">{doctor.experience}</span>
           </div>
-          <div className="flex justify-start">
-            <span className="font-medium text-gray-600">Availability:</span>
-            <span className="text-gray-800 font-semibold">{doctor.availability}</span>
-          </div>
-
-           {/* Bio */}
-        <div className="text-gray-700 mb-6">
-          <p>twytwuyoyoiw</p>
-        </div>
 
         </div>
 

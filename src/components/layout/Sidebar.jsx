@@ -8,17 +8,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     const links = [
         { name: "Dashboard", to: "/dashboard", icon: <House size={20} /> },
         { name: "My Appointments", to: "/dashboard/doctor-home", icon: <Stethoscope size={20} />, permission: "doctor_portal" },
-        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} />, permission: "view_doctors" },
-        { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} />, permission: "manage_patients" },
-        { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} />, permission: "view_appointments" },
-        { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} />, permission: "manage_inventory" },
-        { name: "Pharmacy Queue", to: "/dashboard/pharmacy", icon: <Pill size={20} />, permission: "manage_pharmacy" },
-        { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} />, permission: "manage_billing" },
-        { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} />, permission: "view_reports" },
+        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} />, permission: ["doctors_read", "doctors_allow_all"] },
+        { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} />, permission: ["patients_read", "patients_allow_all"] },
+        { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} />, permission: ["appointments_read", "appointments_allow_all"] },
+        { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} />, permission: ["inventory_read", "inventory_allow_all"] },
+        { name: "Pharmacy Queue", to: "/dashboard/pharmacy", icon: <Pill size={20} />, permission: ["pharmacy_read", "pharmacy_allow_all"] },
+        { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} />, permission: ["billing_read", "billing_allow_all"] },
+        { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} />, permission: ["reports_read", "reports_allow_all"] },
         { name: "Settings", to: "/dashboard/settings", icon: <Settings size={20} /> },
-        { name: "Admin", to: "/dashboard/Admin", icon: <Shield size={20} />, permission: "manage_admins" },
+        { name: "Admin", to: "/dashboard/Admin", icon: <Shield size={20} />, permission: ["admin_read", "admin_allow_all"] },
 
-    ].filter((link) => !link.permission || userPermissions.includes(link.permission));
+    ].filter((link) => {
+        if (!link.permission) return true;
+        const required = Array.isArray(link.permission) ? link.permission : [link.permission];
+        return required.some((p) => userPermissions.includes(p));
+    });
 
     const handleLogout = () => {
         localStorage.removeItem("authToken");

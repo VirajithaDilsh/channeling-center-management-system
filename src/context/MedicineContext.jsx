@@ -29,7 +29,11 @@ export const MedicineProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        fetchMedicines();
+        if (localStorage.getItem("authToken")) {
+            fetchMedicines();
+        } else {
+            setLoading(false);
+        }
     }, []);
 
     // ADD
