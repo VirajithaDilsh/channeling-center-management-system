@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
-import { Hospital, Menu, Search } from "lucide-react";
-import SearchBar from "../SearchBar.jsx";
+import { Hospital, Menu } from "lucide-react";
 import NotificationBell from "../NotificationBell.jsx";
 import { getPublicSettings } from "../../api/SettingsApi";
 
 const Navbar = ({ setSidebarOpen }) => {
-    const [showSearch, setShowSearch] = useState(false);
     const [centerName, setCenterName] = useState("ClinicConnect");
 
     useEffect(() => {
@@ -35,22 +33,6 @@ const Navbar = ({ setSidebarOpen }) => {
                 {/* Right Side */}
                 <div className="flex items-center gap-4 md:gap-6">
 
-                    {/* Desktop Search */}
-                    <div className="hidden md:block w-64">
-                        <SearchBar
-                            placeholder="Search ..."
-                            onChange={(e) => console.log(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Mobile Search Icon */}
-                    <button
-                        onClick={() => setShowSearch(!showSearch)}
-                        className="md:hidden cursor-pointer"
-                    >
-                        <Search size={22} className="text-gray-600" />
-                    </button>
-
                     <NotificationBell />
 
                     {/* User Icon */}
@@ -67,16 +49,6 @@ const Navbar = ({ setSidebarOpen }) => {
                     </button>
                 </div>
             </div>
-
-            {/* Mobile Search Dropdown */}
-            {showSearch && (
-                <div className="md:hidden px-4 pb-4">
-                    <SearchBar
-                        placeholder="Search ..."
-                        onChange={(e) => console.log(e.target.value)}
-                    />
-                </div>
-            )}
         </div>
     );
 };
