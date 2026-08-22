@@ -8,6 +8,7 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  Autocomplete,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -15,6 +16,15 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BackButton from "../../../components/BackButton";
 import { createAdmin } from "../../../api/AdminApi";
 import { getRoles } from "../../../api/RoleApi";
+import { SPECIALIZATIONS } from "../../../constants/specializations";
+import { QUALIFICATIONS } from "../../../constants/qualifications";
+
+const DOCTOR_FIELDS_DEFAULT = {
+  specialization: "",
+  qualifications: "",
+  fee: "",
+  status: "Available",
+};
 
 const RegisterRole = () => {
   const navigate = useNavigate();
@@ -25,7 +35,10 @@ const RegisterRole = () => {
     role: "",
     contact: "",
     password: "",
+    ...DOCTOR_FIELDS_DEFAULT,
   });
+
+  const isDoctorRole = formData.role.toLowerCase() === "doctor";
 
   const [roleOptions, setRoleOptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,10 +56,21 @@ const RegisterRole = () => {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    const wasDoctorRole = isDoctorRole;
+    const nextFormData = { ...formData, [name]: value };
+
+    // Clear doctor-specific fields when switching away from the Doctor role,
+    // so stale data can't leak into a non-doctor submission.
+    if (name === "role" && wasDoctorRole && value.toLowerCase() !== "doctor") {
+      Object.assign(nextFormData, DOCTOR_FIELDS_DEFAULT);
+    }
+
+    setFormData(nextFormData);
+  };
+
+  const handleQualificationsChange = (newValue) => {
+    setFormData({ ...formData, qualifications: newValue.join(", ") });
   };
 
   const handleSubmit = async () => {
@@ -55,6 +79,15 @@ const RegisterRole = () => {
         setSnackbar({
             open: true,
             message: "Please fill in all required fields.",
+            severity: "warning",
+        });
+        return;
+    }
+
+    if (isDoctorRole && (!formData.specialization || !formData.fee)) {
+        setSnackbar({
+            open: true,
+            message: "Please fill in Specialization and Fee for the Doctor role.",
             severity: "warning",
         });
         return;
@@ -69,6 +102,13 @@ const RegisterRole = () => {
       role: formData.role, // This will now send the exact string expected by your system
       contact: formData.contact,
       password: formData.password,
+      ...(isDoctorRole && {
+        phone: formData.contact,
+        specialization: formData.specialization,
+        qualifications: formData.qualifications,
+        fee: formData.fee,
+        status: formData.status,
+      }),
     };
 
     try {
@@ -86,10 +126,11 @@ const RegisterRole = () => {
         role: "",
         contact: "",
         password: "",
+        ...DOCTOR_FIELDS_DEFAULT,
       });
 
       setTimeout(() => {
-        navigate("/admin");
+        navigate("/dashboard/admin");
       }, 1000);
 
     } catch (err) {
@@ -97,7 +138,7 @@ const RegisterRole = () => {
 
       setSnackbar({
         open: true,
-        message: "Failed to register user.",
+        message: err.response?.data?.message || "Failed to register user.",
         severity: "error",
       });
 
@@ -195,6 +236,66 @@ const RegisterRole = () => {
             value={formData.password}
             onChange={handleChange}
           />
+
+          {/* Doctor-specific fields — same fields as the Add Doctor page,
+              shown only when Role = Doctor */}
+          {isDoctorRole && (
+            <>
+              <TextField
+                select
+                label="Specialization"
+                name="specialization"
+                fullWidth
+                required
+                value={formData.specialization}
+                onChange={handleChange}
+              >
+                {SPECIALIZATIONS.map((spec) => (
+                  <MenuItem key={spec} value={spec}>
+                    {spec}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              <Autocomplete
+                multiple
+                freeSolo
+                options={QUALIFICATIONS}
+                value={
+                  formData.qualifications
+                    ? formData.qualifications.split(",").map((q) => q.trim()).filter(Boolean)
+                    : []
+                }
+                onChange={(e, newValue) => handleQualificationsChange(newValue)}
+                renderInput={(params) => (
+                  <TextField {...params} label="Qualifications" fullWidth />
+                )}
+              />
+
+              <TextField
+                label="Fee"
+                name="fee"
+                type="number"
+                fullWidth
+                required
+                value={formData.fee}
+                onChange={handleChange}
+              />
+
+              <TextField
+                select
+                label="Status"
+                name="status"
+                fullWidth
+                value={formData.status}
+                onChange={handleChange}
+              >
+                <MenuItem value="Available">Available</MenuItem>
+                <MenuItem value="Busy">Busy</MenuItem>
+                <MenuItem value="On Leave">On Leave</MenuItem>
+              </TextField>
+            </>
+          )}
         </div>
 
         {/* Buttons */}

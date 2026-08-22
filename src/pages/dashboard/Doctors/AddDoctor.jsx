@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Autocomplete, TextField } from "@mui/material";
 import AddButton from "../../../components/AddButton";
 import BackButton from "../../../components/BackButton";
-import axios from "axios";
+import { createDoctor } from "../../../api/DoctorApi";
+import { SPECIALIZATIONS } from "../../../constants/specializations";
+import { QUALIFICATIONS } from "../../../constants/qualifications";
 
 
 
@@ -18,7 +21,8 @@ const AddDoctor = () => {
     fee: "",
     phone: "",
     email: "",
-    active: true
+    password: "",
+    status: "Available"
   });
 
 
@@ -26,12 +30,16 @@ const AddDoctor = () => {
     setDoctor({...doctor,[e.target.name]: e.target.value});
   };
 
-  //  connect API here
- const handleSubmit = async () => {
+  const handleSubmit = async () => {
+
+    if (!doctor.name || !doctor.specialization || !doctor.fee || !doctor.email || !doctor.password) {
+      alert("Please fill in Name, Specialization, Fee, Email and Password ❌");
+      return;
+    }
 
     try {
 
-      await axios.post("http://localhost:5000/api/doctors", doctor);
+      await createDoctor(doctor);
 
       alert("Doctor added successfully ✅");
 
@@ -39,7 +47,7 @@ const AddDoctor = () => {
 
     } catch (error) {
 
-      alert("Error adding doctor ❌");
+      alert(error.response?.data?.message || "Error adding doctor ❌");
 
       console.error(error);
 
@@ -88,13 +96,21 @@ const AddDoctor = () => {
               Specialization
             </label>
 
-            <input
-              type="text"
+            <select
               name="specialization"
-              placeholder="Pediatrics"
+              value={doctor.specialization}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
-            />
+            >
+              <option value="" disabled>
+                Select specialization
+              </option>
+              {SPECIALIZATIONS.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Qualifications */}
@@ -103,12 +119,26 @@ const AddDoctor = () => {
               Qualifications
             </label>
 
-            <input
-              type="text"
-              name="qualifications"
-              placeholder="MD, FAAP"
-              className="w-full border rounded-lg p-2 mt-1"
-              onChange={handleChange}
+            <Autocomplete
+              multiple
+              freeSolo
+              options={QUALIFICATIONS}
+              value={
+                doctor.qualifications
+                  ? doctor.qualifications.split(",").map((q) => q.trim()).filter(Boolean)
+                  : []
+              }
+              onChange={(e, newValue) =>
+                handleChange({ target: { name: "qualifications", value: newValue.join(", ") } })
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select or type qualifications"
+                  className="mt-1"
+                  size="small"
+                />
+              )}
             />
           </div>
 
@@ -157,20 +187,37 @@ const AddDoctor = () => {
             />
           </div>
 
-          {/* Active Checkbox */}
-          <div className="col-span-2 flex items-center gap-2">
-
-            <input
-              type="checkbox"
-              name="active"
-              checked={doctor.active}
-              onChange={handleChange}
-            />
-
-            <label className="text-sm text-gray-700">
-              Active
+          {/* Password (creates the doctor's login account) */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Password
             </label>
 
+            <input
+              type="password"
+              name="password"
+              placeholder="Login password"
+              className="w-full border rounded-lg p-2 mt-1"
+              onChange={handleChange}
+            />
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="text-sm text-gray-600">
+              Status
+            </label>
+
+            <select
+              name="status"
+              value={doctor.status}
+              className="w-full border rounded-lg p-2 mt-1"
+              onChange={handleChange}
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="On Leave">On Leave</option>
+            </select>
           </div>
 
           {/* Buttons */}

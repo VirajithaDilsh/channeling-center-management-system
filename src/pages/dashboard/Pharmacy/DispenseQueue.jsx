@@ -14,7 +14,7 @@ const statusColors = {
   CANCELED: "default",
 };
 
-export default function DispenseQueue() {
+export default function DispenseQueue({ embedded = false }) {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dispenseTarget, setDispenseTarget] = useState(null); // { prescription, item }
@@ -74,19 +74,26 @@ export default function DispenseQueue() {
     }
   };
 
+  // An item is outstanding while the pharmacy still owes quantity: QUEUED
+  // (nothing handed over) and PARTIAL (some still owed). Dropping PARTIAL here
+  // would hide the remainder from the counter even though it can be dispensed.
   const pendingItems = prescriptions.flatMap((p) =>
-    p.items.filter((i) => i.status === "QUEUED").map((item) => ({ prescription: p, item }))
+    p.items
+      .filter((i) => i.status === "QUEUED" || i.status === "PARTIAL")
+      .map((item) => ({ prescription: p, item }))
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="mb-6 flex items-center gap-3">
-        <PillIcon className="text-emerald-600" />
-        <div>
-          <Typography variant="h5" className="font-semibold">Pharmacy Dispense Queue</Typography>
-          <p className="text-gray-500 text-sm">Prescription items waiting to be dispensed</p>
+    <div className={embedded ? "" : "p-6 bg-gray-50 min-h-screen"}>
+      {!embedded && (
+        <div className="mb-6 flex items-center gap-3">
+          <PillIcon className="text-emerald-600" />
+          <div>
+            <Typography variant="h5" className="font-semibold">Pharmacy Dispense Queue</Typography>
+            <p className="text-gray-500 text-sm">Prescription items waiting to be dispensed</p>
+          </div>
         </div>
-      </div>
+      )}
 
       <TableContainer component={Paper}>
         <Table>
@@ -115,7 +122,14 @@ export default function DispenseQueue() {
                 <TableCell>{prescription.doctorName}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.dosage || "-"} {item.frequency ? `• ${item.frequency}` : ""}</TableCell>
-                <TableCell align="right">{item.qtyPrescribed} / {item.qtyDispensed}</TableCell>
+                <TableCell align="right">
+                  {item.qtyPrescribed} / {item.qtyDispensed}
+                  {item.qtyDispensed > 0 && item.qtyDispensed < item.qtyPrescribed && (
+                    <p className="text-xs text-amber-600">
+                      {item.qtyPrescribed - item.qtyDispensed} remaining
+                    </p>
+                  )}
+                </TableCell>
                 <TableCell align="center">
                   <Chip size="small" label={item.status} color={statusColors[item.status] || "default"} />
                 </TableCell>

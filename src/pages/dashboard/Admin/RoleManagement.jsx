@@ -33,6 +33,8 @@ import {
   getPermissionCatalog,
 } from "../../../api/RoleApi";
 
+const PROTECTED_ROLE_NAMES = ["doctor", "admin"];
+
 export default function RoleManagement() {
   const navigate = useNavigate();
 
@@ -92,6 +94,32 @@ export default function RoleManagement() {
     setSelectedPermissions((prev) =>
       prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]
     );
+  };
+
+  // Toggle a single read/write/edit checkbox. Unchecking one while "Allow All"
+  // is on also unchecks Allow All, since the module is no longer fully granted.
+  const toggleAction = (moduleKeys, actionKey) => {
+    setSelectedPermissions((prev) => {
+      const isChecked = prev.includes(actionKey);
+      let next = isChecked ? prev.filter((p) => p !== actionKey) : [...prev, actionKey];
+      if (isChecked && moduleKeys.allow_all) {
+        next = next.filter((p) => p !== moduleKeys.allow_all);
+      }
+      return next;
+    });
+  };
+
+  // Toggling "Allow All" also checks/unchecks read/write/edit for that module,
+  // purely so the matrix looks consistent — the backend already treats
+  // `_allow_all` alone as sufficient for every action in that module.
+  const toggleAllowAll = (moduleKeys) => {
+    const allKeys = Object.values(moduleKeys).filter(Boolean);
+    setSelectedPermissions((prev) => {
+      const isAllOn = prev.includes(moduleKeys.allow_all);
+      return isAllOn
+        ? prev.filter((p) => !allKeys.includes(p))
+        : [...new Set([...prev, ...allKeys])];
+    });
   };
 
   const handleSave = async () => {
@@ -162,28 +190,36 @@ export default function RoleManagement() {
           </TableHead>
 
           <TableBody>
-            {roles.map((role) => (
-              <TableRow key={role._id} hover>
-                <TableCell>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
-                    {role.name}
-                  </span>
-                </TableCell>
+            {roles.map((role) => {
+              const isProtected = PROTECTED_ROLE_NAMES.includes(role.name.toLowerCase());
+              return (
+                <TableRow key={role._id} hover>
+                  <TableCell>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
+                      {role.name}
+                    </span>
+                    {isProtected && (
+                      <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">
+                        System role
+                      </span>
+                    )}
+                  </TableCell>
 
-                <TableCell>
-                  {role.permissions && role.permissions.length > 0
-                    ? `${role.permissions.length} permission${role.permissions.length > 1 ? "s" : ""}`
-                    : "No permissions"}
-                </TableCell>
+                  <TableCell>
+                    {role.permissions && role.permissions.length > 0
+                      ? `${role.permissions.length} permission${role.permissions.length > 1 ? "s" : ""}`
+                      : "No permissions"}
+                  </TableCell>
 
-                <TableCell>
-                  <TableActionButtons
-                    onEdit={() => openEditForm(role)}
-                    onDelete={() => handleDeleteClick(role._id)}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell>
+                    <TableActionButtons
+                      onEdit={() => openEditForm(role)}
+                      onDelete={isProtected ? undefined : () => handleDeleteClick(role._id)}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -202,15 +238,13 @@ export default function RoleManagement() {
             sx={{ mb: 2 }}
           />
 
-          {Object.entries(groupedPermissions).map(([module, perms]) => (
-            <div key={module} className="mb-3">
-              <Typography variant="subtitle2" className="text-gray-600 mb-1">
-                {module}
-              </Typography>
-              <FormGroup>
-                {perms.map((perm) => (
+          {Object.entries(groupedPermissions).map(([module, perms]) => {
+            // Doctor Portal isn't a CRUD resource — render it as a single toggle.
+            if (perms.length === 1 && perms[0].action === "access") {
+              const perm = perms[0];
+              return (
+                <div key={module} className="mb-3">
                   <FormControlLabel
-                    key={perm.key}
                     control={
                       <Checkbox
                         checked={selectedPermissions.includes(perm.key)}
@@ -219,10 +253,50 @@ export default function RoleManagement() {
                     }
                     label={perm.label}
                   />
-                ))}
-              </FormGroup>
-            </div>
-          ))}
+                </div>
+              );
+            }
+
+            const moduleKeys = perms.reduce((acc, perm) => {
+              acc[perm.action] = perm.key;
+              return acc;
+            }, {});
+
+            return (
+              <div key={module} className="mb-3">
+                <Typography variant="subtitle2" className="text-gray-600 mb-1">
+                  {module}
+                </Typography>
+                <FormGroup row>
+                  {perms
+                    .filter((perm) => perm.action !== "allow_all")
+                    .map((perm) => (
+                      <FormControlLabel
+                        key={perm.key}
+                        control={
+                          <Checkbox
+                            checked={selectedPermissions.includes(perm.key)}
+                            onChange={() => toggleAction(moduleKeys, perm.key)}
+                          />
+                        }
+                        label={perm.action.charAt(0).toUpperCase() + perm.action.slice(1)}
+                      />
+                    ))}
+                  {moduleKeys.allow_all && (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={selectedPermissions.includes(moduleKeys.allow_all)}
+                          onChange={() => toggleAllowAll(moduleKeys)}
+                        />
+                      }
+                      label="Allow All"
+                    />
+                  )}
+                </FormGroup>
+              </div>
+            );
+          })}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setFormOpen(false)}>Cancel</Button>

@@ -3,23 +3,26 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Snackbar, Alert
 } from "@mui/material";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import TodayIcon from "@mui/icons-material/Today";
 import { useNavigate } from "react-router-dom";
 import { getAppointments } from "../../../api/AppointmentApi";
+import {
+  STATUS_COLORS,
+  isToday,
+  isUpcomingAppointment,
+  compareByMoment,
+} from "../../../utils/appointments";
 
-const statusColors = {
-  Scheduled: "bg-blue-100 text-blue-600",
-  Completed: "bg-green-100 text-green-600",
-  Cancelled: "bg-red-100 text-red-600",
-};
-
-const isToday = (dateValue) => {
-  if (!dateValue) return false;
-  return new Date(dateValue).toDateString() === new Date().toDateString();
-};
+const StatusChip = ({ status }) => (
+  <span className={`px-2 py-1 text-xs rounded-full ${STATUS_COLORS[status] || "bg-gray-100 text-gray-600"}`}>
+    {status || "-"}
+  </span>
+);
 
 export default function DoctorHome() {
   const navigate = useNavigate();
-  const [appointments, setAppointments] = useState([]);
+  const [myAppointments, setMyAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -34,13 +37,14 @@ export default function DoctorHome() {
   const fetchAppointments = async () => {
     try {
       const data = await getAppointments();
-      const mine = data.filter((a) => {
-        const belongsToMe = doctorId
-          ? a.doctorId === doctorId
-          : a.doctorName === doctorName;
-        return belongsToMe && isToday(a.date) && a.status !== "Cancelled";
-      });
-      setAppointments(mine);
+
+      // Keep every appointment belonging to this doctor and split it below, so
+      // today's queue and the forward-looking list come from one fetch.
+      const mine = data.filter((a) =>
+        doctorId ? a.doctorId === doctorId : a.doctorName === doctorName
+      );
+
+      setMyAppointments(mine);
     } catch (err) {
       console.error(err);
       setSnackbarMessage("Failed to fetch appointments");
@@ -50,8 +54,18 @@ export default function DoctorHome() {
     }
   };
 
-  const total = appointments.length;
-  const completed = appointments.filter((a) => a.status === "Completed").length;
+  const todaysAppointments = myAppointments
+    .filter((a) => isToday(a.date) && a.status !== "Cancelled")
+    .sort((a, b) => compareByMoment(a, b, 1));
+
+  // Deliberately excludes today — those already appear in the queue above, and
+  // showing them twice would make the day's workload look doubled.
+  const upcomingAppointments = myAppointments
+    .filter((a) => isUpcomingAppointment(a) && !isToday(a.date))
+    .sort((a, b) => compareByMoment(a, b, 1));
+
+  const total = todaysAppointments.length;
+  const completed = todaysAppointments.filter((a) => a.status === "Completed").length;
   const remaining = total - completed;
 
   if (!doctorId && !doctorName) {
@@ -73,10 +87,10 @@ export default function DoctorHome() {
         <h1 className="text-2xl font-semibold">
           Welcome{doctorName ? `, Dr. ${doctorName}` : ""}
         </h1>
-        <p className="text-gray-500 text-sm">Your appointments for today</p>
+        <p className="text-gray-500 text-sm">Your appointments for today and what's coming up</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded shadow">
           <h2 className="text-sm text-gray-500">Today's Total</h2>
           <p className="text-2xl font-bold">{total}</p>
@@ -89,50 +103,124 @@ export default function DoctorHome() {
           <h2 className="text-sm text-gray-500">Remaining</h2>
           <p className="text-2xl font-bold text-blue-600">{remaining}</p>
         </div>
+        <div className="bg-white p-6 rounded shadow">
+          <h2 className="text-sm text-gray-500">Upcoming</h2>
+          <p className="text-2xl font-bold text-indigo-600">{upcomingAppointments.length}</p>
+        </div>
       </div>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Time</TableCell>
-              <TableCell>Patient</TableCell>
-              <TableCell>Reason</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!loading && appointments.length === 0 && (
+      {/* TODAY'S QUEUE */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3">
+          <TodayIcon className="text-blue-500" />
+
+          <div>
+            <h2 className="text-lg font-semibold">
+              Today
+              <span className="ml-2 text-sm font-normal text-gray-500">({total})</span>
+            </h2>
+            <p className="text-gray-500 text-xs">Your consultation queue for today</p>
+          </div>
+        </div>
+
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={5} className="text-gray-500 text-center">
-                  No appointments for today.
-                </TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Patient</TableCell>
+                <TableCell>Reason</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Action</TableCell>
               </TableRow>
-            )}
-            {appointments.map((a) => (
-              <TableRow key={a._id} hover>
-                <TableCell>{a.time || "-"}</TableCell>
-                <TableCell>{a.patientName || "-"}</TableCell>
-                <TableCell>{a.reason || "-"}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-xs rounded-full ${statusColors[a.status] || "bg-gray-100 text-gray-600"}`}>
-                    {a.status || "-"}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <button
-                    className="text-blue-600 hover:underline text-sm font-medium"
-                    onClick={() => navigate(`/dashboard/doctor/consultation/${a._id}`)}
-                  >
-                    {a.status === "Completed" ? "View" : "Start Consultation"}
-                  </button>
-                </TableCell>
+            </TableHead>
+            <TableBody>
+              {!loading && todaysAppointments.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-gray-500 text-center">
+                    No appointments for today.
+                  </TableCell>
+                </TableRow>
+              )}
+              {todaysAppointments.map((a) => (
+                <TableRow key={a._id} hover>
+                  <TableCell>{a.time || "-"}</TableCell>
+                  <TableCell>{a.patientName || "-"}</TableCell>
+                  <TableCell>{a.reason || "-"}</TableCell>
+                  <TableCell><StatusChip status={a.status} /></TableCell>
+                  <TableCell>
+                    <button
+                      className="text-blue-600 hover:underline text-sm font-medium"
+                      onClick={() => navigate(`/dashboard/doctor/consultation/${a._id}`)}
+                    >
+                      {a.status === "Completed" ? "View" : "Start Consultation"}
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </section>
+
+      {/* UPCOMING */}
+      <section>
+        <div className="flex items-center gap-2 mb-3">
+          <EventAvailableIcon className="text-indigo-500" />
+
+          <div>
+            <h2 className="text-lg font-semibold">
+              Upcoming Appointments
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                ({upcomingAppointments.length})
+              </span>
+            </h2>
+            <p className="text-gray-500 text-xs">
+              Your scheduled bookings after today, soonest first
+            </p>
+          </div>
+        </div>
+
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Patient</TableCell>
+                <TableCell>Reason</TableCell>
+                <TableCell>Status</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {!loading && upcomingAppointments.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-gray-500 text-center">
+                    No upcoming appointments.
+                  </TableCell>
+                </TableRow>
+              )}
+              {upcomingAppointments.map((a) => (
+                <TableRow key={a._id} hover>
+                  <TableCell>
+                    {a.date
+                      ? new Date(a.date).toLocaleDateString(undefined, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })
+                      : "-"}
+                  </TableCell>
+                  <TableCell>{a.time || "-"}</TableCell>
+                  <TableCell>{a.patientName || "-"}</TableCell>
+                  <TableCell>{a.reason || "-"}</TableCell>
+                  <TableCell><StatusChip status={a.status} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </section>
 
       <Snackbar
         open={snackbarOpen}

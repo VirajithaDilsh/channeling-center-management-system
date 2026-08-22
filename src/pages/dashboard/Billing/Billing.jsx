@@ -22,6 +22,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import CancelIcon from "@mui/icons-material/CancelOutlined";
 
 import { listVisitSessions, cancelVisitSession } from "../../../api/VisitSessionApi";
+import { getPublicSettings } from "../../../api/SettingsApi";
 
 const statusColors = {
   OPEN: "default",
@@ -41,6 +42,7 @@ export default function Billing() {
   const [viewData, setViewData] = useState(null);
   const [cancelRow, setCancelRow] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [currencySymbol, setCurrencySymbol] = useState("Rs.");
   const navigate = useNavigate();
 
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
@@ -57,6 +59,9 @@ export default function Billing() {
 
   useEffect(() => {
     fetchSessions();
+    getPublicSettings()
+      .then((data) => data.currencySymbol && setCurrencySymbol(data.currencySymbol))
+      .catch((err) => console.error("Failed to load currency settings:", err));
   }, []);
 
   const rows = sessions
@@ -81,8 +86,8 @@ export default function Billing() {
     { field: "patient", headerName: "Patient Name", flex: 1.5 },
     { field: "doctor", headerName: "Doctor", flex: 1.5 },
     { field: "date", headerName: "Date", flex: 1 },
-    { field: "total", headerName: "Total", flex: 1, valueFormatter: (value) => `Rs. ${Number(value ?? 0).toFixed(2)}` },
-    { field: "balance", headerName: "Balance Due", flex: 1, valueFormatter: (value) => `Rs. ${Number(value ?? 0).toFixed(2)}` },
+    { field: "total", headerName: "Total", flex: 1, valueFormatter: (value) => `${currencySymbol} ${Number(value ?? 0).toFixed(2)}` },
+    { field: "balance", headerName: "Balance Due", flex: 1, valueFormatter: (value) => `${currencySymbol} ${Number(value ?? 0).toFixed(2)}` },
     {
       field: "status",
       headerName: "Status",
@@ -152,15 +157,15 @@ export default function Billing() {
         <div className="bg-white p-6 rounded-xl shadow-sm flex justify-between">
           <div>
             <p className="text-gray-500 text-sm">Revenue Collected</p>
-            <h2 className="text-2xl font-semibold">Rs. {revenue.toFixed(2)}</h2>
+            <h2 className="text-2xl font-semibold">{currencySymbol} {revenue.toFixed(2)}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">Rs</div>
+          <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">{currencySymbol}</div>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm flex justify-between">
           <div>
             <p className="text-gray-500 text-sm">Pending Payments</p>
-            <h2 className="text-2xl font-semibold">Rs. {pending.toFixed(2)}</h2>
+            <h2 className="text-2xl font-semibold">{currencySymbol} {pending.toFixed(2)}</h2>
           </div>
           <div className="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">!</div>
         </div>

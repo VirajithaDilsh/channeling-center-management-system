@@ -18,6 +18,7 @@ import CreateInvoice from "../pages/dashboard/Billing/CreateInvoice.jsx";
 import Admin from '../pages/dashboard/Admin/Admin.jsx'
 import RegisterRole from '../pages/dashboard/Admin/RegisterRole.jsx';
 import EditAdmin from '../pages/dashboard/Admin/EditAdmin.jsx'
+import AdminView from '../pages/dashboard/Admin/AdminView.jsx'
 import RoleManagement from '../pages/dashboard/Admin/RoleManagement.jsx'
 
 
@@ -30,7 +31,7 @@ import DoctorEdit from "../pages/dashboard/Doctors/DoctorEdit.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import DoctorHome from "../pages/dashboard/DoctorPortal/DoctorHome.jsx";
 import Consultation from "../pages/dashboard/DoctorPortal/Consultation.jsx";
-import DispenseQueue from "../pages/dashboard/Pharmacy/DispenseQueue.jsx";
+import Pharmacy from "../pages/dashboard/Pharmacy/Pharmacy.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
@@ -42,50 +43,51 @@ const AppRoutes = () => {
     {/* Public Routes */}
     <Route path="/" element={<Login />} />
     <Route path="/forgot-password" element={<ForgotPassword />} />
-    <Route path="/register-role" element={<RegisterRole />} />
-    <Route path="/edit-admin/:id" element={<EditAdmin />} />
+    <Route path="/register-role" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><RegisterRole /></ProtectedRoute>} />
+    <Route path="/edit-admin/:id" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><EditAdmin /></ProtectedRoute>} />
 
     {/* Dashboard Routes */}
     <Route path="/dashboard" element={<DashboardLayout />}>
       <Route index element={<DashboardHome />} />
 
       {/* Admin */}
-      <Route path="admin" element={<Admin />} />
-      <Route path="roles" element={<RoleManagement />} />
+      <Route path="admin" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><Admin /></ProtectedRoute>} />
+      <Route path="admin/view/:id" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><AdminView /></ProtectedRoute>} />
+      <Route path="roles" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><RoleManagement /></ProtectedRoute>} />
 
       {/* Doctors */}
-      <Route path="doctors" element={<Doctors />} />
-      <Route path="doctor-management" element={<DoctorManagement />} />
-      <Route path="doctor-management/add-doctors" element={<AddDoctors />} />
-      <Route path="doctor/:id" element={<DoctorView />} />
-      <Route path="doctor/edit/:id" element={<DoctorEdit />} />
+      <Route path="doctors" element={<ProtectedRoute requiredPermission={["doctors_read", "doctors_allow_all"]}><Doctors /></ProtectedRoute>} />
+      <Route path="doctor-management" element={<ProtectedRoute requiredPermission={["doctors_read", "doctors_allow_all"]}><DoctorManagement /></ProtectedRoute>} />
+      <Route path="doctor-management/add-doctors" element={<ProtectedRoute requiredPermission={["doctors_read", "doctors_allow_all"]}><AddDoctors /></ProtectedRoute>} />
+      <Route path="doctor/:id" element={<ProtectedRoute requiredPermission={["doctors_read", "doctors_allow_all"]}><DoctorView /></ProtectedRoute>} />
+      <Route path="doctor/edit/:id" element={<ProtectedRoute requiredPermission={["doctors_read", "doctors_allow_all"]}><DoctorEdit /></ProtectedRoute>} />
 
       {/* Doctor Portal */}
       <Route path="doctor-home" element={<ProtectedRoute requiredPermission="doctor_portal"><DoctorHome /></ProtectedRoute>} />
       <Route path="doctor/consultation/:appointmentId" element={<ProtectedRoute requiredPermission="doctor_portal"><Consultation /></ProtectedRoute>} />
 
       {/* Patients */}
-      <Route path="patients" element={<ProtectedRoute requiredPermission="manage_patients"><Patients /></ProtectedRoute>} />
-      <Route path="register-patient" element={<ProtectedRoute requiredPermission="manage_patients"><RegisterPatient /></ProtectedRoute>} />
-      <Route path="patients/view/:id" element={<ProtectedRoute requiredPermission="manage_patients"><ViewPatient /></ProtectedRoute>} />
-      <Route path="patients/edit/:id" element={<ProtectedRoute requiredPermission="manage_patients"><EditPatient /></ProtectedRoute>} />
+      <Route path="patients" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><Patients /></ProtectedRoute>} />
+      <Route path="register-patient" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><RegisterPatient /></ProtectedRoute>} />
+      <Route path="patients/view/:id" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><ViewPatient /></ProtectedRoute>} />
+      <Route path="patients/edit/:id" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><EditPatient /></ProtectedRoute>} />
 
       {/* Inventory */}
-      <Route path="inventory" element={<Inventory />} />
-      <Route path="inventory/add-medicine" element={<AddMedicines />} />
-      <Route path="inventory/edit-medicine/:id" element={<AddMedicines />} />
+      <Route path="inventory" element={<ProtectedRoute requiredPermission={["inventory_read", "inventory_allow_all"]}><Inventory /></ProtectedRoute>} />
+      <Route path="inventory/add-medicine" element={<ProtectedRoute requiredPermission={["inventory_read", "inventory_allow_all"]}><AddMedicines /></ProtectedRoute>} />
+      <Route path="inventory/edit-medicine/:id" element={<ProtectedRoute requiredPermission={["inventory_read", "inventory_allow_all"]}><AddMedicines /></ProtectedRoute>} />
 
       {/* Billing */}
-      <Route path="billing" element={<Billing />} />
-      <Route path="billing/:id" element={<CreateInvoice />} />
+      <Route path="billing" element={<ProtectedRoute requiredPermission={["billing_read", "billing_allow_all"]}><Billing /></ProtectedRoute>} />
+      <Route path="billing/:id" element={<ProtectedRoute requiredPermission={["billing_read", "billing_allow_all"]}><CreateInvoice /></ProtectedRoute>} />
 
       {/* Pharmacy */}
-      <Route path="pharmacy" element={<ProtectedRoute requiredPermission="manage_pharmacy"><DispenseQueue /></ProtectedRoute>} />
+      <Route path="pharmacy" element={<ProtectedRoute requiredPermission={["pharmacy_read", "pharmacy_allow_all"]}><Pharmacy /></ProtectedRoute>} />
 
       {/* Others */}
-      <Route path="reports" element={<Reports />} />
-      <Route path="settings" element={<Settings />} />
-      <Route path="appoiments" element={<Appoiments />} />
+      <Route path="reports" element={<ProtectedRoute requiredPermission={["reports_read", "reports_allow_all"]}><Reports /></ProtectedRoute>} />
+      <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="appoiments" element={<ProtectedRoute requiredPermission={["appointments_read", "appointments_allow_all"]}><Appoiments /></ProtectedRoute>} />
     </Route>
 
     {/* Redirect unknown routes */}
