@@ -37,8 +37,20 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
 
   useEffect(() => {
     if (!open) return;
-    getDoctors().then(setDoctors).catch((err) => console.error("Error fetching doctors:", err));
-    getPatients().then(setPatients).catch((err) => console.error("Error fetching patients:", err));
+
+    getDoctors()
+      .then(setDoctors)
+      .catch((err) => {
+        console.error("Error fetching doctors:", err);
+        onError("Could not load the doctor list. Please close and reopen this form.");
+      });
+
+    getPatients()
+      .then(setPatients)
+      .catch((err) => {
+        console.error("Error fetching patients:", err);
+        onError("Could not load the patient list. Please close and reopen this form.");
+      });
   }, [open]);
 
   const resetForm = () => {
@@ -48,6 +60,10 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
     setTime(emptyState.time);
     setReason(emptyState.reason);
   };
+
+  // "Busy" is a transient in-clinic state and still bookable for a future date,
+  // but a doctor on leave shouldn't be offered at all.
+  const bookableDoctors = doctors.filter((doc) => doc.status !== "On Leave");
 
   const handleClose = () => {
     resetForm();
@@ -94,10 +110,13 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
       <DialogContent>
         <div className="grid grid-cols-2 gap-4 pt-2">
           <Autocomplete
-            options={doctors}
-            getOptionLabel={(doc) => doc.name || ""}
+            options={bookableDoctors}
+            getOptionLabel={(doc) =>
+              doc.name ? [doc.name, doc.specialization].filter(Boolean).join(" \u2014 ") : ""
+            }
             value={selectedDoctor}
             onChange={(event, value) => setSelectedDoctor(value)}
+            noOptionsText="No doctors available to book"
             renderInput={(params) => <TextField {...params} label="Select Doctor" />}
           />
 

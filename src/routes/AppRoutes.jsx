@@ -18,6 +18,7 @@ import CreateInvoice from "../pages/dashboard/Billing/CreateInvoice.jsx";
 import Admin from '../pages/dashboard/Admin/Admin.jsx'
 import RegisterRole from '../pages/dashboard/Admin/RegisterRole.jsx';
 import EditAdmin from '../pages/dashboard/Admin/EditAdmin.jsx'
+import AdminView from '../pages/dashboard/Admin/AdminView.jsx'
 import RoleManagement from '../pages/dashboard/Admin/RoleManagement.jsx'
 
 
@@ -30,7 +31,7 @@ import DoctorEdit from "../pages/dashboard/Doctors/DoctorEdit.jsx";
 import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import DoctorHome from "../pages/dashboard/DoctorPortal/DoctorHome.jsx";
 import Consultation from "../pages/dashboard/DoctorPortal/Consultation.jsx";
-import DispenseQueue from "../pages/dashboard/Pharmacy/DispenseQueue.jsx";
+import Pharmacy from "../pages/dashboard/Pharmacy/Pharmacy.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
@@ -51,6 +52,7 @@ const AppRoutes = () => {
 
       {/* Admin */}
       <Route path="admin" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><Admin /></ProtectedRoute>} />
+      <Route path="admin/view/:id" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><AdminView /></ProtectedRoute>} />
       <Route path="roles" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><RoleManagement /></ProtectedRoute>} />
 
       {/* Doctors */}
@@ -80,7 +82,7 @@ const AppRoutes = () => {
       <Route path="billing/:id" element={<ProtectedRoute requiredPermission={["billing_read", "billing_allow_all"]}><CreateInvoice /></ProtectedRoute>} />
 
       {/* Pharmacy */}
-      <Route path="pharmacy" element={<ProtectedRoute requiredPermission={["pharmacy_read", "pharmacy_allow_all"]}><DispenseQueue /></ProtectedRoute>} />
+      <Route path="pharmacy" element={<ProtectedRoute requiredPermission={["pharmacy_read", "pharmacy_allow_all"]}><Pharmacy /></ProtectedRoute>} />
 
       {/* Others */}
       <Route path="reports" element={<ProtectedRoute requiredPermission={["reports_read", "reports_allow_all"]}><Reports /></ProtectedRoute>} />

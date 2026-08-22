@@ -8,6 +8,12 @@ export const getAppointments = async () => {
   return res.data;
 };
 
+// Get a single appointment by id
+export const getAppointmentById = async (id) => {
+  const res = await axiosClient.get(`${API_URL}/${id}`);
+  return res.data;
+};
+
 // Create a new appointment
 export const createAppointment = async (appointment) => {
   const res = await axiosClient.post(API_URL, appointment);

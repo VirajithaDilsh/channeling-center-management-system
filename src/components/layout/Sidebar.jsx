@@ -12,7 +12,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} />, permission: ["patients_read", "patients_allow_all"] },
         { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} />, permission: ["appointments_read", "appointments_allow_all"] },
         { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} />, permission: ["inventory_read", "inventory_allow_all"] },
-        { name: "Pharmacy Queue", to: "/dashboard/pharmacy", icon: <Pill size={20} />, permission: ["pharmacy_read", "pharmacy_allow_all"] },
+        { name: "Pharmacy", to: "/dashboard/pharmacy", icon: <Pill size={20} />, permission: ["pharmacy_read", "pharmacy_allow_all"] },
         { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} />, permission: ["billing_read", "billing_allow_all"] },
         { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} />, permission: ["reports_read", "reports_allow_all"] },
         { name: "Settings", to: "/dashboard/settings", icon: <Settings size={20} /> },
