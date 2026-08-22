@@ -76,7 +76,7 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
       onCreated();
     } catch (err) {
       console.error(err);
-      onError("Failed to create appointment. Please try again.");
+      onError(err.response?.data?.message || "Failed to create appointment. Please try again.");
     } finally {
       setLoading(false);
     }

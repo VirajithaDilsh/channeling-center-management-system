@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { Hospital, Menu, Search } from "lucide-react";
 import SearchBar from "../SearchBar.jsx";
 import NotificationBell from "../NotificationBell.jsx";
+import { getPublicSettings } from "../../api/SettingsApi";
 
 const Navbar = ({ setSidebarOpen }) => {
     const [showSearch, setShowSearch] = useState(false);
+    const [centerName, setCenterName] = useState("ClinicConnect");
+
+    useEffect(() => {
+        getPublicSettings()
+            .then((data) => data.centerName && setCenterName(data.centerName))
+            .catch((err) => console.error("Failed to load center name:", err));
+    }, []);
 
     return (
         <div className="relative bg-white shadow">
@@ -20,7 +28,7 @@ const Navbar = ({ setSidebarOpen }) => {
                     </div>
 
                     <span className="text-lg text-[#1FB1F9FF] font-semibold hidden sm:block">
-                        ClinicConnect
+                        {centerName}
                     </span>
                 </div>
 

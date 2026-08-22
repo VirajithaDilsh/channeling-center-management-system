@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { User, Stethoscope, Receipt, DollarSign } from 'lucide-react';
 import BackButton from '../../../components/BackButton';
 import { getVisitSession, addPayment } from '../../../api/VisitSessionApi';
+import { getPublicSettings } from '../../../api/SettingsApi';
 
 const lineItemLabel = {
   DOCTOR_FEE: 'Consultation Fee',
@@ -10,6 +11,8 @@ const lineItemLabel = {
   MEDICATION: 'Medication',
   ADJUSTMENT: 'Adjustment',
 };
+
+const paymentMethodLabel = { cash: 'Cash', card: 'Card', insurance: 'Insurance' };
 
 export default function CreateInvoice() {
   const { id } = useParams();
@@ -20,6 +23,8 @@ export default function CreateInvoice() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [submitting, setSubmitting] = useState(false);
+  const [currencySymbol, setCurrencySymbol] = useState('Rs.');
+  const [enabledPaymentMethods, setEnabledPaymentMethods] = useState(['cash', 'card', 'insurance']);
 
   const load = async () => {
     try {
@@ -34,6 +39,20 @@ export default function CreateInvoice() {
   useEffect(() => {
     load();
   }, [id]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then((data) => {
+        if (data.currencySymbol) setCurrencySymbol(data.currencySymbol);
+        if (data.enabledPaymentMethods?.length) {
+          setEnabledPaymentMethods(data.enabledPaymentMethods);
+          setPaymentMethod((current) =>
+            data.enabledPaymentMethods.includes(current) ? current : data.enabledPaymentMethods[0]
+          );
+        }
+      })
+      .catch((err) => console.error('Failed to load payment settings:', err));
+  }, []);
 
   if (error) {
     return (
@@ -113,8 +132,8 @@ export default function CreateInvoice() {
                   <tr key={li._id} className="border-t border-slate-100">
                     <td className="py-2">{li.description || lineItemLabel[li.type]}</td>
                     <td className="py-2 text-right">{li.qty}</td>
-                    <td className="py-2 text-right">Rs. {li.unitPrice.toFixed(2)}</td>
-                    <td className="py-2 text-right font-medium">Rs. {li.amount.toFixed(2)}</td>
+                    <td className="py-2 text-right">{currencySymbol} {li.unitPrice.toFixed(2)}</td>
+                    <td className="py-2 text-right font-medium">{currencySymbol} {li.amount.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -130,7 +149,7 @@ export default function CreateInvoice() {
                     <tr key={p._id} className="border-t border-slate-100">
                       <td className="py-2">{new Date(p.receivedAt).toLocaleString()}</td>
                       <td className="py-2 capitalize">{p.method}</td>
-                      <td className="py-2 text-right font-medium">Rs. {p.amount.toFixed(2)}</td>
+                      <td className="py-2 text-right font-medium">{currencySymbol} {p.amount.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -147,20 +166,20 @@ export default function CreateInvoice() {
             </div>
 
             <div className="space-y-3 mb-6 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">Total:</span><span className="font-medium">Rs. {total.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Paid:</span><span className="font-medium">Rs. {paid.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Total:</span><span className="font-medium">{currencySymbol} {total.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Paid:</span><span className="font-medium">{currencySymbol} {paid.toFixed(2)}</span></div>
             </div>
 
             <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg mb-6 border border-slate-100">
               <span className="font-semibold text-slate-700">Balance Due</span>
-              <span className="text-xl font-bold text-[#008bc9]">Rs. {balance.toFixed(2)}</span>
+              <span className="text-xl font-bold text-[#008bc9]">{currencySymbol} {balance.toFixed(2)}</span>
             </div>
 
             {canPay ? (
               <div className="space-y-3">
                 <input
                   type="number"
-                  placeholder={`Up to Rs. ${balance.toFixed(2)}`}
+                  placeholder={`Up to ${currencySymbol} ${balance.toFixed(2)}`}
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm"
@@ -170,9 +189,9 @@ export default function CreateInvoice() {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
                 >
-                  <option value="cash">Cash</option>
-                  <option value="card">Card</option>
-                  <option value="insurance">Insurance</option>
+                  {enabledPaymentMethods.map((m) => (
+                    <option key={m} value={m}>{paymentMethodLabel[m] || m}</option>
+                  ))}
                 </select>
                 <button
                   onClick={handlePay}

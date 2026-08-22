@@ -35,3 +35,24 @@ export const updateAdmin = async (id, updatedData) => {
 
   return response.data;
 };
+
+// GET MY OWN ACCOUNT (self-service, any authenticated role)
+export const getMyAccount = async () => {
+  const response = await axiosClient.get(`${BASE_URL}/me`);
+  return response.data;
+};
+
+// UPDATE MY OWN ACCOUNT (name/contact only)
+export const updateMyAccount = async (updatedData) => {
+  const response = await axiosClient.patch(`${BASE_URL}/me`, updatedData);
+  return response.data;
+};
+
+// CHANGE MY OWN PASSWORD
+export const changeMyPassword = async ({ currentPassword, newPassword }) => {
+  const response = await axiosClient.patch(`${BASE_URL}/change-password`, {
+    currentPassword,
+    newPassword,
+  });
+  return response.data;
+};

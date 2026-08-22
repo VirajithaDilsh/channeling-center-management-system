@@ -58,7 +58,7 @@ export default function Appoiments() {
       showSnackbar("Appointment cancelled successfully", "success");
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to cancel appointment", "error");
+      showSnackbar(err.response?.data?.message || "Failed to cancel appointment", "error");
     } finally {
       setDeleteDialogOpen(false);
       setSelectedAppointmentId(null);

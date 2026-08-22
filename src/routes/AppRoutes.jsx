@@ -84,7 +84,7 @@ const AppRoutes = () => {
 
       {/* Others */}
       <Route path="reports" element={<ProtectedRoute requiredPermission={["reports_read", "reports_allow_all"]}><Reports /></ProtectedRoute>} />
-      <Route path="settings" element={<Settings />} />
+      <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="appoiments" element={<ProtectedRoute requiredPermission={["appointments_read", "appointments_allow_all"]}><Appoiments /></ProtectedRoute>} />
     </Route>
 

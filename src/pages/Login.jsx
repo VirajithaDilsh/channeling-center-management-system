@@ -12,17 +12,25 @@ import {
 import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getDoctors } from "../api/DoctorApi";
+import { getPublicSettings } from "../api/SettingsApi";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [centerName, setCenterName] = useState("MediChannel Pro");
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getPublicSettings()
+      .then((data) => data.centerName && setCenterName(data.centerName))
+      .catch((err) => console.error("Failed to load center name:", err));
+  }, []);
 
   const handleLogin = async () => {
     try {
@@ -101,7 +109,7 @@ const Login = () => {
         {/* Title */}
         <div className="mb-4">
           <Typography variant="h4" className="font-bold">
-            MediChannel Pro
+            {centerName}
           </Typography>
           <Typography className="text-gray-500 mb-6 text-sm">
             Hospital Channeling Management System
