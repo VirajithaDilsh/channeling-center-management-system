@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "https://channeling-center-management-system.onrender.com",
 });
 
 axiosClient.interceptors.request.use((config) => {
