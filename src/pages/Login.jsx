@@ -17,6 +17,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getDoctors } from "../api/DoctorApi";
 import { getPublicSettings } from "../api/SettingsApi";
+import axiosClient from '../utils/axiosClient';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -34,7 +35,7 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
+      const res = await axiosClient.post("/api/login", {
         email,
         password,
       });

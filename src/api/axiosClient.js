@@ -1,7 +1,11 @@
 import axios from "axios";
 
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? "https://channeling-center-management-system.onrender.com"  // Render backend
+  : "http://localhost:5000";  // Local backend
+  
 const axiosClient = axios.create({
-  baseURL: "https://channeling-center-management-system.onrender.com",
+  baseURL: API_BASE_URL,
 });
 
 axiosClient.interceptors.request.use((config) => {
