@@ -17,7 +17,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getDoctors } from "../api/DoctorApi";
 import { getPublicSettings } from "../api/SettingsApi";
-import axiosClient from '../utils/axiosClient';
+import axiosClient from '../api/axiosClient';
 
 const Login = () => {
   const [email, setEmail] = useState("");
