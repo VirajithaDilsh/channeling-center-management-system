@@ -39,6 +39,39 @@ export const isUpcomingAppointment = (appointment, now = Date.now()) => {
   return moment ? moment.getTime() >= now : false;
 };
 
+// Whether an appointment belongs to a given doctor.
+//
+// Single-sourced because the doctor portal and the dashboard must agree on
+// "mine" exactly. The doctorId comparison is String()-coerced so it survives
+// the appointment's doctorId being an ObjectId rather than a string, and the
+// doctorName fallback exists only for accounts whose login email never matched
+// a Doctor record. With neither identity available it owns nothing — denying is
+// the safe default, since the alternative leaks every doctor's patients.
+export const belongsToDoctor = (appointment, { doctorId, doctorName } = {}) => {
+  if (doctorId) return String(appointment?.doctorId) === String(doctorId);
+  if (doctorName) return appointment?.doctorName === doctorName;
+  return false;
+};
+
+// Buckets a date into a stable per-day key.
+//
+// toDateString() rather than toISOString().slice(0, 10): `date` is stored at
+// midnight, so ISO slicing shifts it to the previous day in any timezone behind
+// UTC. This matches how isToday above compares.
+export const dayKey = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toDateString();
+};
+
+// The last N calendar days ending today, oldest first.
+export const lastNDays = (count) =>
+  Array.from({ length: count }, (unused, index) => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (count - 1 - index));
+    return date;
+  });
+
 // Ascending by default (soonest first); pass -1 for most-recent-first.
 export const compareByMoment = (a, b, direction = 1) => {
   const first = appointmentMoment(a)?.getTime() ?? 0;

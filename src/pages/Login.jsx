@@ -71,23 +71,15 @@ const Login = () => {
 
       setError("");
 
-      // 3. Navigate based on Role
-      switch (role) {
-        case "admin":
-          navigate("/dashboard/admin");
-          break;
-        case "billing":
-          navigate("/dashboard/billing");
-          break;
-        case "doctor":
-          navigate("/dashboard/doctor-home");
-          break;
-        case "patient_manager":
-          navigate("/dashboard/patients");
-          break;
-        default:
-          navigate("/dashboard"); // Fallback for unknown roles
-      }
+      // 3. Everyone lands on the dashboard, which adapts to their permissions.
+      // Doctors go straight to their consultation queue instead, since that
+      // queue is the job.
+      //
+      // Keyed on the role, not on doctor_portal: the admin role carries every
+      // permission including doctor_portal, so testing the permission would
+      // send admins to the doctor portal. A custom doctor-ish role lands on the
+      // dashboard, which adapts to it anyway.
+      navigate(role === "doctor" ? "/dashboard/doctor-home" : "/dashboard");
 
     } catch (err) {
       console.error(err.response?.data || err.message);

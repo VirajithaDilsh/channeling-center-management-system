@@ -47,8 +47,8 @@ const AppRoutes = () => {
     <Route path="/edit-admin/:id" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><EditAdmin /></ProtectedRoute>} />
 
     {/* Dashboard Routes */}
-    <Route path="/dashboard" element={<DashboardLayout />}>
-      <Route index element={<DashboardHome />} />
+    <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+      <Route index element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="admin" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><Admin /></ProtectedRoute>} />

@@ -12,6 +12,7 @@ import {
   isToday,
   isUpcomingAppointment,
   compareByMoment,
+  belongsToDoctor,
 } from "../../../utils/appointments";
 
 const StatusChip = ({ status }) => (
@@ -40,9 +41,7 @@ export default function DoctorHome() {
 
       // Keep every appointment belonging to this doctor and split it below, so
       // today's queue and the forward-looking list come from one fetch.
-      const mine = data.filter((a) =>
-        doctorId ? a.doctorId === doctorId : a.doctorName === doctorName
-      );
+      const mine = data.filter((a) => belongsToDoctor(a, { doctorId, doctorName }));
 
       setMyAppointments(mine);
     } catch (err) {
