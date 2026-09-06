@@ -10,7 +10,7 @@ import {
 
 import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
-
+import axiosClient from '../api/axiosClient';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -24,7 +24,7 @@ const ForgotPassword = () => {
 
   const handleReset = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/reset-password", {
+      const res = await axiosClient.post("/api/reset-password", {
         email,
         newPassword,
       });
