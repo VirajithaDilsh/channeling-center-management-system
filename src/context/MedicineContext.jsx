@@ -5,6 +5,7 @@ import {
     updateMedicine as updateApi,
     deleteMedicine as deleteApi
 } from "../api/MedicineApi";
+import { getUserPermissions, hasAny } from "../utils/permissions";
 
 const MedicineContext = createContext();
 
@@ -29,7 +30,12 @@ export const MedicineProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        if (localStorage.getItem("authToken")) {
+        // Gated on inventory permissions as well as a token: this provider wraps
+        // the whole app, so an unconditional fetch made every page load 403 for
+        // roles without inventory access (reception has none).
+        const canRead = hasAny(getUserPermissions(), ["inventory_read", "inventory_allow_all"]);
+
+        if (localStorage.getItem("authToken") && canRead) {
             fetchMedicines();
         } else {
             setLoading(false);

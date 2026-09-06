@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X, Shield, LogOut, Pill } from "lucide-react";
+import { clearSession } from "../../utils/session";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     const navigate = useNavigate();
@@ -25,9 +26,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     });
 
     const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("userPermissions");
+        clearSession();
         navigate("/");
     };
 

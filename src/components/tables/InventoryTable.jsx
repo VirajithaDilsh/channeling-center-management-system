@@ -12,6 +12,7 @@ import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMedicines } from "../../context/MedicineContext.jsx";
 import TableActionButtons from "../TableActionButton.jsx";
+import { isLowStock } from "../../utils/inventory";
 
 const InventoryTable = () => {
   const { medicines, deleteMedicine } = useMedicines();
@@ -63,9 +64,7 @@ const InventoryTable = () => {
               parseFloat(med.stockQuantity || 0) *
               parseFloat(med.unitPrice || 0);
 
-            const lowStock =
-              med.reorderLevel &&
-              parseInt(med.stockQuantity) <= parseInt(med.reorderLevel);
+            const lowStock = isLowStock(med);
 
             return (
               <TableRow key={med._id} hover>

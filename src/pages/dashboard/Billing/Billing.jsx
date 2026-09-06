@@ -23,6 +23,7 @@ import CancelIcon from "@mui/icons-material/CancelOutlined";
 
 import { listVisitSessions, cancelVisitSession } from "../../../api/VisitSessionApi";
 import { getPublicSettings } from "../../../api/SettingsApi";
+import { totalOf, paidOf, balanceOf } from "../../../utils/visitSessions";
 
 const statusColors = {
   OPEN: "default",
@@ -32,8 +33,7 @@ const statusColors = {
   CANCELED: "error",
 };
 
-const totalOf = (session) => session.lineItems.reduce((sum, li) => sum + li.amount, 0);
-const paidOf = (session) => session.payments.reduce((sum, p) => sum + p.amount, 0);
+
 
 export default function Billing() {
   const [sessions, setSessions] = useState([]);
@@ -73,13 +73,13 @@ export default function Billing() {
       doctor: s.doctorName,
       date: s.createdAt ? new Date(s.createdAt).toLocaleDateString() : "-",
       total: totalOf(s),
-      balance: Math.max(0, totalOf(s) - paidOf(s)),
+      balance: balanceOf(s),
       status: s.status,
       raw: s,
     }));
 
   const revenue = sessions.filter((s) => s.status === "CLOSED").reduce((sum, s) => sum + paidOf(s), 0);
-  const pending = sessions.filter((s) => s.status === "READY_FOR_PAYMENT").reduce((sum, s) => sum + (totalOf(s) - paidOf(s)), 0);
+  const pending = sessions.filter((s) => s.status === "READY_FOR_PAYMENT").reduce((sum, s) => sum + balanceOf(s), 0);
   const atPharmacy = sessions.filter((s) => s.status === "PENDING_PHARMACY").length;
 
   const columns = [
