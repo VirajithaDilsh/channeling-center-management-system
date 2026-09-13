@@ -522,7 +522,7 @@ export default function Consultation() {
               <div key={c._id} className="border-b last:border-0 py-3">
                 <p className="text-sm text-gray-500">
                   {c.completedAt ? new Date(c.completedAt).toLocaleDateString() : ""}
-                  {c.doctorName ? ` • Dr. ${c.doctorName}` : ""}
+                  {c.doctorName ? ` • Dr. ${c.doctorName.replace(/^dr\.?\s+/i, "")}` : ""}
                 </p>
 
                 <p className="text-sm font-medium">{c.diagnosis || "No diagnosis recorded"}</p>
@@ -603,7 +603,7 @@ export default function Consultation() {
               <div key={p._id} className="py-2 border-b last:border-0">
                 <p className="text-xs text-gray-500">
                   {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}
-                  {p.doctorName ? ` • Dr. ${p.doctorName}` : ""}
+                  {p.doctorName ? ` • Dr. ${p.doctorName.replace(/^dr\.?\s+/i, "")}` : ""}
                 </p>
                 <p className="text-sm">{(p.items || []).map((m) => m.name).join(", ")}</p>
                 <span className={p.status === "RESOLVED" ? "text-xs text-green-600" : "text-xs text-amber-600"}>
