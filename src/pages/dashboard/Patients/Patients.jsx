@@ -7,10 +7,15 @@ import {
 import { useNavigate } from "react-router-dom";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getPatients, deletePatient } from "../../../api/PatientApi";
+import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
 export default function PatientManagement() {
+  const viewer = getViewer();
+  const canWrite = viewer.can(["patients_write", "patients_allow_all"]);
+  const canEdit = viewer.can(["patients_edit", "patients_allow_all"]);
+
   const [patients, setPatients] = useState([]);
   const [page, setPage] = useState(1);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -73,13 +78,15 @@ export default function PatientManagement() {
             View and manage patient records
           </p>
         </div>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={() => navigate("/dashboard/register-patient")}
-        >
-          + Register Patient
-        </Button>
+        {canWrite && (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => navigate("/dashboard/register-patient")}
+          >
+            + Register Patient
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -131,7 +138,7 @@ export default function PatientManagement() {
                 <TableCell>
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/patients/view/${p.patientId}`)}
-                    onEdit={() => navigate(`/dashboard/patients/edit/${p.patientId}`)}
+                    onEdit={canEdit ? () => navigate(`/dashboard/patients/edit/${p.patientId}`) : undefined}
                     onDelete={() => handleDeleteClick(p.patientId)}
                   />
                 </TableCell>

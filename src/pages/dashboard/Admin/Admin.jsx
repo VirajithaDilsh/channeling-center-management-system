@@ -26,10 +26,15 @@ import { useNavigate } from "react-router-dom";
 
 import TableActionButtons from "../../../components/TableActionButton";
 import { getAdmins, deleteAdmin } from "../../../api/AdminApi";
+import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
 export default function AdminManagement() {
+  const viewer = getViewer();
+  const canWrite = viewer.can(["admin_write", "admin_allow_all"]);
+  const canEdit = viewer.can(["admin_edit", "admin_allow_all"]);
+
   const [admins, setAdmins] = useState([]);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
@@ -135,12 +140,14 @@ export default function AdminManagement() {
             Manage Roles & Permissions
           </Button>
 
-          <Button
-            variant="contained"
-            onClick={() => navigate("/register-role")}
-          >
-            + Add User
-          </Button>
+          {canWrite && (
+            <Button
+              variant="contained"
+              onClick={() => navigate("/register-role")}
+            >
+              + Add User
+            </Button>
+          )}
 
           <Button
             variant="outlined"
@@ -213,7 +220,7 @@ export default function AdminManagement() {
                 <TableCell>
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/admin/view/${admin.id}`)}
-                    onEdit={() => navigate(`/edit-admin/${admin.id}`)}
+                    onEdit={canEdit ? () => navigate(`/edit-admin/${admin.id}`) : undefined}
                     onDelete={() => handleDeleteClick(admin.id)}
                   />
                 </TableCell>

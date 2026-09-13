@@ -13,10 +13,12 @@ import { useNavigate } from "react-router-dom";
 import { useMedicines } from "../../context/MedicineContext.jsx";
 import TableActionButtons from "../TableActionButton.jsx";
 import { isLowStock } from "../../utils/inventory";
+import { getViewer } from "../../utils/permissions";
 
 const InventoryTable = () => {
   const { medicines, deleteMedicine } = useMedicines();
   const navigate = useNavigate();
+  const canEdit = getViewer().can(["inventory_edit", "inventory_allow_all"]);
 
   if (!medicines || medicines.length === 0) {
     return (
@@ -96,8 +98,10 @@ const InventoryTable = () => {
                 </TableCell>
                 <TableCell align="center">
                   <TableActionButtons
-                    onEdit={() =>
-                      navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
+                    onEdit={
+                      canEdit
+                        ? () => navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
+                        : undefined
                     }
                     onDelete={() => handleDelete(med._id)}
                   />

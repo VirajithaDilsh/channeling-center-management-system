@@ -15,6 +15,7 @@ import {
   isUpcomingAppointment,
   compareByMoment,
 } from "../../../utils/appointments";
+import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
@@ -127,6 +128,8 @@ const AppointmentsTable = ({
 };
 
 export default function Appoiments() {
+  const canWrite = getViewer().can(["appointments_write", "appointments_allow_all"]);
+
   const [appointments, setAppointments] = useState([]);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [pastPage, setPastPage] = useState(1);
@@ -233,7 +236,9 @@ export default function Appoiments() {
             View and schedule patient appointments
           </p>
         </div>
-        <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />
+        {canWrite && (
+          <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />
+        )}
       </div>
 
       {/* Upcoming */}

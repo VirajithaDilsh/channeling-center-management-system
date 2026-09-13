@@ -4,11 +4,13 @@ import AddButton from "../../../components/AddButton.jsx";
 import { useNavigate } from "react-router-dom";
 import InventoryTable from "../../../components/tables/InventoryTable.jsx"; // import the table
 import { useMedicines } from "../../../context/MedicineContext.jsx";
+import { getViewer } from "../../../utils/permissions";
 
 const Inventory = () => {
     const navigate = useNavigate();
     const { medicines } = useMedicines();
     const [searchQuery, setSearchQuery] = useState("");
+    const canWrite = getViewer().can(["inventory_write", "inventory_allow_all"]);
 
     // Filter medicines based on search
     const filteredMedicines = medicines.filter(
@@ -44,12 +46,14 @@ const Inventory = () => {
                 </div>
 
                 {/* Add Button */}
-                <div className="flex justify-end">
-                    <AddButton
-                        label="Add Medicine"
-                        onClick={() => navigate("/dashboard/inventory/add-medicine")}
-                    />
-                </div>
+                {canWrite && (
+                    <div className="flex justify-end">
+                        <AddButton
+                            label="Add Medicine"
+                            onClick={() => navigate("/dashboard/inventory/add-medicine")}
+                        />
+                    </div>
+                )}
 
             </div>
 
