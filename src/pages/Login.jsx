@@ -17,6 +17,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getPublicSettings } from "../api/SettingsApi";
 import axiosClient from '../api/axiosClient';
+import { useMedicines } from "../context/MedicineContext.jsx";
+import { hasAny } from "../utils/permissions";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -25,6 +27,7 @@ const Login = () => {
   const [centerName, setCenterName] = useState("MediChannel Pro");
 
   const navigate = useNavigate();
+  const { fetchMedicines } = useMedicines();
 
   useEffect(() => {
     getPublicSettings()
@@ -63,6 +66,14 @@ const Login = () => {
       }
 
       setError("");
+
+      // 2c. MedicineProvider wraps the whole app and only fetches once, on its
+      // own mount — which happens before login, when there's no token yet. Without
+      // this, inventory data stays empty until a full page refresh remounts the
+      // provider with the token already in place.
+      if (hasAny(permissions, ["inventory_read", "inventory_allow_all"])) {
+        fetchMedicines();
+      }
 
       // 3. Everyone lands on the dashboard, which adapts to their permissions.
       // Doctors go straight to their consultation queue instead, since that
