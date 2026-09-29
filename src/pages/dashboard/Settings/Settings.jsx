@@ -8,6 +8,7 @@ import GeneralTab from "./GeneralTab";
 import AppointmentsTab from "./AppointmentsTab";
 import PaymentsTab from "./PaymentsTab";
 import UsersRolesTab from "./UsersRolesTab";
+import PrescriptionTemplatesTab from "./PrescriptionTemplatesTab";
 
 export default function Settings() {
   const userRole = localStorage.getItem("userRole") || "";
@@ -34,6 +35,7 @@ export default function Settings() {
     list.push({ key: "profile", label: "Profile", component: ProfileTab });
     if (isDoctor) {
       list.push({ key: "availability", label: "Availability", component: AvailabilityTab });
+      list.push({ key: "rxTemplates", label: "Prescription Templates", component: PrescriptionTemplatesTab });
     }
     list.push({ key: "security", label: "Account & Security", component: SecurityTab });
     return list;
