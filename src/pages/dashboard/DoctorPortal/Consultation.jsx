@@ -39,6 +39,23 @@ const PRESCRIPTION_MODES = {
   NONE: "NONE",
 };
 
+const OTHER_DIAGNOSIS = "Other";
+const DIAGNOSIS_OPTIONS = [
+  "Fever",
+  "Viral infection",
+  "Upper respiratory tract infection",
+  "Acute gastroenteritis",
+  "Hypertension",
+  "Type 2 diabetes mellitus",
+  "Asthma",
+  "Allergic rhinitis",
+  "Urinary tract infection",
+  "Migraine",
+  "Gastritis",
+  "Musculoskeletal pain",
+  OTHER_DIAGNOSIS,
+];
+
 const emptyClinical = {
   chiefComplaint: "",
   symptoms: "",
@@ -69,6 +86,12 @@ export default function Consultation() {
   const [prescriptionMode, setPrescriptionMode] = useState(PRESCRIPTION_MODES.TYPED);
   const [handwrittenConfirmed, setHandwrittenConfirmed] = useState(false);
   const [consultationStatus, setConsultationStatus] = useState("IN_PROGRESS");
+  // The dropdown choice and the custom text are kept apart so switching
+  // between "Other" and a predefined value never loses what was typed. The
+  // saved diagnosis is always the actual text, never the word "Other".
+  const [diagnosisChoice, setDiagnosisChoice] = useState("");
+  const [customDiagnosis, setCustomDiagnosis] = useState("");
+  const [diagnosisError, setDiagnosisError] = useState("");
   const [medicines, setMedicines] = useState([{ ...emptyMedicine }]);
 
   const [savingDraft, setSavingDraft] = useState(false);
@@ -109,6 +132,15 @@ export default function Consultation() {
           diagnosis: existing.diagnosis || "",
           notes: existing.notes || "",
         });
+        const savedDiagnosis = existing.diagnosis || "";
+        if (!savedDiagnosis) {
+          setDiagnosisChoice("");
+        } else if (DIAGNOSIS_OPTIONS.includes(savedDiagnosis) && savedDiagnosis !== OTHER_DIAGNOSIS) {
+          setDiagnosisChoice(savedDiagnosis);
+        } else {
+          setDiagnosisChoice(OTHER_DIAGNOSIS);
+          setCustomDiagnosis(savedDiagnosis);
+        }
         if (existing.prescriptionMode) setPrescriptionMode(existing.prescriptionMode);
         setHandwrittenConfirmed(!!existing.handwrittenConfirmedAt);
         setConsultationStatus(existing.status || "IN_PROGRESS");
@@ -207,13 +239,33 @@ export default function Consultation() {
     setMedicines((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const effectiveDiagnosis =
+    diagnosisChoice === OTHER_DIAGNOSIS ? customDiagnosis.trim() : diagnosisChoice;
+
+  // "Other" needs actual text; an empty diagnosis is otherwise allowed, as before.
+  const validateDiagnosis = () => {
+    if (diagnosisChoice === OTHER_DIAGNOSIS && !customDiagnosis.trim()) {
+      setDiagnosisError("Enter the diagnosis");
+      return false;
+    }
+    setDiagnosisError("");
+    return true;
+  };
+
+  const handleDiagnosisChoice = (_, value) => {
+    setDiagnosisChoice(value || "");
+    setDiagnosisError("");
+  };
+
   const draftPayload = () => ({
     ...clinical,
+    diagnosis: effectiveDiagnosis,
     prescriptionMode,
     handwrittenConfirmed,
   });
 
   const handleSaveConsultation = async () => {
+    if (!validateDiagnosis()) return;
     setSavingDraft(true);
     try {
       await saveConsultationDraft(appointmentId, draftPayload());
@@ -227,6 +279,7 @@ export default function Consultation() {
   };
 
   const handleSavePrescription = async () => {
+    if (!validateDiagnosis()) return;
     const unresolved = medicines.filter((m) => !m.medicineId && m.templateIssue === "DELETED");
     if (unresolved.length > 0) {
       showSnackbar(`Replace or remove: ${unresolved.map((m) => m.name).join(", ")} (no longer in inventory).`, "error");
@@ -251,7 +304,7 @@ export default function Consultation() {
         appointmentId,
         patientId: appointment.patientId,
         patientName: appointment.patientName,
-        diagnosis: clinical.diagnosis,
+        diagnosis: effectiveDiagnosis,
         notes: clinical.notes,
         items: validMedicines.map((m) => ({
           medicineId: m.medicineId,
@@ -275,6 +328,7 @@ export default function Consultation() {
   };
 
   const handleCompleteConsultation = async () => {
+    if (!validateDiagnosis()) return;
     if (prescriptionMode === PRESCRIPTION_MODES.HANDWRITTEN && !handwrittenConfirmed) {
       showSnackbar("Confirm that the handwritten prescription was given to the patient.", "error");
       return;
@@ -422,13 +476,28 @@ export default function Consultation() {
                 onChange={handleClinicalChange("examination")}
                 disabled={readOnly}
               />
-              <TextField
-                label="Diagnosis"
-                fullWidth
-                value={clinical.diagnosis}
-                onChange={handleClinicalChange("diagnosis")}
+              <Autocomplete
+                options={DIAGNOSIS_OPTIONS}
+                value={diagnosisChoice || null}
+                onChange={handleDiagnosisChoice}
                 disabled={readOnly}
+                renderInput={(params) => <TextField {...params} label="Diagnosis" />}
               />
+              {diagnosisChoice === OTHER_DIAGNOSIS && (
+                <TextField
+                  label="Enter diagnosis"
+                  fullWidth
+                  required
+                  value={customDiagnosis}
+                  onChange={(e) => {
+                    setCustomDiagnosis(e.target.value);
+                    setDiagnosisError("");
+                  }}
+                  error={!!diagnosisError}
+                  helperText={diagnosisError}
+                  disabled={readOnly}
+                />
+              )}
               <TextField
                 label="Doctor Notes"
                 fullWidth
