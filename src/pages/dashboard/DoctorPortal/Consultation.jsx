@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   TextField, Paper, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Snackbar, Alert, Button, IconButton, Autocomplete,
-  Radio, RadioGroup, FormControlLabel, FormControl, Checkbox, Chip, Divider
+  Radio, RadioGroup, FormControlLabel, FormControl, Checkbox, Chip, Divider, Tooltip
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
@@ -12,6 +12,8 @@ import HistoryIcon from "@mui/icons-material/History";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
+import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 import BackButton from "../../../components/BackButton";
 import AddButton from "../../../components/AddButton";
 import { getAppointmentById } from "../../../api/AppointmentApi";
@@ -19,6 +21,9 @@ import { getPatientById } from "../../../api/PatientApi";
 import { getChannelingHistory } from "../../../api/ChannelingApi";
 import { getPrescriptionsByPatient, createPrescription } from "../../../api/PrescriptionApi";
 import { getMedicines } from "../../../api/MedicineApi";
+import UseTemplateDialog from "../../../components/prescription/UseTemplateDialog";
+import { ISSUE_LABELS } from "../../../components/prescription/templateIssues";
+import SaveTemplateDialog from "../../../components/prescription/SaveTemplateDialog";
 import {
   getConsultationByAppointment,
   getConsultationsByPatient,
@@ -33,6 +38,23 @@ const PRESCRIPTION_MODES = {
   HANDWRITTEN: "HANDWRITTEN",
   NONE: "NONE",
 };
+
+const OTHER_DIAGNOSIS = "Other";
+const DIAGNOSIS_OPTIONS = [
+  "Fever",
+  "Viral infection",
+  "Upper respiratory tract infection",
+  "Acute gastroenteritis",
+  "Hypertension",
+  "Type 2 diabetes mellitus",
+  "Asthma",
+  "Allergic rhinitis",
+  "Urinary tract infection",
+  "Migraine",
+  "Gastritis",
+  "Musculoskeletal pain",
+  OTHER_DIAGNOSIS,
+];
 
 const emptyClinical = {
   chiefComplaint: "",
@@ -64,11 +86,19 @@ export default function Consultation() {
   const [prescriptionMode, setPrescriptionMode] = useState(PRESCRIPTION_MODES.TYPED);
   const [handwrittenConfirmed, setHandwrittenConfirmed] = useState(false);
   const [consultationStatus, setConsultationStatus] = useState("IN_PROGRESS");
+  // The dropdown choice and the custom text are kept apart so switching
+  // between "Other" and a predefined value never loses what was typed. The
+  // saved diagnosis is always the actual text, never the word "Other".
+  const [diagnosisChoice, setDiagnosisChoice] = useState("");
+  const [customDiagnosis, setCustomDiagnosis] = useState("");
+  const [diagnosisError, setDiagnosisError] = useState("");
   const [medicines, setMedicines] = useState([{ ...emptyMedicine }]);
 
   const [savingDraft, setSavingDraft] = useState(false);
   const [savingPrescription, setSavingPrescription] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [useTemplateOpen, setUseTemplateOpen] = useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
@@ -102,6 +132,15 @@ export default function Consultation() {
           diagnosis: existing.diagnosis || "",
           notes: existing.notes || "",
         });
+        const savedDiagnosis = existing.diagnosis || "";
+        if (!savedDiagnosis) {
+          setDiagnosisChoice("");
+        } else if (DIAGNOSIS_OPTIONS.includes(savedDiagnosis) && savedDiagnosis !== OTHER_DIAGNOSIS) {
+          setDiagnosisChoice(savedDiagnosis);
+        } else {
+          setDiagnosisChoice(OTHER_DIAGNOSIS);
+          setCustomDiagnosis(savedDiagnosis);
+        }
         if (existing.prescriptionMode) setPrescriptionMode(existing.prescriptionMode);
         setHandwrittenConfirmed(!!existing.handwrittenConfirmedAt);
         setConsultationStatus(existing.status || "IN_PROGRESS");
@@ -146,8 +185,52 @@ export default function Consultation() {
 
   const handleMedicineSelect = (index, selected) => {
     setMedicines((prev) => prev.map((m, i) => (i === index
-      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "" }
+      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "", templateIssue: null }
       : m)));
+  };
+
+  // Copies a template's items into the form. Only local state changes — the
+  // doctor reviews/edits the rows and saves via "Save Prescription" as usual.
+  // Items already in the form (same medicine) are skipped so applying twice
+  // can't double up; rows are fresh copies, so edits never reach the template.
+  const applyTemplate = (template) => {
+    const isBlank = (m) => !m.medicineId && !m.name && !m.dosage && !m.frequency && !m.duration && !m.instructions;
+    const keyOf = (m) => m.medicineId || `name:${(m.name || "").toLowerCase()}`;
+
+    const existing = medicines.filter((m) => !isBlank(m));
+    const present = new Set(existing.map(keyOf));
+    const incoming = [];
+    let skipped = 0;
+
+    template.items.forEach((i) => {
+      const deleted = i.issue === "DELETED";
+      const row = {
+        medicineId: deleted ? "" : i.medicineId,
+        name: i.medicineName,
+        dosage: i.dosage || "",
+        frequency: i.frequency || "",
+        duration: i.duration || "",
+        instructions: i.instructions || "",
+        qtyPrescribed: i.qtyPrescribed || 1,
+        templateIssue: i.issue || null,
+      };
+      if (present.has(keyOf(row))) {
+        skipped += 1;
+        return;
+      }
+      present.add(keyOf(row));
+      incoming.push(row);
+    });
+
+    const next = [...existing, ...incoming];
+    setMedicines(next.length > 0 ? next : [{ ...emptyMedicine }]);
+    setUseTemplateOpen(false);
+
+    const flagged = incoming.filter((r) => r.templateIssue).length;
+    const parts = [`Template "${template.name}" loaded — review before saving.`];
+    if (skipped) parts.push(`${skipped} already in the prescription, skipped.`);
+    if (flagged) parts.push(`${flagged} item${flagged === 1 ? "" : "s"} need attention.`);
+    showSnackbar(parts.join(" "), flagged ? "warning" : "success");
   };
 
   const addMedicineRow = () => setMedicines((prev) => [...prev, { ...emptyMedicine }]);
@@ -156,13 +239,33 @@ export default function Consultation() {
     setMedicines((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const effectiveDiagnosis =
+    diagnosisChoice === OTHER_DIAGNOSIS ? customDiagnosis.trim() : diagnosisChoice;
+
+  // "Other" needs actual text; an empty diagnosis is otherwise allowed, as before.
+  const validateDiagnosis = () => {
+    if (diagnosisChoice === OTHER_DIAGNOSIS && !customDiagnosis.trim()) {
+      setDiagnosisError("Enter the diagnosis");
+      return false;
+    }
+    setDiagnosisError("");
+    return true;
+  };
+
+  const handleDiagnosisChoice = (_, value) => {
+    setDiagnosisChoice(value || "");
+    setDiagnosisError("");
+  };
+
   const draftPayload = () => ({
     ...clinical,
+    diagnosis: effectiveDiagnosis,
     prescriptionMode,
     handwrittenConfirmed,
   });
 
   const handleSaveConsultation = async () => {
+    if (!validateDiagnosis()) return;
     setSavingDraft(true);
     try {
       await saveConsultationDraft(appointmentId, draftPayload());
@@ -176,6 +279,13 @@ export default function Consultation() {
   };
 
   const handleSavePrescription = async () => {
+    if (!validateDiagnosis()) return;
+    const unresolved = medicines.filter((m) => !m.medicineId && m.templateIssue === "DELETED");
+    if (unresolved.length > 0) {
+      showSnackbar(`Replace or remove: ${unresolved.map((m) => m.name).join(", ")} (no longer in inventory).`, "error");
+      return;
+    }
+
     const validMedicines = medicines.filter((m) => m.medicineId);
     if (validMedicines.length === 0) {
       showSnackbar("Add at least one medicine.", "error");
@@ -194,7 +304,7 @@ export default function Consultation() {
         appointmentId,
         patientId: appointment.patientId,
         patientName: appointment.patientName,
-        diagnosis: clinical.diagnosis,
+        diagnosis: effectiveDiagnosis,
         notes: clinical.notes,
         items: validMedicines.map((m) => ({
           medicineId: m.medicineId,
@@ -218,6 +328,7 @@ export default function Consultation() {
   };
 
   const handleCompleteConsultation = async () => {
+    if (!validateDiagnosis()) return;
     if (prescriptionMode === PRESCRIPTION_MODES.HANDWRITTEN && !handwrittenConfirmed) {
       showSnackbar("Confirm that the handwritten prescription was given to the patient.", "error");
       return;
@@ -248,6 +359,9 @@ export default function Consultation() {
   // Patient has no allergies field of its own — it's captured at the patient
   // desk on the registration record, so use the most recent one that has it.
   const allergies = registrationHistory.find((r) => r.allergies)?.allergies;
+
+  // Rows that can go into a template: a real medicine is selected.
+  const templateSourceRows = medicines.filter((m) => m.medicineId);
 
   const typedPrescriptionsForVisit = prescriptions.filter(
     (p) => String(p.appointmentId) === String(appointmentId)
@@ -362,13 +476,28 @@ export default function Consultation() {
                 onChange={handleClinicalChange("examination")}
                 disabled={readOnly}
               />
-              <TextField
-                label="Diagnosis"
-                fullWidth
-                value={clinical.diagnosis}
-                onChange={handleClinicalChange("diagnosis")}
+              <Autocomplete
+                options={DIAGNOSIS_OPTIONS}
+                value={diagnosisChoice || null}
+                onChange={handleDiagnosisChoice}
                 disabled={readOnly}
+                renderInput={(params) => <TextField {...params} label="Diagnosis" />}
               />
+              {diagnosisChoice === OTHER_DIAGNOSIS && (
+                <TextField
+                  label="Enter diagnosis"
+                  fullWidth
+                  required
+                  value={customDiagnosis}
+                  onChange={(e) => {
+                    setCustomDiagnosis(e.target.value);
+                    setDiagnosisError("");
+                  }}
+                  error={!!diagnosisError}
+                  helperText={diagnosisError}
+                  disabled={readOnly}
+                />
+              )}
               <TextField
                 label="Doctor Notes"
                 fullWidth
@@ -416,7 +545,15 @@ export default function Consultation() {
                   {medicines.map((m, i) => {
                     const selectedMedicine = medicineOptions.find((opt) => opt._id === m.medicineId) || null;
                     return (
-                      <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                      <div key={i}>
+                      {m.templateIssue && (
+                        <p className="text-xs text-amber-700 mb-1">
+                          <WarningAmberIcon sx={{ fontSize: 14 }} className="mr-1" />
+                          {m.name}: {ISSUE_LABELS[m.templateIssue]}
+                          {m.templateIssue === "DELETED" ? " — choose a replacement or remove this row" : " — check before prescribing"}
+                        </p>
+                      )}
+                      <div className={`grid grid-cols-12 gap-2 items-center ${m.templateIssue ? "rounded-lg bg-amber-50 p-1" : ""}`}>
                         <Autocomplete
                           className="col-span-3"
                           size="small"
@@ -425,7 +562,7 @@ export default function Consultation() {
                           value={selectedMedicine}
                           disabled={readOnly}
                           onChange={(event, value) => handleMedicineSelect(i, value)}
-                          renderInput={(params) => <TextField {...params} label="Medicine" />}
+                          renderInput={(params) => <TextField {...params} label="Medicine" error={m.templateIssue === "DELETED" && !m.medicineId} />}
                         />
                         <TextField className="col-span-1" label="Qty" type="number" size="small" value={m.qtyPrescribed} disabled={readOnly}
                           inputProps={{ min: 1 }}
@@ -443,6 +580,7 @@ export default function Consultation() {
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -452,6 +590,19 @@ export default function Consultation() {
                     <Button size="small" startIcon={<AddIcon />} onClick={addMedicineRow}>
                       Add Medicine
                     </Button>
+
+                    <Button size="small" startIcon={<LibraryAddIcon />} onClick={() => setUseTemplateOpen(true)}>
+                      Use Template
+                    </Button>
+
+                    <Tooltip title={templateSourceRows.length === 0 ? "Add at least one medicine to save a template" : ""}>
+                      <span>
+                        <Button size="small" startIcon={<BookmarkAddIcon />} disabled={templateSourceRows.length === 0}
+                          onClick={() => setSaveTemplateOpen(true)}>
+                          Save as Template
+                        </Button>
+                      </span>
+                    </Tooltip>
 
                     <AddButton
                       label={savingPrescription ? "Saving..." : "Save Prescription"}
@@ -614,6 +765,17 @@ export default function Consultation() {
           </Paper>
         </div>
       </div>
+
+      <UseTemplateDialog open={useTemplateOpen} onClose={() => setUseTemplateOpen(false)} onSelect={applyTemplate} />
+      <SaveTemplateDialog
+        open={saveTemplateOpen}
+        items={templateSourceRows}
+        onClose={() => setSaveTemplateOpen(false)}
+        onSaved={(t) => {
+          setSaveTemplateOpen(false);
+          showSnackbar(`Template "${t.name}" saved.`);
+        }}
+      />
 
       <Snackbar
         open={snackbar.open}

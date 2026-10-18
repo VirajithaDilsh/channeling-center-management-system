@@ -58,10 +58,13 @@ export default function AdminManagement() {
     try {
       const data = await getAdmins();
 
-      const normalized = data.map((a) => ({
-        ...a,
-        id: a._id, // IMPORTANT: single source of truth
-      }));
+      // Doctor accounts are managed from the Doctors page, not here.
+      const normalized = data
+        .filter((a) => (a.role || "").toLowerCase() !== "doctor")
+        .map((a) => ({
+          ...a,
+          id: a._id, // IMPORTANT: single source of truth
+        }));
 
       setAdmins(normalized);
     } catch (err) {
