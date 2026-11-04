@@ -24,6 +24,14 @@ const errorText = (err) => {
   return "The assistant is unavailable right now. The charts and figures on this page still work.";
 };
 
+const subtitleFor = (llm) => {
+  const base = "Answers use your real figures";
+  if (!llm) return `${base} (AI status unknown; standard answers)`;
+  if (llm.status === "online") return `${base}; wording by Google Gemini`;
+  if (llm.status === "not_configured") return `${base} (Gemini isn't configured: standard answers)`;
+  return `${base} (Gemini is unavailable right now: standard answers)`;
+};
+
 const KIND = {
   fact: { label: "Actual figures", cls: "bg-blue-50 text-blue-800" },
   prediction: { label: "Estimate", cls: "bg-amber-50 text-amber-800" },
@@ -63,7 +71,7 @@ export default function AssistantChat() {
   return (
     <WidgetCard
       title="AI Financial Assistant"
-      subtitle={llm?.llmAvailable ? "Answers use your real figures; wording by a local AI model" : "Answers use your real figures (simple mode: AI model offline)"}
+      subtitle={subtitleFor(llm)}
       icon={<SmartToyIcon className="text-blue-500" />}
     >
       <div className="flex flex-col gap-3">
