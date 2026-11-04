@@ -14,8 +14,9 @@ import { useMedicines } from "../../context/MedicineContext.jsx";
 import TableActionButtons from "../TableActionButton.jsx";
 import { isLowStock } from "../../utils/inventory";
 
-const InventoryTable = () => {
-  const { medicines, deleteMedicine } = useMedicines();
+const InventoryTable = ({ medicines: medicinesProp }) => {
+  const { medicines: allMedicines, deleteMedicine } = useMedicines();
+  const medicines = medicinesProp ?? allMedicines;
   const navigate = useNavigate();
 
   if (!medicines || medicines.length === 0) {

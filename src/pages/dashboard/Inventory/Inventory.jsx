@@ -11,11 +11,13 @@ const Inventory = () => {
     const [searchQuery, setSearchQuery] = useState("");
 
     // Filter medicines based on search
+    const q = searchQuery.trim().toLowerCase();
     const filteredMedicines = medicines.filter(
         med =>
-            med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            med.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            med.batchNumber.toLowerCase().includes(searchQuery.toLowerCase())
+            (med.name || "").toLowerCase().includes(q) ||
+            (med.manufacturer || "").toLowerCase().includes(q) ||
+            (med.batchNumber || "").toLowerCase().includes(q) ||
+            (med.category || "").toLowerCase().includes(q)
     );
 
     return (
