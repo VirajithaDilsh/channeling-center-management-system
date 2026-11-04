@@ -15,8 +15,9 @@ import TableActionButtons from "../TableActionButton.jsx";
 import { isLowStock } from "../../utils/inventory";
 import { getViewer } from "../../utils/permissions";
 
-const InventoryTable = () => {
-  const { medicines, deleteMedicine } = useMedicines();
+const InventoryTable = ({ medicines: medicinesProp }) => {
+  const { medicines: allMedicines, deleteMedicine } = useMedicines();
+  const medicines = medicinesProp ?? allMedicines;
   const navigate = useNavigate();
   const canEdit = getViewer().can(["inventory_edit", "inventory_allow_all"]);
 
