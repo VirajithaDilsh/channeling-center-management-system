@@ -23,8 +23,10 @@ export default function DoctorRevenue() {
       onRetry={reload}
       isEmpty={doctors.length === 0}
       emptyMessage="No fully paid visits for this month."
+      controls={
+        <TextField type="month" size="small" label="Month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} slotProps={{ inputLabel: { shrink: true } }} sx={{ mb: 2 }} />
+      }
     >
-      <TextField type="month" size="small" label="Month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} slotProps={{ inputLabel: { shrink: true } }} sx={{ mb: 2 }} />
       <ul className="space-y-3">
         {doctors.map((d) => (
           <li key={d.doctorId || d.doctorName}>

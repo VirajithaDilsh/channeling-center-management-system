@@ -21,6 +21,7 @@ export default function WidgetCard({
   isEmpty = false,
   emptyMessage = "Nothing to show.",
   emptyTone = "neutral",
+  controls,
   children,
 }) {
   const navigate = useNavigate();
@@ -47,6 +48,8 @@ export default function WidgetCard({
           </Button>
         )}
       </div>
+
+      {controls && <div>{controls}</div>}
 
       <div className="flex-1">
         {state === "loading" && (
