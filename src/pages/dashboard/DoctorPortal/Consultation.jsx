@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   TextField, Paper, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Snackbar, Alert, Button, IconButton, Autocomplete,
-  Radio, RadioGroup, FormControlLabel, FormControl, Checkbox, Chip, Divider
+  Radio, RadioGroup, FormControlLabel, FormControl, Checkbox, Chip, Divider, Tooltip
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
@@ -12,6 +12,8 @@ import HistoryIcon from "@mui/icons-material/History";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
+import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
 import BackButton from "../../../components/BackButton";
 import Icd10Select from "../../../components/Icd10Select";
 import AddButton from "../../../components/AddButton";
@@ -20,6 +22,9 @@ import { getPatientById } from "../../../api/PatientApi";
 import { getChannelingHistory } from "../../../api/ChannelingApi";
 import { getPrescriptionsByPatient, createPrescription } from "../../../api/PrescriptionApi";
 import { getMedicines } from "../../../api/MedicineApi";
+import UseTemplateDialog from "../../../components/prescription/UseTemplateDialog";
+import { ISSUE_LABELS } from "../../../components/prescription/templateIssues";
+import SaveTemplateDialog from "../../../components/prescription/SaveTemplateDialog";
 import {
   getConsultationByAppointment,
   getConsultationsByPatient,
@@ -73,11 +78,16 @@ export default function Consultation() {
   const [prescriptionMode, setPrescriptionMode] = useState(PRESCRIPTION_MODES.TYPED);
   const [handwrittenConfirmed, setHandwrittenConfirmed] = useState(false);
   const [consultationStatus, setConsultationStatus] = useState("IN_PROGRESS");
+  // The dropdown choice and the custom text are kept apart so switching
+  // between "Other" and a predefined value never loses what was typed. The
+  // saved diagnosis is always the actual text, never the word "Other".
   const [medicines, setMedicines] = useState([{ ...emptyMedicine }]);
 
   const [savingDraft, setSavingDraft] = useState(false);
   const [savingPrescription, setSavingPrescription] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [useTemplateOpen, setUseTemplateOpen] = useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
@@ -156,8 +166,52 @@ export default function Consultation() {
 
   const handleMedicineSelect = (index, selected) => {
     setMedicines((prev) => prev.map((m, i) => (i === index
-      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "" }
+      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "", templateIssue: null }
       : m)));
+  };
+
+  // Copies a template's items into the form. Only local state changes — the
+  // doctor reviews/edits the rows and saves via "Save Prescription" as usual.
+  // Items already in the form (same medicine) are skipped so applying twice
+  // can't double up; rows are fresh copies, so edits never reach the template.
+  const applyTemplate = (template) => {
+    const isBlank = (m) => !m.medicineId && !m.name && !m.dosage && !m.frequency && !m.duration && !m.instructions;
+    const keyOf = (m) => m.medicineId || `name:${(m.name || "").toLowerCase()}`;
+
+    const existing = medicines.filter((m) => !isBlank(m));
+    const present = new Set(existing.map(keyOf));
+    const incoming = [];
+    let skipped = 0;
+
+    template.items.forEach((i) => {
+      const deleted = i.issue === "DELETED";
+      const row = {
+        medicineId: deleted ? "" : i.medicineId,
+        name: i.medicineName,
+        dosage: i.dosage || "",
+        frequency: i.frequency || "",
+        duration: i.duration || "",
+        instructions: i.instructions || "",
+        qtyPrescribed: i.qtyPrescribed || 1,
+        templateIssue: i.issue || null,
+      };
+      if (present.has(keyOf(row))) {
+        skipped += 1;
+        return;
+      }
+      present.add(keyOf(row));
+      incoming.push(row);
+    });
+
+    const next = [...existing, ...incoming];
+    setMedicines(next.length > 0 ? next : [{ ...emptyMedicine }]);
+    setUseTemplateOpen(false);
+
+    const flagged = incoming.filter((r) => r.templateIssue).length;
+    const parts = [`Template "${template.name}" loaded — review before saving.`];
+    if (skipped) parts.push(`${skipped} already in the prescription, skipped.`);
+    if (flagged) parts.push(`${flagged} item${flagged === 1 ? "" : "s"} need attention.`);
+    showSnackbar(parts.join(" "), flagged ? "warning" : "success");
   };
 
   const addMedicineRow = () => setMedicines((prev) => [...prev, { ...emptyMedicine }]);
@@ -186,6 +240,12 @@ export default function Consultation() {
   };
 
   const handleSavePrescription = async () => {
+    const unresolved = medicines.filter((m) => !m.medicineId && m.templateIssue === "DELETED");
+    if (unresolved.length > 0) {
+      showSnackbar(`Replace or remove: ${unresolved.map((m) => m.name).join(", ")} (no longer in inventory).`, "error");
+      return;
+    }
+
     const validMedicines = medicines.filter((m) => m.medicineId);
     if (validMedicines.length === 0) {
       showSnackbar("Add at least one medicine.", "error");
@@ -258,6 +318,9 @@ export default function Consultation() {
   // Patient has no allergies field of its own — it's captured at the patient
   // desk on the registration record, so use the most recent one that has it.
   const allergies = registrationHistory.find((r) => r.allergies)?.allergies;
+
+  // Rows that can go into a template: a real medicine is selected.
+  const templateSourceRows = medicines.filter((m) => m.medicineId);
 
   const typedPrescriptionsForVisit = prescriptions.filter(
     (p) => String(p.appointmentId) === String(appointmentId)
@@ -431,7 +494,15 @@ export default function Consultation() {
                   {medicines.map((m, i) => {
                     const selectedMedicine = medicineOptions.find((opt) => opt._id === m.medicineId) || null;
                     return (
-                      <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                      <div key={i}>
+                      {m.templateIssue && (
+                        <p className="text-xs text-amber-700 mb-1">
+                          <WarningAmberIcon sx={{ fontSize: 14 }} className="mr-1" />
+                          {m.name}: {ISSUE_LABELS[m.templateIssue]}
+                          {m.templateIssue === "DELETED" ? " — choose a replacement or remove this row" : " — check before prescribing"}
+                        </p>
+                      )}
+                      <div className={`grid grid-cols-12 gap-2 items-center ${m.templateIssue ? "rounded-lg bg-amber-50 p-1" : ""}`}>
                         <Autocomplete
                           className="col-span-3"
                           size="small"
@@ -440,7 +511,7 @@ export default function Consultation() {
                           value={selectedMedicine}
                           disabled={readOnly}
                           onChange={(event, value) => handleMedicineSelect(i, value)}
-                          renderInput={(params) => <TextField {...params} label="Medicine" />}
+                          renderInput={(params) => <TextField {...params} label="Medicine" error={m.templateIssue === "DELETED" && !m.medicineId} />}
                         />
                         <TextField className="col-span-1" label="Qty" type="number" size="small" value={m.qtyPrescribed} disabled={readOnly}
                           inputProps={{ min: 1 }}
@@ -458,6 +529,7 @@ export default function Consultation() {
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -467,6 +539,19 @@ export default function Consultation() {
                     <Button size="small" startIcon={<AddIcon />} onClick={addMedicineRow}>
                       Add Medicine
                     </Button>
+
+                    <Button size="small" startIcon={<LibraryAddIcon />} onClick={() => setUseTemplateOpen(true)}>
+                      Use Template
+                    </Button>
+
+                    <Tooltip title={templateSourceRows.length === 0 ? "Add at least one medicine to save a template" : ""}>
+                      <span>
+                        <Button size="small" startIcon={<BookmarkAddIcon />} disabled={templateSourceRows.length === 0}
+                          onClick={() => setSaveTemplateOpen(true)}>
+                          Save as Template
+                        </Button>
+                      </span>
+                    </Tooltip>
 
                     <AddButton
                       label={savingPrescription ? "Saving..." : "Save Prescription"}
@@ -537,7 +622,7 @@ export default function Consultation() {
               <div key={c._id} className="border-b last:border-0 py-3">
                 <p className="text-sm text-gray-500">
                   {c.completedAt ? new Date(c.completedAt).toLocaleDateString() : ""}
-                  {c.doctorName ? ` • Dr. ${c.doctorName}` : ""}
+                  {c.doctorName ? ` • Dr. ${c.doctorName.replace(/^dr\.?\s+/i, "")}` : ""}
                 </p>
 
                 {c.diagnoses?.length > 0 && (
@@ -628,7 +713,7 @@ export default function Consultation() {
               <div key={p._id} className="py-2 border-b last:border-0">
                 <p className="text-xs text-gray-500">
                   {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}
-                  {p.doctorName ? ` • Dr. ${p.doctorName}` : ""}
+                  {p.doctorName ? ` • Dr. ${p.doctorName.replace(/^dr\.?\s+/i, "")}` : ""}
                 </p>
                 <p className="text-sm">{(p.items || []).map((m) => m.name).join(", ")}</p>
                 <span className={p.status === "RESOLVED" ? "text-xs text-green-600" : "text-xs text-amber-600"}>
@@ -639,6 +724,17 @@ export default function Consultation() {
           </Paper>
         </div>
       </div>
+
+      <UseTemplateDialog open={useTemplateOpen} onClose={() => setUseTemplateOpen(false)} onSelect={applyTemplate} />
+      <SaveTemplateDialog
+        open={saveTemplateOpen}
+        items={templateSourceRows}
+        onClose={() => setSaveTemplateOpen(false)}
+        onSaved={(t) => {
+          setSaveTemplateOpen(false);
+          showSnackbar(`Template "${t.name}" saved.`);
+        }}
+      />
 
       <Snackbar
         open={snackbar.open}

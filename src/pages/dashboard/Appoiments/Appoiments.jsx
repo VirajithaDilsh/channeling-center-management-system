@@ -9,13 +9,13 @@ import AddButton from "../../../components/AddButton";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getAppointments, deleteAppointment } from "../../../api/AppointmentApi";
 import { getDoctors } from "../../../api/DoctorApi";
-import { getUserPermissions, hasAny } from "../../../utils/permissions";
 import AddAppointment from "./AddAppointment";
 import {
   STATUS_COLORS,
   isUpcomingAppointment,
   compareByMoment,
 } from "../../../utils/appointments";
+import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
@@ -130,6 +130,8 @@ const AppointmentsTable = ({
 };
 
 export default function Appoiments() {
+  const canWrite = getViewer().can(["appointments_write", "appointments_allow_all"]);
+
   const [appointments, setAppointments] = useState([]);
   const [upcomingPage, setUpcomingPage] = useState(1);
   const [pastPage, setPastPage] = useState(1);
@@ -145,11 +147,10 @@ export default function Appoiments() {
   // A doctor holding only doctor_portal gets just their own appointments from
   // the backend, read-only. They also can't list doctors, so skip that request;
   // the doctor name falls back to the snapshot stored on the appointment.
-  const permissions = getUserPermissions();
-  const canWrite = hasAny(permissions, ["appointments_write", "appointments_allow_all"]);
-  const canEdit = hasAny(permissions, ["appointments_edit", "appointments_allow_all"]);
-  const isDoctorOnly = !hasAny(permissions, ["appointments_read", "appointments_allow_all"]);
-  const canListDoctors = hasAny(permissions, ["doctors_read", "doctors_allow_all"]);
+  const viewer = getViewer();
+  const canEdit = viewer.can(["appointments_edit", "appointments_allow_all"]);
+  const isDoctorOnly = !viewer.can(["appointments_read", "appointments_allow_all"]);
+  const canListDoctors = viewer.can(["doctors_read", "doctors_allow_all"]);
 
   useEffect(() => {
     fetchAppointments();
@@ -251,7 +252,9 @@ export default function Appoiments() {
             {isDoctorOnly ? "Your appointments" : "View and schedule patient appointments"}
           </p>
         </div>
-        {canWrite && <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />}
+        {canWrite && (
+          <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />
+        )}
       </div>
 
       {/* Upcoming */}

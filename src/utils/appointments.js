@@ -31,10 +31,15 @@ export const isToday = (dateValue) => {
   return new Date(dateValue).toDateString() === new Date().toDateString();
 };
 
-// Upcoming means still going to happen: a future slot that is also still
-// Scheduled. Cancelled and Completed bookings are history regardless of date.
+// Upcoming means still actionable: a future slot, or anything still on today's
+// calendar, that is also still Scheduled. Cancelled and Completed bookings are
+// history regardless of date. Today's own Scheduled slots count as upcoming
+// even once their time-of-day has technically elapsed — the same-day booking
+// hasn't been marked Completed/Cancelled yet, so it still belongs with the
+// rest of today's queue rather than dropping into history mid-day.
 export const isUpcomingAppointment = (appointment, now = Date.now()) => {
   if (appointment.status !== "Scheduled") return false;
+  if (isToday(appointment.date)) return true;
   const moment = appointmentMoment(appointment);
   return moment ? moment.getTime() >= now : false;
 };

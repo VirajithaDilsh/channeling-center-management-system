@@ -4,14 +4,13 @@ import AddButton from "../../../components/AddButton.jsx";
 import { useNavigate } from "react-router-dom";
 import InventoryTable from "../../../components/tables/InventoryTable.jsx"; // import the table
 import { useMedicines } from "../../../context/MedicineContext.jsx";
-import { getUserPermissions, hasAny } from "../../../utils/permissions.js";
+import { getViewer } from "../../../utils/permissions";
 
 const Inventory = () => {
     const navigate = useNavigate();
-    // Read-only viewers (e.g. doctors) get the list without Add/Edit/Delete.
-    const canAdd = hasAny(getUserPermissions(), ["inventory_write", "inventory_allow_all"]);
     const { medicines } = useMedicines();
     const [searchQuery, setSearchQuery] = useState("");
+    const canWrite = getViewer().can(["inventory_write", "inventory_allow_all"]);
 
     // Filter medicines based on search
     const q = searchQuery.trim().toLowerCase();
@@ -48,8 +47,8 @@ const Inventory = () => {
                     />
                 </div>
 
-                {/* Add Button — only for roles that may create medicines */}
-                {canAdd && (
+                {/* Add Button */}
+                {canWrite && (
                     <div className="flex justify-end">
                         <AddButton
                             label="Add Medicine"

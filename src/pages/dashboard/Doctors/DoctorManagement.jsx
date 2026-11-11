@@ -9,6 +9,7 @@ import AddButton from "../../../components/AddButton";
 import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getDoctors, deleteDoctor } from "../../../api/DoctorApi";
+import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
@@ -19,6 +20,10 @@ const STATUS_STYLES = {
 };
 
 const DoctorManagement = () => {
+  const viewer = getViewer();
+  const canWrite = viewer.can(["doctors_write", "doctors_allow_all"]);
+  const canEdit = viewer.can(["doctors_edit", "doctors_allow_all"]);
+
   const [doctors, setDoctors] = useState([]);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -105,7 +110,9 @@ const DoctorManagement = () => {
           </p>
         </div>
 
-        <AddButton label="Add New Doctor" onClick={() => navigate("add-doctors")} />
+        {canWrite && (
+          <AddButton label="Add New Doctor" onClick={() => navigate("add-doctors")} />
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -182,7 +189,7 @@ const DoctorManagement = () => {
                 <TableCell>
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
-                    onEdit={() => navigate(`/dashboard/doctor/edit/${doc._id}`)}
+                    onEdit={canEdit ? () => navigate(`/dashboard/doctor/edit/${doc._id}`) : undefined}
                     onDelete={() => handleDeleteClick(doc._id)}
                   />
                 </TableCell>

@@ -7,11 +7,15 @@ import {
 import { useNavigate } from "react-router-dom";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getPatients, deletePatient } from "../../../api/PatientApi";
-import { getUserPermissions, hasAny } from "../../../utils/permissions";
+import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
 export default function PatientManagement() {
+  const viewer = getViewer();
+  const canWrite = viewer.can(["patients_write", "patients_allow_all"]);
+  const canEdit = viewer.can(["patients_edit", "patients_allow_all"]);
+
   const [patients, setPatients] = useState([]);
   const [page, setPage] = useState(1);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -24,10 +28,7 @@ export default function PatientManagement() {
 
   // Doctors see their own patients read-only: no register / edit / delete.
   // Matches the backend (POST needs write, PUT/DELETE need edit).
-  const permissions = getUserPermissions();
-  const canWrite = hasAny(permissions, ["patients_write", "patients_allow_all"]);
-  const canEdit = hasAny(permissions, ["patients_edit", "patients_allow_all"]);
-  const isDoctorOnly = !hasAny(permissions, ["patients_read", "patients_allow_all"]);
+  const isDoctorOnly = !viewer.can(["patients_read", "patients_allow_all"]);
 
   useEffect(() => {
     fetchPatients();

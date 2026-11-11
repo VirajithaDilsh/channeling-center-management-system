@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useMedicines } from "../../context/MedicineContext.jsx";
 import TableActionButtons from "../TableActionButton.jsx";
 import { isLowStock } from "../../utils/inventory";
-import { getUserPermissions, hasAny } from "../../utils/permissions";
+import { getViewer } from "../../utils/permissions";
 
 const InventoryTable = ({ medicines: medicinesProp }) => {
   const { medicines: allMedicines, deleteMedicine } = useMedicines();
@@ -21,7 +21,7 @@ const InventoryTable = ({ medicines: medicinesProp }) => {
   const navigate = useNavigate();
   // Backend: PUT/DELETE need inventory_edit (or allow_all). Read-only viewers
   // get no Actions column.
-  const canEdit = hasAny(getUserPermissions(), ["inventory_edit", "inventory_allow_all"]);
+  const canEdit = getViewer().can(["inventory_edit", "inventory_allow_all"]);
 
   if (!medicines || medicines.length === 0) {
     return (

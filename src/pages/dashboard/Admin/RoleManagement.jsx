@@ -32,11 +32,15 @@ import {
   deleteRole,
   getPermissionCatalog,
 } from "../../../api/RoleApi";
+import { getViewer } from "../../../utils/permissions";
 
 const PROTECTED_ROLE_NAMES = ["doctor", "admin"];
 
 export default function RoleManagement() {
   const navigate = useNavigate();
+  const viewer = getViewer();
+  const canWrite = viewer.can(["admin_write", "admin_allow_all"]);
+  const canEdit = viewer.can(["admin_edit", "admin_allow_all"]);
 
   const [roles, setRoles] = useState([]);
   const [permissionCatalog, setPermissionCatalog] = useState([]);
@@ -174,9 +178,11 @@ export default function RoleManagement() {
           </div>
         </div>
 
-        <Button variant="contained" onClick={openCreateForm}>
-          + Add Role
-        </Button>
+        {canWrite && (
+          <Button variant="contained" onClick={openCreateForm}>
+            + Add Role
+          </Button>
+        )}
       </div>
 
       <TableContainer component={Paper}>
@@ -213,7 +219,7 @@ export default function RoleManagement() {
 
                   <TableCell>
                     <TableActionButtons
-                      onEdit={() => openEditForm(role)}
+                      onEdit={canEdit ? () => openEditForm(role) : undefined}
                       onDelete={isProtected ? undefined : () => handleDeleteClick(role._id)}
                     />
                   </TableCell>

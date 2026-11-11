@@ -17,6 +17,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getPublicSettings } from "../api/SettingsApi";
 import axiosClient from '../api/axiosClient';
+import { useMedicines } from "../context/MedicineContext.jsx";
+import { hasAny } from "../utils/permissions";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -25,6 +27,7 @@ const Login = () => {
   const [centerName, setCenterName] = useState("MediChannel Pro");
 
   const navigate = useNavigate();
+  const { fetchMedicines } = useMedicines();
 
   useEffect(() => {
     getPublicSettings()
@@ -39,8 +42,8 @@ const Login = () => {
         password,
       });
 
-      // 1. Extract token, role and permissions from backend response
-      // Ensure your Node.js backend sends { token, role, permissions } on successful login
+      // 1. Extract token, role, permissions and (for doctors) the linked doctor
+      // profile from backend response
       const { token, role, permissions, doctorId, doctorName } = res.data;
 
       // 2. Save to local storage for route protection
@@ -48,17 +51,29 @@ const Login = () => {
       localStorage.setItem("userRole", role);
       localStorage.setItem("userPermissions", JSON.stringify(permissions || []));
 
-      // 2b. The backend returns the linked Doctor profile (Admin.doctorId) on
-      // login. Cache it for the doctor portal; clear stale values otherwise.
-      if (doctorId) {
-        localStorage.setItem("doctorId", doctorId);
-        localStorage.setItem("doctorName", doctorName || "");
-      } else {
-        localStorage.removeItem("doctorId");
-        localStorage.removeItem("doctorName");
+      // 2b. doctorId/doctorName come straight from the Admin.doctorId FK the
+      // backend resolves at login — not derived here by scanning doctors for a
+      // matching email, which broke whenever a Doctor's email and its linked
+      // account's email drifted apart.
+      if (role === "doctor") {
+        if (doctorId) {
+          localStorage.setItem("doctorId", doctorId);
+          localStorage.setItem("doctorName", doctorName || "");
+        } else {
+          localStorage.removeItem("doctorId");
+          localStorage.removeItem("doctorName");
+        }
       }
 
       setError("");
+
+      // 2c. MedicineProvider wraps the whole app and only fetches once, on its
+      // own mount — which happens before login, when there's no token yet. Without
+      // this, inventory data stays empty until a full page refresh remounts the
+      // provider with the token already in place.
+      if (hasAny(permissions, ["inventory_read", "inventory_allow_all"])) {
+        fetchMedicines();
+      }
 
       // 3. Everyone lands on the dashboard, which adapts to their permissions.
       // Doctors go straight to their consultation queue instead, since that
