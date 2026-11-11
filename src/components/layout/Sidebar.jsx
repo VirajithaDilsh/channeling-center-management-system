@@ -1,17 +1,37 @@
-import { NavLink } from "react-router-dom";
-import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X ,LogOut} from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { House, Users, DollarSign, Package, Stethoscope, FileText, Settings, X, Shield, LogOut, Pill } from "lucide-react";
+import { clearSession } from "../../utils/session";
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
+    const navigate = useNavigate();
+    const userPermissions = JSON.parse(localStorage.getItem("userPermissions") || "[]");
+
+    // Doctors work from My Appointments; the clinic-wide dashboard isn't for them.
+    const isDoctor = localStorage.getItem("userRole") === "doctor";
 
     const links = [
-        { name: "Dashboard", to: "/dashboard", icon: <House size={20} /> },
-        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} /> }, 
-        { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} /> },
-        { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} /> },
-        { name: "Payments", to: "/dashboard/payments", icon: <DollarSign size={20} /> },
-        { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} /> },
+        ...(isDoctor ? [] : [{ name: "Dashboard", to: "/dashboard", icon: <House size={20} /> }]),
+        { name: "My Appointments", to: "/dashboard/doctor-home", icon: <Stethoscope size={20} />, permission: "doctor_portal" },
+        { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} />, permission: ["doctors_read", "doctors_allow_all"] },
+        { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} />, permission: ["patients_read", "patients_allow_all", "doctor_portal"] },
+        { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} />, permission: ["appointments_read", "appointments_allow_all", "doctor_portal"] },
+        { name: "Inventory", to: "/dashboard/inventory", icon: <Package size={20} />, permission: ["inventory_read", "inventory_allow_all"] },
+        { name: "Pharmacy", to: "/dashboard/pharmacy", icon: <Pill size={20} />, permission: ["pharmacy_read", "pharmacy_allow_all"] },
+        { name: "Billing", to: "/dashboard/billing", icon: <DollarSign size={20} />, permission: ["billing_read", "billing_allow_all"] },
+        { name: "Reports", to: "/dashboard/reports", icon: <FileText size={20} />, permission: ["reports_read", "reports_allow_all"] },
         { name: "Settings", to: "/dashboard/settings", icon: <Settings size={20} /> },
-    ];
+        { name: "Admin", to: "/dashboard/Admin", icon: <Shield size={20} />, permission: ["admin_read", "admin_allow_all"] },
+
+    ].filter((link) => {
+        if (!link.permission) return true;
+        const required = Array.isArray(link.permission) ? link.permission : [link.permission];
+        return required.some((p) => userPermissions.includes(p));
+    });
+
+    const handleLogout = () => {
+        clearSession();
+        navigate("/");
+    };
 
     return (
         <>
@@ -55,7 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                     <div className="pt-2 ">
                         <button
                             className="flex items-center gap-3 p-2 w-full rounded hover:bg-red-100 text-red-600 transition"
-                            onClick={() => console.log("Logout clicked")}
+                            onClick={handleLogout}
                         >
                             <LogOut size={20} />
                             <span>Logout</span>

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Autocomplete, TextField } from "@mui/material";
 import AddButton from "../../../components/AddButton";
-import axios from "axios";
-import { experimental_sx } from "@mui/material";
-
+import BackButton from "../../../components/BackButton";
+import { createDoctor } from "../../../api/DoctorApi";
+import { SPECIALIZATIONS } from "../../../constants/specializations";
+import { QUALIFICATIONS } from "../../../constants/qualifications";
 
 
 
@@ -19,47 +21,25 @@ const AddDoctor = () => {
     fee: "",
     phone: "",
     email: "",
-    experience: "",
-    status: "Active",
+    password: "",
+    status: "Available"
   });
 
-  const [errors, setErrors] = useState({});
 
-  const validate = () => {
-    const errors = {};
+  const handleChange = (e) => {
+    setDoctor({...doctor,[e.target.name]: e.target.value});
+  };
 
-    if (!doctor.name.trim()) errors.name = "Name is required";
-    if (!doctor.specialization.trim()) errors.specialization = "Specialization is required";
-    if (!doctor.qualifications.trim()) errors.qualifications = "Qualifications is required";
-    if (!doctor.fee || doctor.fee <= 0) errors.fee = "Fee must be a positive number";
-    if (!/^\d{10}$/.test(doctor.phone)) errors.phone = "Enter a valid 10-digit phone";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(doctor.email)) errors.email = "Enter a valid email";
+  const handleSubmit = async () => {
 
-  return errors;
-};
-
-
- const handleChange = (e) => {
-  const { name, value, type, checked } = e.target;
-  setDoctor({
-    ...doctor,
-    [name]: type === "checkbox" ? checked : value
-  });
-};
-
-  //  connect API here
- const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const errors = validate();
-      if (Object.keys(errors).length > 0) {
-        setErrors(errors); // add: const [errors, setErrors] = useState({});
-        return;
-      }
+    if (!doctor.name || !doctor.specialization || !doctor.fee || !doctor.email || !doctor.password) {
+      alert("Please fill in Name, Specialization, Fee, Email and Password ❌");
+      return;
+    }
 
     try {
 
-      await axios.post("http://localhost:5000/api/doctors", doctor);
+      await createDoctor(doctor);
 
       alert("Doctor added successfully ✅");
 
@@ -67,7 +47,7 @@ const AddDoctor = () => {
 
     } catch (error) {
 
-      alert("Error adding doctor ❌");
+      alert(error.response?.data?.message || "Error adding doctor ❌");
 
       console.error(error);
 
@@ -79,9 +59,12 @@ const AddDoctor = () => {
     <div className="space-y-6">
 
       {/* Page Title */}
-      <h1 className="text-2xl font-semibold">
-        Add New Doctor
-      </h1>
+      <div className="flex items-center gap-3">
+        <BackButton to="/dashboard/doctor-management" />
+        <h1 className="text-2xl font-semibold">
+          Add New Doctor
+        </h1>
+      </div>
 
       {/* Card */}
       <div className="bg-white rounded-xl shadow p-6">
@@ -101,15 +84,10 @@ const AddDoctor = () => {
             <input
               type="text"
               name="name"
-              placeholder="Jane Doe"
+              placeholder="Dr. Jane Doe"
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
-
-
-              {/* Error Message */}
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-
           </div>
 
           {/* Specialization */}
@@ -119,20 +97,20 @@ const AddDoctor = () => {
             </label>
 
             <select
-              placeholder = "select specialaization"
               name="specialization"
+              value={doctor.specialization}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             >
-              <option value="">Select Specialization</option>
-              <option value="Cardiology">Cardiology</option>
-              <option value="Neurology">Neurology</option>
-              <option value="Pediatrics">Pediatrics</option>
+              <option value="" disabled>
+                Select specialization
+              </option>
+              {SPECIALIZATIONS.map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
             </select>
-
-              {/* Error Message */}
-            {errors.specialization && <p className = "text-red-500 text-xs mt-1">{errors.specialization}</p>}
-            
           </div>
 
           {/* Qualifications */}
@@ -141,17 +119,27 @@ const AddDoctor = () => {
               Qualifications
             </label>
 
-            <input
-              type="text"
-              name="qualifications"
-              placeholder="MD, FAAP"
-              className="w-full border rounded-lg p-2 mt-1"
-              onChange={handleChange}
+            <Autocomplete
+              multiple
+              freeSolo
+              options={QUALIFICATIONS}
+              value={
+                doctor.qualifications
+                  ? doctor.qualifications.split(",").map((q) => q.trim()).filter(Boolean)
+                  : []
+              }
+              onChange={(e, newValue) =>
+                handleChange({ target: { name: "qualifications", value: newValue.join(", ") } })
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Select or type qualifications"
+                  className="mt-1"
+                  size="small"
+                />
+              )}
             />
-
-
-            {/* Error Message */}
-            {errors.qualifications && <p className = "text-red-500 text-xs mt-1">{errors.qualifications}</p>}
           </div>
 
           {/* Fee */}
@@ -167,9 +155,6 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
-
-            {/* Error Message */}
-            {errors.fee && <p className = "text-red-500 text-xs mt-1">{errors.fee}</p>}
           </div>
 
           {/* Contact Phone */}
@@ -185,8 +170,6 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
-            {/* Error Message */}
-            {errors.phone && <p className = "text-red-500 text-xs mt-1">{errors.phone}</p>}
           </div>
 
           {/* Email */}
@@ -202,45 +185,40 @@ const AddDoctor = () => {
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
-            {/* Error Message */}
-            {errors.email && <p className = "text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
+          {/* Password (creates the doctor's login account) */}
           <div>
-            <label>
-              Experience (Years)
+            <label className="text-sm text-gray-600">
+              Password
             </label>
 
             <input
-              type ="experience"
-              name = "experience"
-              placeholder = "3"
-              className = "w-full border rounded-lg p-2 mt-1"
-              onChange = {handleChange}
+              type="password"
+              name="password"
+              placeholder="Login password"
+              className="w-full border rounded-lg p-2 mt-1"
+              onChange={handleChange}
             />
           </div>
 
-
-
-          {/*Active Switch */}
-
+          {/* Status */}
           <div>
+            <label className="text-sm text-gray-600">
+              Status
+            </label>
 
-            <labale>
-              Active 
-            </labale>
-
-          <input
-              className="ml-2"
-              type="checkbox"
+            <select
               name="status"
-              checked={doctor.status === "Active"}
-              onChange={(e) => setDoctor({
-                ...doctor,
-                status: e.target.checked ? "Active" : "Inactive"
-              })}
-            />
-            </div>
+              value={doctor.status}
+              className="w-full border rounded-lg p-2 mt-1"
+              onChange={handleChange}
+            >
+              <option value="Available">Available</option>
+              <option value="Busy">Busy</option>
+              <option value="On Leave">On Leave</option>
+            </select>
+          </div>
 
           {/* Buttons */}
           <div className="col-span-2 flex gap-3">
@@ -248,13 +226,12 @@ const AddDoctor = () => {
             <AddButton
                 label="Save Doctor"
                 onClick={handleSubmit}
-                bgColor="#1FB1F9"
             />
 
             <AddButton
-                label="cancel"
+                label="Cancel"
+                color="inherit"
                 onClick={() => navigate("/dashboard/doctor-management")}
-                bgColor="#1FB1F9"
             />
 
             

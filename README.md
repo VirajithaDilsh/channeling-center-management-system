@@ -1,17 +1,79 @@
-# React + Vite
+# ClinicConnect — Channeling Center Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web app for managing a medical channeling center's day-to-day operations: doctors, patients, medicine inventory, billing, and admin/role management.
 
-Currently, two official plugins are available:
+This repo is the **frontend** (React + Vite). It talks to a separate Express/MongoDB backend — see [Backend](#backend) below.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
 
-## React Compiler
+- **React 19** + **Vite 7**
+- **Tailwind CSS 4** for layout/utility styling
+- **MUI (Material UI) 7** + **MUI X Data Grid** for tables, forms, and inputs, themed via a shared MUI theme (`src/theme.js`)
+- **React Router 7**
+- **Axios** for API calls
+- **Lucide React** / **React Icons** for iconography
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
 
-## Expanding the ESLint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-"# channeling-center-management-system" 
+The dev server runs on Vite's default port (5173, or the next free port). The app expects a backend API running at `http://localhost:5000` (see [Backend](#backend)) — without it, pages that fetch data (Doctors, Patients, Inventory, Admin) will show network errors.
+
+### Other scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |
+
+## Backend
+
+The API lives in a sibling repo: `channeling-center-management-system-backend` (Express + Mongoose/MongoDB). It needs a `.env` file with:
+
+```
+MONGO_URI=<your MongoDB connection string>
+PORT=5000
+```
+
+Run it with `npm run dev` (nodemon). Note: the login endpoint currently checks a hardcoded mock admin (see below) rather than the `Admin` collection — this is a known simplification, not yet wired to real per-user authentication.
+
+### Default login (development only)
+
+| Email | Password |
+|---|---|
+| `admin@clinicconnect.com` | `ChangeMe123!` |
+
+Change this before deploying anywhere non-local.
+
+## Features
+
+- **Dashboard** — landing overview page
+- **Doctors** — list, add, edit, and view doctor profiles
+- **Patients** — register, edit, view, and manage patient records
+- **Inventory** — track medicine stock, add/edit medicines, low-stock indicators
+- **Billing** — invoice list and invoice creation
+- **Admin** — manage admin users and roles (register/edit roles)
+- **Appointments, Reports, Settings** — placeholder pages, not yet implemented
+
+## Project Structure
+
+```
+src/
+├── api/            # Axios calls per resource (Admin, Medicine, Patient)
+├── components/      # Shared UI: BackButton, TableActionButton, AddButton, SearchBar, tables/, layout/
+├── context/         # React context providers (MedicineContext)
+├── pages/           # Route-level pages, grouped by feature under pages/dashboard/
+├── routes/          # AppRoutes.jsx — all route definitions
+└── theme.js          # Shared MUI theme (colors, button/table styling)
+```
+
+## Design Conventions
+
+- Tables use MUI `Table`/`TableContainer` with the shared `TableActionButtons` component (`src/components/TableActionButton.jsx`) — View (blue), Edit (green), Delete (red).
+- Back navigation uses the shared `BackButton` component (`src/components/BackButton.jsx`) on all add/edit/view sub-pages.
+- Colors/buttons are driven by the MUI theme in `src/theme.js` rather than hardcoded hex values.

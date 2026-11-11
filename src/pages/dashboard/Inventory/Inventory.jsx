@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SearchBar from "../../../components/SearchBar.jsx";
 import AddButton from "../../../components/AddButton.jsx";
 import { useNavigate } from "react-router-dom";
+import InventoryTable from "../../../components/tables/InventoryTable.jsx"; // import the table
+import { useMedicines } from "../../../context/MedicineContext.jsx";
+import { getViewer } from "../../../utils/permissions";
 
 const Inventory = () => {
     const navigate = useNavigate();
+    const { medicines } = useMedicines();
+    const [searchQuery, setSearchQuery] = useState("");
+    const canWrite = getViewer().can(["inventory_write", "inventory_allow_all"]);
+
+    // Filter medicines based on search
+    const q = searchQuery.trim().toLowerCase();
+    const filteredMedicines = medicines.filter(
+        med =>
+            (med.name || "").toLowerCase().includes(q) ||
+            (med.manufacturer || "").toLowerCase().includes(q) ||
+            (med.batchNumber || "").toLowerCase().includes(q) ||
+            (med.category || "").toLowerCase().includes(q)
+    );
+
     return (
         <div className="space-y-4">
 
@@ -26,19 +43,25 @@ const Inventory = () => {
                 <div className="w-full md:w-1/2">
                     <SearchBar
                         placeholder="Search Medicines..."
-                        onChange={(e) => console.log(e.target.value)}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
                 {/* Add Button */}
-                <div className="flex justify-end">
-                    <AddButton
-                        label="Add Medicine"
-                        onClick={() => navigate("/dashboard/inventory/add-medicine")}
-                        bgColor="#1FB1F9"
-                    />
-                </div>
+                {canWrite && (
+                    <div className="flex justify-end">
+                        <AddButton
+                            label="Add Medicine"
+                            onClick={() => navigate("/dashboard/inventory/add-medicine")}
+                        />
+                    </div>
+                )}
 
+            </div>
+
+            {/* Inventory Table */}
+            <div className="mt-4">
+                <InventoryTable medicines={filteredMedicines} />
             </div>
 
         </div>
