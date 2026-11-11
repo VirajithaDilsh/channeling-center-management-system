@@ -5,6 +5,7 @@ import {
   Typography,
   Avatar,
   Autocomplete,
+  Chip,
   Table,
   TableBody,
   TableCell,
@@ -19,15 +20,19 @@ import SummarizeIcon from "@mui/icons-material/Summarize";
 import BackButton from "../../../components/BackButton";
 import { getPatientById } from "../../../api/PatientApi";
 import { getChannelingHistory } from "../../../api/ChannelingApi";
+import { getConsultationsByPatient } from "../../../api/ConsultationApi";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 
 const ViewPatient = () => {
   const { id } = useParams(); // get patient id from route
   const [patient, setPatient] = useState(null);
   const [channelingHistory, setChannelingHistory] = useState([]);
+  const [consultations, setConsultations] = useState([]);
 
   useEffect(() => {
     fetchPatient();
     fetchChannelingHistory();
+    fetchConsultations();
   }, []);
 
   const fetchPatient = async () => {
@@ -37,6 +42,14 @@ const ViewPatient = () => {
     } catch (err) {
       console.error(err);
       alert("Patient not found");
+    }
+  };
+
+  const fetchConsultations = async () => {
+    try {
+      setConsultations((await getConsultationsByPatient(id)) || []);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -137,6 +150,37 @@ const ViewPatient = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Paper>
+
+          {/* Diagnosis History Card — ICD-10 diagnoses from completed consultations */}
+          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <LocalHospitalIcon className="text-green-600" />
+              <Typography variant="h6">Diagnosis History</Typography>
+            </div>
+
+            {consultations.length === 0 && (
+              <p className="text-gray-500 text-sm">No completed consultations yet.</p>
+            )}
+
+            {consultations.map((c) => (
+              <div key={c._id} className="border-b last:border-0 py-3">
+                <p className="text-sm text-gray-500">
+                  {c.completedAt ? new Date(c.completedAt).toLocaleDateString() : ""}
+                  {c.doctorName ? ` • Dr. ${c.doctorName}` : ""}
+                </p>
+                {c.diagnoses?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 my-1">
+                    {c.diagnoses.map((d) => (
+                      <Chip key={d.code} size="small" label={`${d.code} – ${d.description}`} />
+                    ))}
+                  </div>
+                )}
+                {(c.diagnosis || !c.diagnoses?.length) && (
+                  <p className="text-sm">{c.diagnosis || "No diagnosis recorded"}</p>
+                )}
+              </div>
+            ))}
           </Paper>
         </div>
 

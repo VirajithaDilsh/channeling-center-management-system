@@ -13,6 +13,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import BackButton from "../../../components/BackButton";
+import Icd10Select from "../../../components/Icd10Select";
 import AddButton from "../../../components/AddButton";
 import { getAppointmentById } from "../../../api/AppointmentApi";
 import { getPatientById } from "../../../api/PatientApi";
@@ -39,8 +40,16 @@ const emptyClinical = {
   symptoms: "",
   examination: "",
   diagnosis: "",
+  diagnoses: [],
   notes: "",
 };
+
+// The pharmacy's prescription still carries a single diagnosis string, so
+// combine the selected ICD-10 codes with any free-text notes.
+const diagnosisSummary = ({ diagnoses = [], diagnosis = "" }) =>
+  [...diagnoses.map((d) => `${d.code} – ${d.description}`), diagnosis.trim()]
+    .filter(Boolean)
+    .join("; ");
 
 const HeaderField = ({ label, value }) => (
   <div>
@@ -100,6 +109,7 @@ export default function Consultation() {
           symptoms: existing.symptoms || "",
           examination: existing.examination || "",
           diagnosis: existing.diagnosis || "",
+          diagnoses: existing.diagnoses || [],
           notes: existing.notes || "",
         });
         if (existing.prescriptionMode) setPrescriptionMode(existing.prescriptionMode);
@@ -194,7 +204,7 @@ export default function Consultation() {
         appointmentId,
         patientId: appointment.patientId,
         patientName: appointment.patientName,
-        diagnosis: clinical.diagnosis,
+        diagnosis: diagnosisSummary(clinical),
         notes: clinical.notes,
         items: validMedicines.map((m) => ({
           medicineId: m.medicineId,
@@ -362,8 +372,13 @@ export default function Consultation() {
                 onChange={handleClinicalChange("examination")}
                 disabled={readOnly}
               />
+              <Icd10Select
+                value={clinical.diagnoses}
+                onChange={(diagnoses) => setClinical((prev) => ({ ...prev, diagnoses }))}
+                disabled={readOnly}
+              />
               <TextField
-                label="Diagnosis"
+                label="Additional Diagnosis Notes"
                 fullWidth
                 value={clinical.diagnosis}
                 onChange={handleClinicalChange("diagnosis")}
@@ -525,7 +540,17 @@ export default function Consultation() {
                   {c.doctorName ? ` • Dr. ${c.doctorName}` : ""}
                 </p>
 
-                <p className="text-sm font-medium">{c.diagnosis || "No diagnosis recorded"}</p>
+                {c.diagnoses?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 my-1">
+                    {c.diagnoses.map((d) => (
+                      <Chip key={d.code} size="small" label={`${d.code} – ${d.description}`} />
+                    ))}
+                  </div>
+                )}
+
+                {(c.diagnosis || !c.diagnoses?.length) && (
+                  <p className="text-sm font-medium">{c.diagnosis || "No diagnosis recorded"}</p>
+                )}
 
                 {c.notes && <p className="text-sm text-gray-600">{c.notes}</p>}
 
