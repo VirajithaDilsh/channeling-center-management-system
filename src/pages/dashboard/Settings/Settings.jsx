@@ -13,10 +13,13 @@ export default function Settings() {
   const userRole = localStorage.getItem("userRole") || "";
   const permissions = JSON.parse(localStorage.getItem("userPermissions") || "[]");
 
-  const canManageSystemSettings = permissions.includes("settings_read") || permissions.includes("settings_allow_all");
   // Not permission-based: admin holds every permission key (including
   // doctor_portal) by design, but isn't an actual doctor with a Doctor profile.
   const isDoctor = userRole === "doctor";
+  // Doctors only get Profile, Availability and Account & Security, even if
+  // their role was granted the settings permission.
+  const canManageSystemSettings =
+    !isDoctor && (permissions.includes("settings_read") || permissions.includes("settings_allow_all"));
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
