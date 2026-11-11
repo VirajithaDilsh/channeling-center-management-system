@@ -7,6 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getPatients, deletePatient } from "../../../api/PatientApi";
+import { getUserPermissions, hasAny } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
 
@@ -20,6 +21,13 @@ export default function PatientManagement() {
   const [selectedPatientId, setSelectedPatientId] = useState(null);
 
   const navigate = useNavigate();
+
+  // Doctors see their own patients read-only: no register / edit / delete.
+  // Matches the backend (POST needs write, PUT/DELETE need edit).
+  const permissions = getUserPermissions();
+  const canWrite = hasAny(permissions, ["patients_write", "patients_allow_all"]);
+  const canEdit = hasAny(permissions, ["patients_edit", "patients_allow_all"]);
+  const isDoctorOnly = !hasAny(permissions, ["patients_read", "patients_allow_all"]);
 
   useEffect(() => {
     fetchPatients();
@@ -70,16 +78,18 @@ export default function PatientManagement() {
         <div>
           <h1 className="text-2xl font-semibold">Patient Management</h1>
           <p className="text-gray-500 text-sm">
-            View and manage patient records
+            {isDoctorOnly ? "Patients assigned to you" : "View and manage patient records"}
           </p>
         </div>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={() => navigate("/dashboard/register-patient")}
-        >
-          + Register Patient
-        </Button>
+        {canWrite && (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => navigate("/dashboard/register-patient")}
+          >
+            + Register Patient
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -131,8 +141,8 @@ export default function PatientManagement() {
                 <TableCell>
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/patients/view/${p.patientId}`)}
-                    onEdit={() => navigate(`/dashboard/patients/edit/${p.patientId}`)}
-                    onDelete={() => handleDeleteClick(p.patientId)}
+                    onEdit={canEdit ? () => navigate(`/dashboard/patients/edit/${p.patientId}`) : undefined}
+                    onDelete={canEdit ? () => handleDeleteClick(p.patientId) : undefined}
                   />
                 </TableCell>
               </TableRow>

@@ -9,6 +9,7 @@ import AddButton from "../../../components/AddButton";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getAppointments, deleteAppointment } from "../../../api/AppointmentApi";
 import { getDoctors } from "../../../api/DoctorApi";
+import { getUserPermissions, hasAny } from "../../../utils/permissions";
 import AddAppointment from "./AddAppointment";
 import {
   STATUS_COLORS,
@@ -77,14 +78,14 @@ const AppointmentsTable = ({
               <TableCell>Doctor</TableCell>
               <TableCell>Reason</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
+              {onDelete && <TableCell>Actions</TableCell>}
             </TableRow>
           </TableHead>
 
           <TableBody>
             {visibleRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" className="text-gray-500">
+                <TableCell colSpan={onDelete ? 6 : 5} align="center" className="text-gray-500">
                   {emptyText}
                 </TableCell>
               </TableRow>
@@ -102,9 +103,11 @@ const AppointmentsTable = ({
                       {a.status || "-"}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <TableActionButtons onDelete={() => onDelete(a._id)} />
-                  </TableCell>
+                  {onDelete && (
+                    <TableCell>
+                      <TableActionButtons onDelete={() => onDelete(a._id)} />
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
@@ -139,9 +142,18 @@ export default function Appoiments() {
   const [doctors, setDoctors] = useState([]);
   const [doctorsLoaded, setDoctorsLoaded] = useState(false);
 
+  // A doctor holding only doctor_portal gets just their own appointments from
+  // the backend, read-only. They also can't list doctors, so skip that request;
+  // the doctor name falls back to the snapshot stored on the appointment.
+  const permissions = getUserPermissions();
+  const canWrite = hasAny(permissions, ["appointments_write", "appointments_allow_all"]);
+  const canEdit = hasAny(permissions, ["appointments_edit", "appointments_allow_all"]);
+  const isDoctorOnly = !hasAny(permissions, ["appointments_read", "appointments_allow_all"]);
+  const canListDoctors = hasAny(permissions, ["doctors_read", "doctors_allow_all"]);
+
   useEffect(() => {
     fetchAppointments();
-    fetchDoctors();
+    if (canListDoctors) fetchDoctors();
   }, []);
 
   const fetchAppointments = async () => {
@@ -197,6 +209,12 @@ export default function Appoiments() {
   // doctor is renamed. The live doctor is resolved from `doctorId` instead, with
   // the snapshot kept only as a fallback for doctors that no longer exist.
   const resolveDoctor = (appointment) => {
+    // Doctor-only view: every row is the signed-in doctor's own appointment.
+    if (isDoctorOnly) {
+      const ownName = localStorage.getItem("doctorName") || appointment.doctorName;
+      return ownName ? { name: ownName, specialization: null, removed: false } : null;
+    }
+
     const doctor = doctorsById.get(appointment.doctorId);
     if (doctor) {
       return { name: doctor.name, specialization: doctor.specialization, removed: false };
@@ -230,10 +248,10 @@ export default function Appoiments() {
         <div>
           <h1 className="text-2xl font-semibold">Appointment Management</h1>
           <p className="text-gray-500 text-sm">
-            View and schedule patient appointments
+            {isDoctorOnly ? "Your appointments" : "View and schedule patient appointments"}
           </p>
         </div>
-        <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />
+        {canWrite && <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />}
       </div>
 
       {/* Upcoming */}
@@ -246,7 +264,7 @@ export default function Appoiments() {
         onPageChange={setUpcomingPage}
         emptyText="No upcoming appointments"
         resolveDoctor={resolveDoctor}
-        onDelete={handleDeleteClick}
+        onDelete={canEdit ? handleDeleteClick : undefined}
       />
 
       {/* Past & closed */}
@@ -259,7 +277,7 @@ export default function Appoiments() {
         onPageChange={setPastPage}
         emptyText="No past appointments"
         resolveDoctor={resolveDoctor}
-        onDelete={handleDeleteClick}
+        onDelete={canEdit ? handleDeleteClick : undefined}
       />
 
       {/* Snackbar */}

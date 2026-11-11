@@ -74,9 +74,9 @@ const AppRoutes = () => {
       <Route path="doctor/consultation/:appointmentId" element={<ProtectedRoute requiredPermission="doctor_portal"><Consultation /></ProtectedRoute>} />
 
       {/* Patients */}
-      <Route path="patients" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><Patients /></ProtectedRoute>} />
+      <Route path="patients" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all", "doctor_portal"]}><Patients /></ProtectedRoute>} />
       <Route path="register-patient" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><RegisterPatient /></ProtectedRoute>} />
-      <Route path="patients/view/:id" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><ViewPatient /></ProtectedRoute>} />
+      <Route path="patients/view/:id" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all", "doctor_portal"]}><ViewPatient /></ProtectedRoute>} />
       <Route path="patients/edit/:id" element={<ProtectedRoute requiredPermission={["patients_read", "patients_allow_all"]}><EditPatient /></ProtectedRoute>} />
 
       {/* Inventory */}
@@ -94,7 +94,7 @@ const AppRoutes = () => {
       {/* Others */}
       <Route path="reports" element={<ProtectedRoute requiredPermission={["reports_read", "reports_allow_all"]}><Reports /></ProtectedRoute>} />
       <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-      <Route path="appoiments" element={<ProtectedRoute requiredPermission={["appointments_read", "appointments_allow_all"]}><Appoiments /></ProtectedRoute>} />
+      <Route path="appoiments" element={<ProtectedRoute requiredPermission={["appointments_read", "appointments_allow_all", "doctor_portal"]}><Appoiments /></ProtectedRoute>} />
     </Route>
 
     {/* Redirect unknown routes */}
