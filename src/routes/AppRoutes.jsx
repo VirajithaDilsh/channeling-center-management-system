@@ -81,8 +81,8 @@ const AppRoutes = () => {
 
       {/* Inventory */}
       <Route path="inventory" element={<ProtectedRoute requiredPermission={["inventory_read", "inventory_allow_all"]}><Inventory /></ProtectedRoute>} />
-      <Route path="inventory/add-medicine" element={<ProtectedRoute requiredPermission={["inventory_read", "inventory_allow_all"]}><AddMedicines /></ProtectedRoute>} />
-      <Route path="inventory/edit-medicine/:id" element={<ProtectedRoute requiredPermission={["inventory_read", "inventory_allow_all"]}><AddMedicines /></ProtectedRoute>} />
+      <Route path="inventory/add-medicine" element={<ProtectedRoute requiredPermission={["inventory_write", "inventory_allow_all"]}><AddMedicines /></ProtectedRoute>} />
+      <Route path="inventory/edit-medicine/:id" element={<ProtectedRoute requiredPermission={["inventory_edit", "inventory_allow_all"]}><AddMedicines /></ProtectedRoute>} />
 
       {/* Billing */}
       <Route path="billing" element={<ProtectedRoute requiredPermission={["billing_read", "billing_allow_all"]}><Billing /></ProtectedRoute>} />

@@ -4,9 +4,12 @@ import AddButton from "../../../components/AddButton.jsx";
 import { useNavigate } from "react-router-dom";
 import InventoryTable from "../../../components/tables/InventoryTable.jsx"; // import the table
 import { useMedicines } from "../../../context/MedicineContext.jsx";
+import { getUserPermissions, hasAny } from "../../../utils/permissions.js";
 
 const Inventory = () => {
     const navigate = useNavigate();
+    // Read-only viewers (e.g. doctors) get the list without Add/Edit/Delete.
+    const canAdd = hasAny(getUserPermissions(), ["inventory_write", "inventory_allow_all"]);
     const { medicines } = useMedicines();
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -45,13 +48,15 @@ const Inventory = () => {
                     />
                 </div>
 
-                {/* Add Button */}
-                <div className="flex justify-end">
-                    <AddButton
-                        label="Add Medicine"
-                        onClick={() => navigate("/dashboard/inventory/add-medicine")}
-                    />
-                </div>
+                {/* Add Button — only for roles that may create medicines */}
+                {canAdd && (
+                    <div className="flex justify-end">
+                        <AddButton
+                            label="Add Medicine"
+                            onClick={() => navigate("/dashboard/inventory/add-medicine")}
+                        />
+                    </div>
+                )}
 
             </div>
 
