@@ -15,7 +15,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { getDoctors } from "../api/DoctorApi";
 import { getPublicSettings } from "../api/SettingsApi";
 import axiosClient from '../api/axiosClient';
 
@@ -42,32 +41,21 @@ const Login = () => {
 
       // 1. Extract token, role and permissions from backend response
       // Ensure your Node.js backend sends { token, role, permissions } on successful login
-      const { token, role, permissions } = res.data;
+      const { token, role, permissions, doctorId, doctorName } = res.data;
 
       // 2. Save to local storage for route protection
       localStorage.setItem("authToken", token);
       localStorage.setItem("userRole", role);
       localStorage.setItem("userPermissions", JSON.stringify(permissions || []));
 
-      // 2b. For doctors, resolve which Doctor record this login belongs to
-      // (backend doesn't return a doctorId today, so match by email against
-      // the doctors list and cache it for the doctor portal to filter on)
-      if (role === "doctor") {
-        try {
-          const doctors = await getDoctors();
-          const match = doctors.find(
-            (d) => d.email?.toLowerCase() === email.toLowerCase()
-          );
-          if (match) {
-            localStorage.setItem("doctorId", match._id);
-            localStorage.setItem("doctorName", match.name);
-          } else {
-            localStorage.removeItem("doctorId");
-            localStorage.removeItem("doctorName");
-          }
-        } catch (err) {
-          console.error("Could not resolve doctor profile:", err);
-        }
+      // 2b. The backend returns the linked Doctor profile (Admin.doctorId) on
+      // login. Cache it for the doctor portal; clear stale values otherwise.
+      if (doctorId) {
+        localStorage.setItem("doctorId", doctorId);
+        localStorage.setItem("doctorName", doctorName || "");
+      } else {
+        localStorage.removeItem("doctorId");
+        localStorage.removeItem("doctorName");
       }
 
       setError("");
