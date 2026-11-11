@@ -26,6 +26,10 @@ export default function PatientManagement() {
 
   const navigate = useNavigate();
 
+  // Doctors see their own patients read-only: no register / edit / delete.
+  // Matches the backend (POST needs write, PUT/DELETE need edit).
+  const isDoctorOnly = !viewer.can(["patients_read", "patients_allow_all"]);
+
   useEffect(() => {
     fetchPatients();
   }, []);
@@ -75,7 +79,7 @@ export default function PatientManagement() {
         <div>
           <h1 className="text-2xl font-semibold">Patient Management</h1>
           <p className="text-gray-500 text-sm">
-            View and manage patient records
+            {isDoctorOnly ? "Patients assigned to you" : "View and manage patient records"}
           </p>
         </div>
         {canWrite && (
@@ -139,7 +143,7 @@ export default function PatientManagement() {
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/patients/view/${p.patientId}`)}
                     onEdit={canEdit ? () => navigate(`/dashboard/patients/edit/${p.patientId}`) : undefined}
-                    onDelete={() => handleDeleteClick(p.patientId)}
+                    onDelete={canEdit ? () => handleDeleteClick(p.patientId) : undefined}
                   />
                 </TableCell>
               </TableRow>

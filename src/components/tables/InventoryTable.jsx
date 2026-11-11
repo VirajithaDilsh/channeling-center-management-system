@@ -19,6 +19,8 @@ const InventoryTable = ({ medicines: medicinesProp }) => {
   const { medicines: allMedicines, deleteMedicine } = useMedicines();
   const medicines = medicinesProp ?? allMedicines;
   const navigate = useNavigate();
+  // Backend: PUT/DELETE need inventory_edit (or allow_all). Read-only viewers
+  // get no Actions column.
   const canEdit = getViewer().can(["inventory_edit", "inventory_allow_all"]);
 
   if (!medicines || medicines.length === 0) {
@@ -57,7 +59,7 @@ const InventoryTable = ({ medicines: medicinesProp }) => {
             <TableCell align="right">Unit Price</TableCell>
             <TableCell align="right">Total Value</TableCell>
             <TableCell align="center">Status</TableCell>
-            <TableCell align="center">Actions</TableCell>
+            {canEdit && <TableCell align="center">Actions</TableCell>}
           </TableRow>
         </TableHead>
 
@@ -97,16 +99,16 @@ const InventoryTable = ({ medicines: medicinesProp }) => {
                     </span>
                   )}
                 </TableCell>
-                <TableCell align="center">
-                  <TableActionButtons
-                    onEdit={
-                      canEdit
-                        ? () => navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
-                        : undefined
-                    }
-                    onDelete={() => handleDelete(med._id)}
-                  />
-                </TableCell>
+                {canEdit && (
+                  <TableCell align="center">
+                    <TableActionButtons
+                      onEdit={() =>
+                        navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
+                      }
+                      onDelete={() => handleDelete(med._id)}
+                    />
+                  </TableCell>
+                )}
               </TableRow>
             );
           })}
