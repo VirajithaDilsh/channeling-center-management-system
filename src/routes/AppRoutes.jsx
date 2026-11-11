@@ -48,7 +48,14 @@ const AppRoutes = () => {
 
     {/* Dashboard Routes */}
     <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-      <Route index element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
+      <Route
+        index
+        element={
+          localStorage.getItem("userRole") === "doctor"
+            ? <Navigate to="/dashboard/doctor-home" replace />
+            : <ProtectedRoute><DashboardHome /></ProtectedRoute>
+        }
+      />
 
       {/* Admin */}
       <Route path="admin" element={<ProtectedRoute requiredPermission={["admin_read", "admin_allow_all"]}><Admin /></ProtectedRoute>} />
