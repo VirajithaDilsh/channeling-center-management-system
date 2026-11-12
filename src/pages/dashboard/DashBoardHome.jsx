@@ -35,9 +35,6 @@ export default function DashboardHome() {
   // and clinic revenue does not belong on the patient desk.
   const canSeeMoney = available("visitSessions") && viewer.can(["billing_read", "billing_allow_all"]);
 
-  <footer className="text-center text-sm text-gray-500 py-4">
-  © {new Date().getFullYear()} ClinicConnect. All rights reserved.
-</footer>
 
   return 
     <div className="space-y-6">
@@ -128,5 +125,4 @@ export default function DashboardHome() {
         )}
       </div>
     </div>
-  );
 }
