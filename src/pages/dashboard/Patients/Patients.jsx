@@ -102,11 +102,6 @@ export default function PatientManagement() {
           <MenuItem value="A+">A+</MenuItem>
           <MenuItem value="B+">B+</MenuItem>
         </Select>
-        <Select size="small" defaultValue="">
-          <MenuItem value="">Status</MenuItem>
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
-        </Select>
       </div>
 
       {/* Table */}

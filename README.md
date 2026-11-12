@@ -77,3 +77,5 @@ src/
 - Tables use MUI `Table`/`TableContainer` with the shared `TableActionButtons` component (`src/components/TableActionButton.jsx`) — View (blue), Edit (green), Delete (red).
 - Back navigation uses the shared `BackButton` component (`src/components/BackButton.jsx`) on all add/edit/view sub-pages.
 - Colors/buttons are driven by the MUI theme in `src/theme.js` rather than hardcoded hex values.
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.

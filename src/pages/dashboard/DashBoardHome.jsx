@@ -35,7 +35,8 @@ export default function DashboardHome() {
   // and clinic revenue does not belong on the patient desk.
   const canSeeMoney = available("visitSessions") && viewer.can(["billing_read", "billing_allow_all"]);
 
-  return (
+
+  return 
     <div className="space-y-6">
       <div className="flex items-end justify-between flex-wrap gap-2">
         <div>
@@ -124,5 +125,4 @@ export default function DashboardHome() {
         )}
       </div>
     </div>
-  );
 }
