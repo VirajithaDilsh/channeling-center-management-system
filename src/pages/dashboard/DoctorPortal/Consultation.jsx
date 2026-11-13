@@ -252,6 +252,12 @@ export default function Consultation() {
       return;
     }
 
+    const badQty = validMedicines.find((m) => !Number.isInteger(Number(m.qtyPrescribed)) || Number(m.qtyPrescribed) < 1);
+    if (badQty) {
+      showSnackbar(`${badQty.name || "A medicine"} needs a whole-number quantity of at least 1.`, "error");
+      return;
+    }
+
     setSavingPrescription(true);
     try {
       // Save the clinical record first so the diagnosis lives on the
@@ -272,7 +278,7 @@ export default function Consultation() {
           frequency: m.frequency,
           duration: m.duration,
           instructions: m.instructions,
-          qtyPrescribed: Number(m.qtyPrescribed) || 1,
+          qtyPrescribed: Number(m.qtyPrescribed),
         })),
       });
 
@@ -288,6 +294,14 @@ export default function Consultation() {
   };
 
   const handleCompleteConsultation = async () => {
+    if (!clinical.chiefComplaint.trim()) {
+      showSnackbar("Chief complaint is required before completing the consultation.", "error");
+      return;
+    }
+    if (!clinical.diagnosis.trim() && clinical.diagnoses.length === 0) {
+      showSnackbar("Add at least one diagnosis before completing the consultation.", "error");
+      return;
+    }
     if (prescriptionMode === PRESCRIPTION_MODES.HANDWRITTEN && !handwrittenConfirmed) {
       showSnackbar("Confirm that the handwritten prescription was given to the patient.", "error");
       return;

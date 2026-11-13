@@ -8,10 +8,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
     // Doctors work from My Appointments; the clinic-wide dashboard isn't for them.
     const isDoctor = localStorage.getItem("userRole") === "doctor";
+    // Admins hold every permission (including doctor_portal) by design, but
+    // My Appointments is a doctor's own workspace, not an admin tool.
+    const isAdmin = localStorage.getItem("userRole")?.toLowerCase() === "admin";
 
     const links = [
         ...(isDoctor ? [] : [{ name: "Dashboard", to: "/dashboard", icon: <House size={20} /> }]),
-        { name: "My Appointments", to: "/dashboard/doctor-home", icon: <Stethoscope size={20} />, permission: "doctor_portal" },
+        ...(isAdmin ? [] : [{ name: "My Appointments", to: "/dashboard/doctor-home", icon: <Stethoscope size={20} />, permission: "doctor_portal" }]),
         { name: "Doctors", to: "/dashboard/doctor-management", icon: <Stethoscope size={20} />, permission: ["doctors_read", "doctors_allow_all"] },
         { name: "Patients", to: "/dashboard/patients", icon: <Users size={20} />, permission: ["patients_read", "patients_allow_all", "doctor_portal"] },
         { name: "Appoiments", to: "/dashboard/appoiments", icon: <FileText size={20} />, permission: ["appointments_read", "appointments_allow_all", "doctor_portal"] },
