@@ -26,10 +26,12 @@ const DashboardLayout = () => {
                 <div className="flex flex-col flex-1 overflow-hidden">
 
                     {/* Main Content */}
-                    <main className="flex-1 bg-[#F0F9FF] p-4 md:p-6 overflow-auto">
-                        <Outlet />
+                    <main className="flex-1 bg-[#F0F9FF] overflow-auto flex flex-col">
+                        <div className="flex-1 p-4 md:p-6">
+                            <Outlet />
+                        </div>
+                        <Footer />
                     </main>
-
                 </div>
 
             </div>
