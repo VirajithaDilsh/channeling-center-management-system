@@ -23,6 +23,7 @@ const DoctorManagement = () => {
   const viewer = getViewer();
   const canWrite = viewer.can(["doctors_write", "doctors_allow_all"]);
   const canEdit = viewer.can(["doctors_edit", "doctors_allow_all"]);
+  const canDelete = canEdit || canWrite;
 
   const [doctors, setDoctors] = useState([]);
   const [page, setPage] = useState(1);
@@ -190,7 +191,7 @@ const DoctorManagement = () => {
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
                     onEdit={canEdit ? () => navigate(`/dashboard/doctor/edit/${doc._id}`) : undefined}
-                    onDelete={() => handleDeleteClick(doc._id)}
+                    onDelete={canDelete ? () => handleDeleteClick(doc._id) : undefined}
                   />
                 </TableCell>
               </TableRow>

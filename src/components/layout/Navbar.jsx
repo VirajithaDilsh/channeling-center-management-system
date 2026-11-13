@@ -18,7 +18,7 @@ import { clearSession } from "../../utils/session";
 
 const Navbar = ({ setSidebarOpen }) => {
     const navigate = useNavigate();
-    const [centerName, setCenterName] = useState("ClinicConnect");
+    const [centerName, setCenterName] = useState("Lahiru ");
     const [account, setAccount] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -61,9 +61,14 @@ const Navbar = ({ setSidebarOpen }) => {
                         <Hospital className="text-white text-sm" />
                     </div>
 
-                    <span className="text-lg text-[#1FB1F9FF] font-semibold hidden sm:block">
-                        {centerName}
-                    </span>
+                    <div className="flex flex-col leading-tight">
+                        <span className="text-lg text-[#0F172A] font-bold tracking-tight hidden sm:block">
+                            {centerName} <span className="text-[#0284C7]"> Medical</span>
+                        </span>
+                        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 hidden sm:block">
+                            Medical Center
+                        </span>
+                    </div>
                 </div>
 
                 {/* Right Side */}

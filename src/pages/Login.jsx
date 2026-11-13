@@ -105,10 +105,10 @@ const Login = () => {
         {/* Title */}
         <div className="mb-4">
           <Typography variant="h4" className="font-bold">
-            {centerName}
+            {centerName} <span className="text-blue-600">Medical</span>
           </Typography>
           <Typography className="text-gray-500 mb-6 text-sm">
-            Hospital Channeling Management System
+            Channeling Management System
           </Typography>
         </div>
 
