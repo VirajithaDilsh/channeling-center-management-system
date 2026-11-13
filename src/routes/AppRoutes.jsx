@@ -32,6 +32,7 @@ import ProtectedRoute from "../components/ProtectedRoute.jsx";
 import DoctorHome from "../pages/dashboard/DoctorPortal/DoctorHome.jsx";
 import Consultation from "../pages/dashboard/DoctorPortal/Consultation.jsx";
 import Pharmacy from "../pages/dashboard/Pharmacy/Pharmacy.jsx";
+import ContactUs from "../pages/ContactUs.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
@@ -45,7 +46,7 @@ const AppRoutes = () => {
     <Route path="/forgot-password" element={<ForgotPassword />} />
     <Route path="/register-role" element={<ProtectedRoute requiredPermission={["admin_write", "admin_allow_all"]}><RegisterRole /></ProtectedRoute>} />
     <Route path="/edit-admin/:id" element={<ProtectedRoute requiredPermission={["admin_edit", "admin_allow_all"]}><EditAdmin /></ProtectedRoute>} />
-
+    <Route path="/contact-us" element={<ContactUs />} />
     {/* Dashboard Routes */}
     <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
       <Route
