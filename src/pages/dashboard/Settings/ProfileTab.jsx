@@ -74,6 +74,7 @@ function DoctorProfile({ showSnackbar }) {
   const [doctor, setDoctor] = useState(null);
   const [phone, setPhone] = useState("");
   const [experience, setExperience] = useState("");
+  const [status, setStatus] = useState("Available");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -84,6 +85,7 @@ function DoctorProfile({ showSnackbar }) {
         setDoctor(data);
         setPhone(data.phone || "");
         setExperience(data.experience || "");
+        setStatus(data.status || "Available");
       } catch (err) {
         console.error(err);
         showSnackbar("Failed to load your doctor profile", "error");
@@ -96,7 +98,7 @@ function DoctorProfile({ showSnackbar }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await updateMyDoctorProfile({ phone, experience });
+      const updated = await updateMyDoctorProfile({ phone, experience, status });
       setDoctor(updated);
       showSnackbar("Profile updated successfully");
     } catch (err) {
@@ -113,7 +115,7 @@ function DoctorProfile({ showSnackbar }) {
   return (
     <div className="max-w-lg space-y-4">
       <p className="text-gray-500 text-sm">
-        Specialization, fee, and status are managed by the clinic admin. You can update your phone number and experience below.
+        Specialization and fee are managed by the clinic admin. You can update your phone number, experience, and status below.
       </p>
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -139,6 +141,14 @@ function DoctorProfile({ showSnackbar }) {
         <div>
           <label className="text-sm text-gray-600">Experience</label>
           <input className="w-full border rounded-lg p-2 mt-1" value={experience} onChange={(e) => setExperience(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-sm text-gray-600">Status</label>
+          <select className="w-full border rounded-lg p-2 mt-1" value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="Available">Available</option>
+            <option value="Busy">Busy</option>
+            <option value="On Leave">On Leave</option>
+          </select>
         </div>
       </div>
       <Button variant="contained" onClick={handleSave} disabled={saving}>
