@@ -107,7 +107,9 @@ export default function DispenseQueue({ embedded = false }) {
   // on the card so the pharmacist can see the outcome until it's sent to billing.
   const isOutstanding = (i) => i.status === "QUEUED" || i.status === "PARTIAL";
   const pendingRx = prescriptions
-    .map((p) => ({ prescription: p, items: p.items, pendingCount: p.items.filter(isOutstanding).length }))
+    // Send to Billing is allowed once nothing is untouched (QUEUED); partly
+    // dispensed items are accepted as-is when the pharmacist sends it on.
+    .map((p) => ({ prescription: p, items: p.items, queuedCount: p.items.filter((i) => i.status === "QUEUED").length }))
     .filter((g) => g.items.length > 0);
 
   return (
@@ -127,7 +129,7 @@ export default function DispenseQueue({ embedded = false }) {
         </Paper>
       )}
 
-      {pendingRx.map(({ prescription, items, pendingCount }) => (
+      {pendingRx.map(({ prescription, items, queuedCount }) => (
         <Paper key={prescription._id} className="mb-4 overflow-hidden">
           <div className="px-4 py-3 bg-emerald-50 border-b flex flex-wrap items-center gap-x-4 gap-y-1">
             <Typography variant="subtitle1" className="font-semibold">
@@ -141,9 +143,10 @@ export default function DispenseQueue({ embedded = false }) {
               {items.length} medicine{items.length > 1 ? "s" : ""}
               {prescription.createdAt ? ` • ${new Date(prescription.createdAt).toLocaleString()}` : ""}
             </span>
-            {pendingCount > 0 ? (
-              <Chip size="small" color="warning" label={`${pendingCount} pending`} />
-            ) : (
+            {queuedCount > 0 && (
+              <Chip size="small" color="warning" label={`${queuedCount} pending`} />
+            )}
+            {queuedCount === 0 && (
               <Button size="small" variant="contained" color="success" disabled={busy} onClick={() => handleHandoff(prescription)}>
                 Send to Billing
               </Button>
