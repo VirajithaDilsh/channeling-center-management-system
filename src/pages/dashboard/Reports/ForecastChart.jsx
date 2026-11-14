@@ -1,9 +1,10 @@
 import { useCallback, useState } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
-import { ToggleButton, ToggleButtonGroup, Chip, Alert } from "@mui/material";
+import { ToggleButton, ToggleButtonGroup, Chip, Alert, Button, CircularProgress } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import WidgetCard from "../widgets/WidgetCard";
 import useReportData from "./useReportData";
+import useForecastWake from "./useForecastWake";
 import { getRevenueForecast } from "../../../api/reportsApi";
 import { formatLkr, formatMonth } from "../../../utils/formatMoney";
 
@@ -17,6 +18,9 @@ export default function ForecastChart() {
   const [horizon, setHorizon] = useState(1);
   const fetcher = useCallback(() => getRevenueForecast(horizon), [horizon]);
   const { status, data, error, reload } = useReportData(fetcher, "the forecast");
+  // Once the service is healthy, re-run the normal forecast fetch to draw the chart.
+  const wake = useForecastWake(reload);
+  const wakeActive = wake.status !== "idle";
 
   const f = data?.forecast;
   const ok = f?.status === "ok";
@@ -59,13 +63,37 @@ export default function ForecastChart() {
   return (
     <WidgetCard
       title="Actual vs predicted revenue"
-     
       icon={<TrendingUpIcon className="text-amber-600" />}
-      state={status}
+      controls={
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={wake.wake}
+          disabled={wake.waking}
+          startIcon={wake.waking ? <CircularProgress size={14} color="inherit" /> : null}
+          sx={{ textTransform: "none", mb: 1.5 }}
+        >
+          {wake.waking ? `Waking up… ${wake.elapsed}s` : "Wake Up Forecast Service"}
+        </Button>
+      }
+      state={wakeActive ? "success" : status}
       error={status === "error" && error?.status === 503 ? { label: "the forecast (the forecasting service is unavailable; actual figures above are unaffected)" } : error}
       onRetry={reload}
     >
-      {data && (
+      {wake.status === "waking" && (
+        <Alert severity="info" icon={<CircularProgress size={18} />}>
+          Starting the forecasting service. This can take up to 90 seconds; the chart will appear automatically.
+        </Alert>
+      )}
+      {wake.status === "error" && (
+        <Alert
+          severity="error"
+          action={<Button color="inherit" size="small" onClick={wake.wake}>Retry</Button>}
+        >
+          {wake.message}
+        </Alert>
+      )}
+      {!wakeActive && data && (
         <div className="space-y-3">
           <ToggleButtonGroup size="small" exclusive value={horizon} onChange={(_, v) => v && setHorizon(v)}>
             <ToggleButton value={1} sx={{ textTransform: "none" }}>Next month</ToggleButton>
