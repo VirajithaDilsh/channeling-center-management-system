@@ -156,7 +156,6 @@ export default function Billing() {
             <p className="text-gray-500 text-sm">Revenue Collected</p>
             <h2 className="text-2xl font-semibold">{currencySymbol} {revenue.toFixed(2)}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">{currencySymbol}</div>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm flex justify-between">
@@ -164,7 +163,6 @@ export default function Billing() {
             <p className="text-gray-500 text-sm">Pending Payments</p>
             <h2 className="text-2xl font-semibold">{currencySymbol} {pending.toFixed(2)}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">!</div>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm flex justify-between">
@@ -172,7 +170,6 @@ export default function Billing() {
             <p className="text-gray-500 text-sm">Awaiting Pharmacy</p>
             <h2 className="text-2xl font-semibold">{atPharmacy}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">Rx</div>
         </div>
       </div>
 

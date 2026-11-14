@@ -26,6 +26,12 @@ export const dispenseItem = async (prescriptionId, itemId, qtyDispensed) => {
   return res.data;
 };
 
+// Take a fully resolved prescription off the queue; returns { prescription, visitSessionId }
+export const handoffToBilling = async (prescriptionId) => {
+  const res = await axiosClient.post(`${API_URL}/${prescriptionId}/handoff`);
+  return res.data;
+};
+
 // Reject a prescription item outright (no stock movement, no bill line)
 export const rejectItem = async (prescriptionId, itemId, reason) => {
   const res = await axiosClient.post(`${API_URL}/${prescriptionId}/items/${itemId}/reject`, { reason });
