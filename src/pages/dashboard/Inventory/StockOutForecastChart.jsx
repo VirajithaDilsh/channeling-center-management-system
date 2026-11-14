@@ -36,18 +36,43 @@ function addColomboDaysLabel(offsetDays) {
 
 /**
  * Generates projected daily remaining stock points from backend prediction
- * values. Stock is clamped at >= 0 and assumes no replenishment.
+ * values. Uses backend `dailyForecast` when available (e.g. Random Forest
+ * multi-step predictions), falling back to constant daily consumption rate.
  */
 function buildStockProjectionSeries({
   currentStock,
   dailyConsumption,
   reorderLevel,
   horizonDays,
+  dailyForecast,
 }) {
   const startStock = Math.max(0, Number(currentStock) || 0);
-  const rate = Math.max(0, Number(dailyConsumption) || 0);
   const reorder = Math.max(0, Number(reorderLevel) || 0);
 
+  if (Array.isArray(dailyForecast) && dailyForecast.length > 0) {
+    const labels = ["Today"];
+    const projected = [startStock];
+    const reorderLine = [reorder];
+    const slice = dailyForecast.slice(0, horizonDays);
+
+    slice.forEach((pt, idx) => {
+      const parsed = pt?.date ? formatColomboYmd(pt.date) : null;
+      if (parsed) {
+        const d = new Date(`${parsed}T00:00:00Z`);
+        const mm = d.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+        const dd = String(d.getUTCDate()).padStart(2, "0");
+        labels.push(`${mm} ${dd}`);
+      } else {
+        labels.push(addColomboDaysLabel(idx + 1));
+      }
+      projected.push(Math.max(0, Number(pt?.predictedRemainingStock ?? 0)));
+      reorderLine.push(reorder);
+    });
+
+    return { labels, projected, reorderLine };
+  }
+
+  const rate = Math.max(0, Number(dailyConsumption) || 0);
   const labels = [];
   const projected = [];
   const reorderLine = [];
@@ -101,8 +126,9 @@ export default function StockOutForecastChart({ medicine, thresholdDays = 30 }) 
       dailyConsumption,
       reorderLevel,
       horizonDays,
+      dailyForecast: prediction?.dailyForecast,
     });
-  }, [predictionOk, currentStock, dailyConsumption, reorderLevel, horizonDays]);
+  }, [predictionOk, currentStock, dailyConsumption, reorderLevel, horizonDays, prediction?.dailyForecast]);
 
   const stockOutWithinHorizon =
     prediction?.estimatedDaysUntilStockOut !== null &&
@@ -233,9 +259,17 @@ export default function StockOutForecastChart({ medicine, thresholdDays = 30 }) 
                   label="Estimate, assumes no replenishment"
                   sx={{ bgcolor: "#fdf0dc", color: "#92400e" }}
                 />
-                {prediction.modelUsed && (
+                {(prediction.modelLabel || prediction.modelUsed) && (
                   <span>
-                    Model: <b>{String(prediction.modelUsed).replace(/_/g, " ")}</b>
+                    Model:{" "}
+                    <b>
+                      {prediction.modelLabel ||
+                        (prediction.modelUsed === "random_forest"
+                          ? "Random Forest Regression (ML)"
+                          : prediction.modelUsed === "moving_average"
+                            ? "Moving Average (Fallback)"
+                            : String(prediction.modelUsed).replace(/_/g, " "))}
+                    </b>
                   </span>
                 )}
               </div>
