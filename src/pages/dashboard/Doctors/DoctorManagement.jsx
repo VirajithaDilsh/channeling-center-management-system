@@ -9,9 +9,9 @@ import { useNavigate } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
 import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
-import { getDoctors, deleteDoctor } from "../../../api/DoctorApi";
+import { getDoctors, deleteDoctor, setDoctorPassword } from "../../../api/DoctorApi";
 import { getViewer } from "../../../utils/permissions";
-import SetPasswordDialog from "./SetPasswordDialog";
+import SetPasswordDialog from "../../../components/SetPasswordDialog";
 
 const ROWS_PER_PAGE = 8;
 
@@ -222,9 +222,16 @@ const DoctorManagement = () => {
       </div>
 
       {/* SET PASSWORD (admin only) */}
-      {viewer.isAdmin && (
+      {viewer.isAdmin && passwordDoctor && (
         <SetPasswordDialog
-          doctor={passwordDoctor}
+          key={passwordDoctor._id}
+          title={`${passwordDoctor.hasAccount ? "Reset password" : "Create login"} \u2014 ${passwordDoctor.name}`}
+          description={
+            passwordDoctor.hasAccount
+              ? "Enter a new password for this doctor. It replaces their current one."
+              : "This doctor has no login yet. Enter a password to create one."
+          }
+          onSubmit={(password) => setDoctorPassword(passwordDoctor._id, password)}
           onClose={() => setPasswordDoctor(null)}
           onDone={(message) => {
             setPasswordDoctor(null);

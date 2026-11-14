@@ -25,7 +25,8 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 
 import TableActionButtons from "../../../components/TableActionButton";
-import { getAdmins, deleteAdmin } from "../../../api/AdminApi";
+import { getAdmins, deleteAdmin, resetAdminPassword } from "../../../api/AdminApi";
+import SetPasswordDialog from "../../../components/SetPasswordDialog";
 import { getViewer } from "../../../utils/permissions";
 
 const ROWS_PER_PAGE = 8;
@@ -46,6 +47,7 @@ export default function AdminManagement() {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAdminId, setSelectedAdminId] = useState(null);
+  const [passwordAdmin, setPasswordAdmin] = useState(null);
 
   const navigate = useNavigate();
 
@@ -222,6 +224,7 @@ export default function AdminManagement() {
                     onView={() => navigate(`/dashboard/admin/view/${admin.id}`)}
                     onEdit={canEdit ? () => navigate(`/edit-admin/${admin.id}`) : undefined}
                     onDelete={() => handleDeleteClick(admin.id)}
+                    onChangePassword={viewer.isAdmin ? () => setPasswordAdmin(admin) : undefined}
                   />
                 </TableCell>
               </TableRow>
@@ -258,6 +261,21 @@ export default function AdminManagement() {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      {/* SET PASSWORD (admin only) */}
+      {viewer.isAdmin && passwordAdmin && (
+        <SetPasswordDialog
+          key={passwordAdmin.id}
+          title={`Reset password \u2014 ${passwordAdmin.name}`}
+          description="Enter a new password for this user. It replaces their current one."
+          onSubmit={(password) => resetAdminPassword(passwordAdmin.id, password)}
+          onClose={() => setPasswordAdmin(null)}
+          onDone={(message) => {
+            setPasswordAdmin(null);
+            showSnackbar(message);
+          }}
+        />
+      )}
 
       {/* DELETE DIALOG */}
       <Dialog

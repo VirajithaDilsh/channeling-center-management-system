@@ -5,13 +5,15 @@ import {
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { setDoctorPassword } from "../../../api/DoctorApi";
 
 /**
- * Admin-only dialog to set a doctor's login password. It never shows an
- * existing password: it creates the login if there is none, otherwise resets it.
+ * Admin-only dialog to set someone's password. It never shows an existing
+ * password. Mount it only while open (fresh state each time).
+ *   title / description: heading and helper copy
+ *   onSubmit(password): async, returns { message }
+ *   onDone(message): called after a successful save
  */
-export default function SetPasswordDialog({ doctor, onClose, onDone }) {
+export default function SetPasswordDialog({ title, description, onSubmit, onClose, onDone }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
@@ -25,7 +27,7 @@ export default function SetPasswordDialog({ doctor, onClose, onDone }) {
 
     setSaving(true);
     try {
-      const res = await setDoctorPassword(doctor._id, password);
+      const res = await onSubmit(password);
       onDone(res.message || "Password saved");
     } catch (err) {
       setError(err.response?.data?.message || "Could not set the password. Please try again.");
@@ -35,14 +37,10 @@ export default function SetPasswordDialog({ doctor, onClose, onDone }) {
   };
 
   return (
-    <Dialog open={Boolean(doctor)} onClose={saving ? undefined : onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{doctor?.hasAccount ? "Reset password" : "Create login"} &mdash; {doctor?.name}</DialogTitle>
+    <Dialog open onClose={saving ? undefined : onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText className="!mb-4">
-          {doctor?.hasAccount
-            ? "Enter a new password for this doctor. It replaces their current one."
-            : "This doctor has no login yet. Enter a password to create one."}
-        </DialogContentText>
+        <DialogContentText className="!mb-4">{description}</DialogContentText>
         <div className="flex flex-col gap-4 pt-1">
           <TextField
             label="New password"
