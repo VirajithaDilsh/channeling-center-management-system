@@ -1,1 +1,9 @@
 @import "tailwindcss";
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* MUI components default to Roboto; keep them on the same stack */
+.MuiTypography-root, .MuiButton-root, .MuiInputBase-root, .MuiTableCell-root {
+  font-family: inherit;
+}

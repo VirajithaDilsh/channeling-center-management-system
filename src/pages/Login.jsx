@@ -96,15 +96,13 @@ const Login = () => {
 
         {/* Lock Icon */}
         <div className="flex justify-center mb-4">
-          <div className="bg-blue-100 p-3 rounded-2xl">
-            <LockIcon className="text-blue-600 text-3xl" />
-          </div>
+          <img src="/logo-icon.png" alt="Logo" className="h-16 w-16 object-contain" />
         </div>
 
         {/* Title */}
         <div className="mb-4">
           <Typography variant="h4" className="font-bold">
-            {centerName} <span className="text-blue-600">Medical</span>
+            {centerName} <span className="text-[#0284C7] font-semibold">Medical</span>
           </Typography>
           <Typography className="text-gray-500 mb-6 text-sm">
             Channeling Management System
