@@ -174,22 +174,7 @@ const RegisterPatient = () => {
             </div>
           </Paper>
 
-          <Paper elevation={0} className="p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="flex items-center gap-2 mb-4">
-              <MedicalInformationIcon className="text-green-500" />
-              <Typography variant="h6">Channeling Record</Typography>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Autocomplete options={doctors} value={formData.doctor} onChange={handleDoctorChange} renderInput={(params) => <TextField {...params} label="Select Doctor" />} />
-
-              <TextField label="Disease" name="disease" fullWidth value={formData.disease} onChange={handleChange} />
-
-              <TextField type="date" label="Date" name="date" fullWidth InputLabelProps={{ shrink: true }} value={formData.date} onChange={handleChange} />
-
-              <TextField label="Medical History" name="medicalHistory" multiline rows={2} className="col-span-2" value={formData.medicalHistory} onChange={handleChange} />
-            </div>
-          </Paper>
+          
 
           <Paper elevation={0} className="p-6 rounded-3xl shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-2 mb-4">
