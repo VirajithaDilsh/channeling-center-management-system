@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,11 +7,19 @@ import {
   TableHead,
   TableRow,
   Paper,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMedicines } from "../../context/MedicineContext.jsx";
 import TableActionButtons from "../TableActionButton.jsx";
+import StockOutForecastChart from "../../pages/dashboard/Inventory/StockOutForecastChart.jsx";
 import {
   isLowStock,
   formatColomboYmd,
@@ -26,6 +34,7 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
   const { medicines: allMedicines, deleteMedicine } = useMedicines();
   const medicines = medicinesProp ?? allMedicines;
   const navigate = useNavigate();
+  const [forecastMedicine, setForecastMedicine] = useState(null);
   // Backend: PUT/DELETE need inventory_edit (or allow_all). Read-only viewers
   // get no Actions column.
   const canEdit = getViewer().can(["inventory_edit", "inventory_allow_all"]);
@@ -53,6 +62,7 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
   };
 
   return (
+    <>
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
@@ -66,6 +76,7 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
             <TableCell align="right">Unit Price</TableCell>
             <TableCell align="right">Total Value</TableCell>
             <TableCell align="center">Status</TableCell>
+            <TableCell align="center">Forecast</TableCell>
             {canEdit && <TableCell align="center">Actions</TableCell>}
           </TableRow>
         </TableHead>
@@ -119,6 +130,18 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
                     </span>
                   )}
                 </TableCell>
+                <TableCell align="center">
+                  <Tooltip title="View Stock-Out Forecast">
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      aria-label={`View stock-out forecast for ${med.name}`}
+                      onClick={() => setForecastMedicine(med)}
+                    >
+                      <ShowChartIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
                 {canEdit && (
                   <TableCell align="center">
                     <TableActionButtons
@@ -135,6 +158,26 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
         </TableBody>
       </Table>
     </TableContainer>
+
+    <Dialog
+      open={Boolean(forecastMedicine)}
+      onClose={() => setForecastMedicine(null)}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogContent sx={{ p: 0 }}>
+        {forecastMedicine && (
+          <StockOutForecastChart
+            medicine={forecastMedicine}
+            thresholdDays={thresholdDays}
+          />
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={() => setForecastMedicine(null)}>Close</Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 };
 

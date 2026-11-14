@@ -6,6 +6,7 @@ import { getReportSummary } from "../../../api/reportsApi";
 import { formatLkr, formatMonth } from "../../../utils/formatMoney";
 import MonthlyRevenueChart from "./MonthlyRevenueChart";
 import ForecastChart from "./ForecastChart";
+import MedicineStockOutSection from "./MedicineStockOutSection";
 import DoctorRevenue from "./DoctorRevenue";
 import MonthCompare from "./MonthCompare";
 import AssistantChat from "./AssistantChat";
@@ -42,6 +43,7 @@ export default function Reports() {
         <MonthlyRevenueChart />
         <ForecastChart />
       </div>
+      <MedicineStockOutSection />
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <DoctorRevenue />
         <MonthCompare />

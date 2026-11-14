@@ -27,3 +27,11 @@ export const deleteMedicine = async (id) => {
     const res = await axiosClient.delete(`${API_URL}/${id}`);
     return res.data;
 };
+
+// STOCK-OUT PREDICTION
+export const getMedicineStockoutPredictions = async (horizonDays = 30) => {
+    const res = await axiosClient.get(`${API_URL}/stockout-predictions`, {
+        params: { horizonDays },
+    });
+    return res.data;
+};
