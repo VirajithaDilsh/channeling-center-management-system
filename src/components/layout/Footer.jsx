@@ -9,7 +9,7 @@ const Footer = () => {
 
                     <p className="text-sm text-slate-500">
                         © {new Date().getFullYear()}{" "}
-                        <span className="font-semibold text-[#0F172A]">Codex</span>
+                        <span className="font-semibold text-[#0F172A]">Team Zentec</span>
                         . All rights reserved.
                     </p>
 
