@@ -65,7 +65,8 @@ export default function ForecastChart() {
       title="Actual vs predicted revenue"
       icon={<TrendingUpIcon className="text-amber-600" />}
       controls={
-        <Button
+        // Only offer the wake-up when the service isn't answering (or a wake-up is under way).
+        (wakeActive || status === "error") && <Button
           size="small"
           variant="outlined"
           onClick={wake.wake}
