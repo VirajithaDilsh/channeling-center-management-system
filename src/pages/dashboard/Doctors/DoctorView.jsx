@@ -17,7 +17,7 @@ import {
 import { getDoctorById, updateDoctor } from "../../../api/DoctorApi";
 import BackButton from "../../../components/BackButton";
 import { getViewer } from "../../../utils/permissions";
-import { DAY_NAMES, DAY_ORDER, maxLabel } from "../../../utils/availability";
+import DoctorWeeklySlots from "./DoctorWeeklySlots";
 
 const DoctorView = () => {
   const { id } = useParams();
@@ -48,6 +48,15 @@ const canManageAvailability = canEdit || canWrite;
 
     fetchDoctor();
   }, [id]);
+
+  // Reload the doctor (including weekly slots) after a slot is added/edited/removed.
+  const refreshDoctor = async () => {
+    try {
+      setDoctor(await getDoctorById(id));
+    } catch (err) {
+      console.error("Error refreshing doctor:", err);
+    }
+  };
 
   const handleStatusUpdate = async () => {
     setSavingStatus(true);
@@ -234,89 +243,63 @@ const canManageAvailability = canEdit || canWrite;
 
       </div>
 
-      {/* Weekly availability (read-only, visible to everyone who can view the doctor) */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-green-50 rounded-lg">
-            <CalendarDays className="text-green-600" size={22} />
+      {/* Availability: status (managers only) and weekly slots in one card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <CalendarDays className="text-blue-600" size={22} />
           </div>
           <div>
-            <h3 className="font-bold text-gray-800">Weekly Availability</h3>
-            <p className="text-sm text-gray-500">Days and times patients can book this doctor</p>
+            <h3 className="font-bold text-gray-800">Availability</h3>
+            <p className="text-sm text-gray-500">
+              {canManageAvailability
+                ? "Update the doctor's status and weekly slots"
+                : "Days and times patients can book this doctor"}
+            </p>
           </div>
         </div>
-        {doctor.weeklySchedule?.length ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {DAY_ORDER.filter((d) => doctor.weeklySchedule.some((w) => w.dayOfWeek === d)).map((d) => (
-              <div key={d} className="border border-gray-100 rounded-lg px-4 py-3">
-                <div className="font-medium text-gray-800 mb-1">{DAY_NAMES[d]}</div>
-                {doctor.weeklySchedule
-                  .filter((w) => w.dayOfWeek === d)
-                  .map((w) => (
-                    <div key={w._id} className="text-sm text-gray-600">
-                      {w.startTime}&ndash;{w.endTime} &middot; {maxLabel(w)}
-                    </div>
-                  ))}
-              </div>
-            ))}
+
+        {canManageAvailability && (
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-end pb-6 mb-6 border-b border-gray-100">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Doctor Status
+              </label>
+
+              <select
+                value={statusDraft}
+                onChange={(e) => setStatusDraft(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Available">Available</option>
+                <option value="Busy">Busy</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleStatusUpdate}
+              disabled={
+                savingStatus ||
+                statusDraft === (doctor.status || "Available")
+              }
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              <Save size={18} />
+              {savingStatus ? "Saving..." : "Update Status"}
+            </button>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">No weekly availability set yet.</p>
         )}
+
+        {/* Add needs write access; edit/remove need edit access */}
+        <DoctorWeeklySlots
+          doctorId={doctor._id}
+          schedule={doctor.weeklySchedule}
+          canWrite={canWrite}
+          canEdit={canEdit}
+          onChanged={refreshDoctor}
+        />
       </div>
-
-      {/* Availability Management */}
-     {canManageAvailability && (
-  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-
-    <div className="flex items-center gap-3 mb-5">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <CalendarDays className="text-blue-600" size={22} />
-      </div>
-
-      <div>
-        <h3 className="font-bold text-gray-800">
-          Availability Management
-        </h3>
-        <p className="text-sm text-gray-500">
-          Update the doctor's current availability
-        </p>
-      </div>
-    </div>
-
-    <div className="flex flex-col sm:flex-row gap-4 sm:items-end">
-
-      <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Doctor Status
-        </label>
-
-        <select
-          value={statusDraft}
-          onChange={(e) => setStatusDraft(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="Available">Available</option>
-          <option value="Busy">Busy</option>
-          <option value="On Leave">On Leave</option>
-        </select>
-      </div>
-
-      <button
-        onClick={handleStatusUpdate}
-        disabled={
-          savingStatus ||
-          statusDraft === (doctor.status || "Available")
-        }
-        className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-      >
-        <Save size={18} />
-        {savingStatus ? "Saving..." : "Update Status"}
-      </button>
-
-    </div>
-  </div>
-)}
 
     </div>
   );

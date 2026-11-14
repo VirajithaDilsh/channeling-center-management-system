@@ -76,3 +76,20 @@ export const getDoctorAvailability = async (id) => {
   const res = await axiosClient.get(`${API_URL}/${id}/availability`);
   return res.data;
 };
+
+// Weekly slots managed by staff on a doctor's details page
+// (add needs doctors_write; edit/delete need doctors_edit).
+export const addDoctorSchedule = async (doctorId, scheduleData) => {
+  const res = await axiosClient.post(`${API_URL}/schedules`, { doctorId, ...scheduleData });
+  return res.data;
+};
+
+export const updateDoctorSchedule = async (id, scheduleData) => {
+  const res = await axiosClient.put(`${API_URL}/schedules/${id}`, scheduleData);
+  return res.data;
+};
+
+export const deleteDoctorSchedule = async (id) => {
+  const res = await axiosClient.delete(`${API_URL}/schedules/${id}`);
+  return res.data;
+};
