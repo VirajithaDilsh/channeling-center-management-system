@@ -21,7 +21,6 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 
 import TableActionButtons from "../../../components/TableActionButton";
@@ -150,18 +149,6 @@ export default function AdminManagement() {
               + Add User
             </Button>
           )}
-
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<LogoutIcon />}
-            onClick={() => {
-              localStorage.clear();
-              navigate("/");
-            }}
-          >
-            Logout
-          </Button>
         </div>
       </div>
 
