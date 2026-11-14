@@ -156,13 +156,13 @@ const Login = () => {
             label={<span className="text-sm text-gray-700">Remember me</span>}
           />
 
-          <Link
+          {/* <Link
             component="button"
             className="text-sm"
             onClick={() => navigate("/forgot-password")}
           >
             Forgot password?
-          </Link>
+          </Link> */}
         </div>
 
         {/* Login Button */}
