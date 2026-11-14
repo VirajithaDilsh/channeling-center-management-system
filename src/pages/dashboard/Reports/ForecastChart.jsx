@@ -59,7 +59,7 @@ export default function ForecastChart() {
   return (
     <WidgetCard
       title="Actual vs predicted revenue"
-      subtitle="Solid = actual revenue · dashed = estimate"
+     
       icon={<TrendingUpIcon className="text-amber-600" />}
       state={status}
       error={status === "error" && error?.status === 503 ? { label: "the forecast (the forecasting service is unavailable; actual figures above are unaffected)" } : error}

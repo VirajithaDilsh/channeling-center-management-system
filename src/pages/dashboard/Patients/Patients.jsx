@@ -1,3 +1,6 @@
+
+
+
 import React, { useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -18,6 +21,8 @@ export default function PatientManagement() {
 
   const [patients, setPatients] = useState([]);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [bloodFilter, setBloodFilter] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
@@ -65,8 +70,28 @@ export default function PatientManagement() {
     }
   };
 
-  const pageCount = Math.max(1, Math.ceil(patients.length / ROWS_PER_PAGE));
-  const visiblePatients = patients.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+  const filteredPatients = patients.filter((p) => {
+    const term = searchTerm.trim().toLowerCase();
+    const digitsTerm = term.replace(/\D/g, ""); // digits only from what the user typed
+
+    // Phone match that ignores spaces, dashes, brackets and "+"
+    const matchesPhone =
+      digitsTerm.length > 0 &&
+      String(p.phone || "").replace(/\D/g, "").includes(digitsTerm);
+
+    const matchesSearch =
+      !term ||
+      (p.name || "").toLowerCase().includes(term) ||
+      String(p.patientId || "").toLowerCase().includes(term) ||
+      String(p.phone || "").toLowerCase().includes(term) ||
+      matchesPhone;
+
+    const matchesBlood = !bloodFilter || p.blood === bloodFilter;
+    return matchesSearch && matchesBlood;
+  });
+
+  const pageCount = Math.max(1, Math.ceil(filteredPatients.length / ROWS_PER_PAGE));
+  const visiblePatients = filteredPatients.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -88,8 +113,25 @@ export default function PatientManagement() {
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
-        <TextField fullWidth size="small" placeholder="Search by name, ID, or phone..." />
-        <Select size="small" defaultValue="">
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Search by name, ID, or phone..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1);
+          }}
+        />
+        <Select
+          size="small"
+          displayEmpty
+          value={bloodFilter}
+          onChange={(e) => {
+            setBloodFilter(e.target.value);
+            setPage(1);
+          }}
+        >
           <MenuItem value="">Blood Group</MenuItem>
           <MenuItem value="O+">O+</MenuItem>
           <MenuItem value="A+">A+</MenuItem>
@@ -147,7 +189,7 @@ export default function PatientManagement() {
 
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-500">Showing {patients.length} patients</p>
+        <p className="text-sm text-gray-500">Showing {filteredPatients.length} patients</p>
         {pageCount > 1 && (
           <Pagination count={pageCount} page={page} onChange={(e, value) => setPage(value)} color="primary" />
         )}

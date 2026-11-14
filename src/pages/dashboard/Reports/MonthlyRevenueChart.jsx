@@ -20,7 +20,7 @@ export default function MonthlyRevenueChart() {
   return (
     <WidgetCard
       title="Monthly revenue, last 12 months"
-      subtitle="Fully paid visits, by month closed. The latest month may be incomplete."
+     
       icon={<BarChartIcon className="text-blue-500" />}
       state={status}
       error={error}
