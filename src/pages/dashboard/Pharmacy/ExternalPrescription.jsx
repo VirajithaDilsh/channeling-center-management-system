@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Autocomplete, TextField, Button, IconButton, Snackbar, Alert, MenuItem, Chip, Divider,
+  Autocomplete, TextField, Button, IconButton, Snackbar, Alert, Chip, Divider,
   ToggleButton, ToggleButtonGroup
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,14 +9,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { getPatients } from "../../../api/PatientApi";
 import { getMedicines } from "../../../api/MedicineApi";
-import { listVisitSessions } from "../../../api/VisitSessionApi";
 import { dispenseExternalPrescription } from "../../../api/ExternalPrescriptionApi";
 import { getPublicSettings } from "../../../api/SettingsApi";
 import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const emptyLine = { medicineId: "", qty: 1 };
-
-const WALK_IN = "__WALK_IN__";
 
 export default function ExternalPrescription() {
   const [patients, setPatients] = useState([]);
@@ -33,9 +30,6 @@ export default function ExternalPrescription() {
   const [prescribedBy, setPrescribedBy] = useState("");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState([{ ...emptyLine }]);
-
-  const [openSessions, setOpenSessions] = useState([]);
-  const [billTarget, setBillTarget] = useState(WALK_IN);
 
   const [saving, setSaving] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
@@ -67,20 +61,6 @@ export default function ExternalPrescription() {
       .catch((err) => console.error("Could not load currency settings:", err));
   }, []);
 
-  // Offer to add the charges to a visit the patient already has open, so a
-  // patient mid-visit doesn't end up with two separate bills.
-  useEffect(() => {
-    setBillTarget(WALK_IN);
-    setOpenSessions([]);
-    if (isGuest || !selectedPatient) return;
-
-    listVisitSessions({ patientId: selectedPatient.patientId })
-      .then((sessions) =>
-        setOpenSessions(sessions.filter((s) => !["CLOSED", "CANCELED"].includes(s.status)))
-      )
-      .catch((err) => console.error("Could not load visits for this patient:", err));
-  }, [selectedPatient, isGuest]);
-
   const medicineById = new Map(medicines.map((m) => [m._id, m]));
 
   const updateLine = (index, patch) =>
@@ -106,7 +86,6 @@ export default function ExternalPrescription() {
     setPrescribedBy("");
     setNotes("");
     setLines([{ ...emptyLine }]);
-    setBillTarget(WALK_IN);
   };
 
   // Client-side checks are for fast feedback only — the backend re-validates
@@ -157,7 +136,6 @@ export default function ExternalPrescription() {
         guestPhone: isGuest ? guestPhone.trim() || undefined : undefined,
         prescribedBy: prescribedBy.trim() || undefined,
         notes: notes.trim() || undefined,
-        visitSessionId: isGuest || billTarget === WALK_IN ? undefined : billTarget,
         items: lines
           .filter((l) => l.medicineId)
           .map((l) => ({ medicineId: l.medicineId, qty: Number(l.qty) })),
@@ -216,36 +194,13 @@ export default function ExternalPrescription() {
               />
             </>
           ) : (
-            <>
-              <Autocomplete
-                options={patients}
-                getOptionLabel={(p) => (p.name ? `${p.name} (${p.patientId})` : "")}
-                value={selectedPatient}
-                onChange={(event, value) => setSelectedPatient(value)}
-                renderInput={(params) => <TextField {...params} label="Patient" />}
-              />
-
-              <TextField
-                select
-                label="Bill to"
-                value={billTarget}
-                onChange={(e) => setBillTarget(e.target.value)}
-                disabled={!selectedPatient}
-                helperText={
-                  openSessions.length > 0
-                    ? "This patient has an open visit — you can add the medicines to that bill."
-                    : "A separate pharmacy bill will be created."
-                }
-              >
-                <MenuItem value={WALK_IN}>New pharmacy bill</MenuItem>
-                {openSessions.map((s) => (
-                  <MenuItem key={s._id} value={s._id}>
-                    {`Visit ${s.createdAt ? new Date(s.createdAt).toLocaleDateString() : ""}`}
-                    {s.doctorName ? ` — ${s.doctorName}` : ""}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </>
+            <Autocomplete
+              options={patients}
+              getOptionLabel={(p) => (p.name ? `${p.name} (${p.patientId})` : "")}
+              value={selectedPatient}
+              onChange={(event, value) => setSelectedPatient(value)}
+              renderInput={(params) => <TextField {...params} label="Patient" />}
+            />
           )}
 
           <TextField
