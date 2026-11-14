@@ -93,3 +93,9 @@ export const deleteDoctorSchedule = async (id) => {
   const res = await axiosClient.delete(`${API_URL}/schedules/${id}`);
   return res.data;
 };
+
+// Admin only: create the doctor's login with this password, or reset it if one exists.
+export const setDoctorPassword = async (id, newPassword) => {
+  const res = await axiosClient.put(`${API_URL}/${id}/password`, { newPassword });
+  return res.data;
+};

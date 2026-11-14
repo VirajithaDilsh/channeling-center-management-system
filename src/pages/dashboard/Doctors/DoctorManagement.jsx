@@ -11,6 +11,7 @@ import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getDoctors, deleteDoctor } from "../../../api/DoctorApi";
 import { getViewer } from "../../../utils/permissions";
+import SetPasswordDialog from "./SetPasswordDialog";
 
 const ROWS_PER_PAGE = 8;
 
@@ -38,6 +39,7 @@ const DoctorManagement = () => {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [passwordDoctor, setPasswordDoctor] = useState(null);
 
   const navigate = useNavigate();
 
@@ -202,6 +204,7 @@ const DoctorManagement = () => {
                     onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
                     onEdit={canEdit ? () => navigate(`/dashboard/doctor/edit/${doc._id}`) : undefined}
                     onDelete={canDelete ? () => handleDeleteClick(doc._id) : undefined}
+                    onChangePassword={viewer.isAdmin ? () => setPasswordDoctor(doc) : undefined}
                   />
                 </TableCell>
               </TableRow>
@@ -217,6 +220,19 @@ const DoctorManagement = () => {
           <Pagination count={pageCount} page={page} onChange={(e, value) => setPage(value)} color="primary" />
         )}
       </div>
+
+      {/* SET PASSWORD (admin only) */}
+      {viewer.isAdmin && (
+        <SetPasswordDialog
+          doctor={passwordDoctor}
+          onClose={() => setPasswordDoctor(null)}
+          onDone={(message) => {
+            setPasswordDoctor(null);
+            showSnackbar(message);
+            fetchDoctors();
+          }}
+        />
+      )}
 
       {/* SNACKBAR */}
       <Snackbar
