@@ -14,7 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
-import BackButton from "../../../components/BackButton";
+import MicIcon from "@mui/icons-material/Mic";import BackButton from "../../../components/BackButton";
 import Icd10Select from "../../../components/Icd10Select";
 import AddButton from "../../../components/AddButton";
 import { getAppointmentById } from "../../../api/AppointmentApi";
@@ -25,6 +25,7 @@ import { getMedicines } from "../../../api/MedicineApi";
 import UseTemplateDialog from "../../../components/prescription/UseTemplateDialog";
 import { ISSUE_LABELS } from "../../../components/prescription/templateIssues";
 import SaveTemplateDialog from "../../../components/prescription/SaveTemplateDialog";
+import VoicePrescriptionDialog from "../../../components/prescription/VoicePrescriptionDialog";
 import {
   getConsultationByAppointment,
   getConsultationsByPatient,
@@ -88,7 +89,7 @@ export default function Consultation() {
   const [completing, setCompleting] = useState(false);
   const [useTemplateOpen, setUseTemplateOpen] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [voiceOpen, setVoiceOpen] = useState(false);  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     loadConsultation();
@@ -166,8 +167,39 @@ export default function Consultation() {
 
   const handleMedicineSelect = (index, selected) => {
     setMedicines((prev) => prev.map((m, i) => (i === index
-      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "", templateIssue: null }
+      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "", templateIssue: null, voiceIssue: null }
       : m)));
+  };
+
+  // Adds rows produced by the voice dialog. Like applyTemplate, only local
+  // state changes — the doctor reviews/edits and saves as usual. Rows whose
+  // medicine wasn't recognised keep an empty medicineId and a voiceIssue flag,
+  // which blocks saving until the doctor picks a medicine or removes the row.
+  const applyVoiceRows = (rows) => {
+    const isBlank = (m) => !m.medicineId && !m.name && !m.dosage && !m.frequency && !m.duration && !m.instructions;
+    const existing = medicines.filter((m) => !isBlank(m));
+    const present = new Set(existing.filter((m) => m.medicineId).map((m) => m.medicineId));
+    const incoming = [];
+    let skipped = 0;
+
+    rows.forEach((row) => {
+      if (row.medicineId && present.has(row.medicineId)) {
+        skipped += 1;
+        return;
+      }
+      if (row.medicineId) present.add(row.medicineId);
+      incoming.push({ ...row, templateIssue: null });
+    });
+
+    const next = [...existing, ...incoming];
+    setMedicines(next.length > 0 ? next : [{ ...emptyMedicine }]);
+    setVoiceOpen(false);
+
+    const flagged = incoming.filter((r) => r.voiceIssue).length;
+    const parts = [`${incoming.length} medicine${incoming.length === 1 ? "" : "s"} added by voice — review before saving.`];
+    if (skipped) parts.push(`${skipped} already in the prescription, skipped.`);
+    if (flagged) parts.push(`${flagged} need a medicine chosen.`);
+    showSnackbar(parts.join(" "), flagged ? "warning" : "success");
   };
 
   // Copies a template's items into the form. Only local state changes — the
@@ -243,6 +275,12 @@ export default function Consultation() {
     const unresolved = medicines.filter((m) => !m.medicineId && m.templateIssue === "DELETED");
     if (unresolved.length > 0) {
       showSnackbar(`Replace or remove: ${unresolved.map((m) => m.name).join(", ")} (no longer in inventory).`, "error");
+      return;
+    }
+
+    const unrecognised = medicines.filter((m) => !m.medicineId && m.voiceIssue);
+    if (unrecognised.length > 0) {
+      showSnackbar(`Choose the medicine or remove the row for: ${unrecognised.map((m) => m.spoken || m.name).join(", ")}.`, "error");
       return;
     }
 
@@ -516,7 +554,15 @@ export default function Consultation() {
                           {m.templateIssue === "DELETED" ? " — choose a replacement or remove this row" : " — check before prescribing"}
                         </p>
                       )}
-                      <div className={`grid grid-cols-12 gap-2 items-center ${m.templateIssue ? "rounded-lg bg-amber-50 p-1" : ""}`}>
+                      {m.voiceIssue && !m.medicineId && (
+                        <p className="text-xs text-amber-700 mb-1">
+                          <WarningAmberIcon sx={{ fontSize: 14 }} className="mr-1" />
+                          Heard “{m.spoken}” —{" "}
+                          {m.voiceIssue === "AMBIGUOUS" ? "several medicines are similar" : "not found in inventory"}
+                          {" "}— choose the medicine or remove this row
+                        </p>
+                      )}
+                      <div className={`grid grid-cols-12 gap-2 items-center ${m.templateIssue || (m.voiceIssue && !m.medicineId) ? "rounded-lg bg-amber-50 p-1" : ""}`}>
                         <Autocomplete
                           className="col-span-3"
                           size="small"
@@ -525,7 +571,7 @@ export default function Consultation() {
                           value={selectedMedicine}
                           disabled={readOnly}
                           onChange={(event, value) => handleMedicineSelect(i, value)}
-                          renderInput={(params) => <TextField {...params} label="Medicine" error={m.templateIssue === "DELETED" && !m.medicineId} />}
+                          renderInput={(params) => <TextField {...params} label="Medicine" error={(m.templateIssue === "DELETED" || !!m.voiceIssue) && !m.medicineId} />}
                         />
                         <TextField className="col-span-1" label="Qty" type="number" size="small" value={m.qtyPrescribed} disabled={readOnly}
                           inputProps={{ min: 1 }}
@@ -556,6 +602,10 @@ export default function Consultation() {
 
                     <Button size="small" startIcon={<LibraryAddIcon />} onClick={() => setUseTemplateOpen(true)}>
                       Use Template
+                    </Button>
+
+                    <Button size="small" startIcon={<MicIcon />} onClick={() => setVoiceOpen(true)}>
+                      Voice
                     </Button>
 
                     <Tooltip title={templateSourceRows.length === 0 ? "Add at least one medicine to save a template" : ""}>
@@ -737,6 +787,14 @@ export default function Consultation() {
       </div>
 
       <UseTemplateDialog open={useTemplateOpen} onClose={() => setUseTemplateOpen(false)} onSelect={applyTemplate} />
+      {voiceOpen && (
+        <VoicePrescriptionDialog
+          open
+          onClose={() => setVoiceOpen(false)}
+          medicineOptions={medicineOptions}
+          onConfirm={applyVoiceRows}
+        />
+      )}
       <SaveTemplateDialog
         open={saveTemplateOpen}
         items={templateSourceRows}
