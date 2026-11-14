@@ -35,7 +35,6 @@ export function AwaitingPaymentCard({ source, onRetry, money }) {
   return (
     <WidgetCard
       title="Waiting to be collected"
-      subtitle="Longest wait first"
       icon={<PaymentsIcon className="text-blue-500" />}
       count={rows.length}
       action={{ label: "Open billing", to: "/dashboard/billing" }}

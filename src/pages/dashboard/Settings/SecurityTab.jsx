@@ -42,7 +42,6 @@ export default function SecurityTab({ showSnackbar }) {
   return (
     <div className="max-w-md">
       <h2 className="text-lg font-semibold mb-1">Change Password</h2>
-      <p className="text-gray-500 text-sm mb-5">Update the password used to sign in to your account.</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

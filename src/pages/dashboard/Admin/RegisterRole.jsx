@@ -174,10 +174,6 @@ const RegisterRole = () => {
             <Typography variant="h5" className="font-semibold">
               Register User Role
             </Typography>
-
-            <p className="text-gray-500 text-sm">
-              Add a new user and assign a system role
-            </p>
           </div>
         </div>
 

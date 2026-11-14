@@ -18,7 +18,6 @@ export default function Pharmacy() {
         <PillIcon className="text-emerald-600" />
         <div>
           <Typography variant="h5" className="font-semibold">Pharmacy</Typography>
-          <p className="text-gray-500 text-sm">Dispense prescriptions and record over-the-counter sales</p>
         </div>
       </div>
 

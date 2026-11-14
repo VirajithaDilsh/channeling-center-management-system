@@ -22,7 +22,6 @@ export default function Reports() {
     <div className="space-y-6">
       <div>
         <Typography variant="h5" className="font-semibold">Financial Analytics</Typography>
-        <p className="text-sm text-gray-500">Actual revenue, commission and AI-assisted estimates.</p>
       </div>
 
       {status === "error" && (

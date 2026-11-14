@@ -36,6 +36,15 @@ import ContactUs from "../pages/ContactUs.jsx";
 
 {/*import Login from "../pages/auth/Login.jsx";*/}
 
+// Decides where /dashboard lands. Must be a component so the role is read when
+// the user actually arrives: reading localStorage while the route table was
+// built used a stale role, sending an admin who logged in after a doctor (no
+// page reload) to the doctor portal.
+const DashboardIndex = () =>
+  localStorage.getItem("userRole") === "doctor"
+    ? <Navigate to="/dashboard/doctor-home" replace />
+    : <ProtectedRoute><DashboardHome /></ProtectedRoute>;
+
 const AppRoutes = () => {
     return (
 <BrowserRouter>
@@ -51,11 +60,7 @@ const AppRoutes = () => {
     <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
       <Route
         index
-        element={
-          localStorage.getItem("userRole") === "doctor"
-            ? <Navigate to="/dashboard/doctor-home" replace />
-            : <ProtectedRoute><DashboardHome /></ProtectedRoute>
-        }
+        element={<DashboardIndex />}
       />
 
       {/* Admin */}

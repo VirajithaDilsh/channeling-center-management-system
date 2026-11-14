@@ -51,7 +51,6 @@ export default function AppointmentsTab({ showSnackbar }) {
     <div className="max-w-lg space-y-6">
       <div>
         <h2 className="text-lg font-semibold mb-1">Booking Rules</h2>
-        <p className="text-gray-500 text-sm mb-3">Applied when patients book or cancel a channeling appointment.</p>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-gray-600">Default Appointment Duration (minutes)</label>
@@ -82,7 +81,6 @@ export default function AppointmentsTab({ showSnackbar }) {
 
       <div>
         <h2 className="text-lg font-semibold mb-1">Doctor Defaults</h2>
-        <p className="text-gray-500 text-sm mb-3">Default consultation length used as guidance across the clinic.</p>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-gray-600">Default Consultation Duration (minutes)</label>

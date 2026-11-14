@@ -174,7 +174,6 @@ export default function RoleManagement() {
           <BackButton to="/dashboard/admin" />
           <div>
             <h1 className="text-2xl font-semibold">Roles & Permissions</h1>
-            <p className="text-gray-500 text-sm">Create roles and choose exactly what each one can access</p>
           </div>
         </div>
 

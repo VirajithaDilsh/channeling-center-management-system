@@ -670,9 +670,6 @@ export default function Consultation() {
               <MedicalInformationIcon className="text-red-500" />
               <Typography variant="h6">Patient Registration Records</Typography>
             </div>
-            <p className="text-gray-500 text-xs mb-4">
-              Vitals and history recorded at the patient desk
-            </p>
 
             <TableContainer>
               <Table size="small">

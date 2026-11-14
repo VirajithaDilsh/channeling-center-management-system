@@ -27,7 +27,6 @@ export function PharmacyQueueCard({ source, onRetry }) {
   return (
     <WidgetCard
       title="Waiting at the pharmacy"
-      subtitle="Oldest first"
       icon={<MedicationIcon className="text-emerald-600" />}
       count={rows.length}
       action={{ label: "Open pharmacy", to: "/dashboard/pharmacy" }}
@@ -124,7 +123,6 @@ export function DoctorsOnDutyCard({ source, appointmentsSource, onRetry }) {
   return (
     <WidgetCard
       title="Doctors on duty"
-      subtitle="Availability and today's load"
       icon={<StethoscopeIcon className="text-blue-500" />}
       count={rows.length}
       action={{ label: "Manage doctors", to: "/dashboard/doctor-management" }}

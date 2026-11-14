@@ -23,7 +23,6 @@ export default function ScheduleCard({ source, onRetry, isDoctor }) {
   return (
     <WidgetCard
       title={isDoctor ? "My schedule today" : "Today's schedule"}
-      subtitle="In time order"
       icon={<TodayIcon className="text-blue-500" />}
       count={rows.length}
       action={{ label: "View all", to: "/dashboard/appoiments" }}

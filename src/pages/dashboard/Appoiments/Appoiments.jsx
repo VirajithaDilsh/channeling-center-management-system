@@ -248,9 +248,6 @@ export default function Appoiments() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Appointment Management</h1>
-          <p className="text-gray-500 text-sm">
-            {isDoctorOnly ? "Your appointments" : "View and schedule patient appointments"}
-          </p>
         </div>
         {canWrite && (
           <AddButton label="+ New Appointment" onClick={() => setAddDialogOpen(true)} />
@@ -260,7 +257,6 @@ export default function Appoiments() {
       {/* Upcoming */}
       <AppointmentsTable
         title="Upcoming Appointments"
-        subtitle="Scheduled bookings that are still to come, soonest first"
         icon={<EventAvailableIcon className="text-blue-500" />}
         rows={upcomingAppointments}
         page={upcomingPage}
@@ -273,7 +269,6 @@ export default function Appoiments() {
       {/* Past & closed */}
       <AppointmentsTable
         title="Past & Closed Appointments"
-        subtitle="Completed, cancelled, and elapsed bookings, most recent first"
         icon={<HistoryIcon className="text-gray-500" />}
         rows={pastAppointments}
         page={pastPage}

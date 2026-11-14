@@ -1,3 +1,4 @@
+import { sortWindows, formatWindow } from "../../../utils/availability";
 import React, { useState, useEffect } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -106,9 +107,6 @@ const DoctorManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-xl font-semibold">Doctor Management</h1>
-          <p className="text-sm text-gray-500">
-            Manage hospital staff and specialists
-          </p>
         </div>
 
         {canWrite && (
@@ -158,6 +156,7 @@ const DoctorManagement = () => {
               <TableCell>Experience</TableCell>
               <TableCell>Fee</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>Weekly Availability</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -186,6 +185,17 @@ const DoctorManagement = () => {
                   >
                     {doc.status || "-"}
                   </span>
+                </TableCell>
+                <TableCell>
+                  {doc.weeklySchedule?.length ? (
+                    <div className="flex flex-col gap-1">
+                      {sortWindows(doc.weeklySchedule).map((w) => (
+                        <span key={w._id} className="text-xs text-gray-700 whitespace-nowrap">{formatWindow(w)}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-400">No slots set</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <TableActionButtons
