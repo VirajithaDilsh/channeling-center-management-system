@@ -221,10 +221,6 @@ const EditPatient = () => {
           <Typography variant="h5" className="font-semibold">
             Edit Patient
           </Typography>
-
-          <p className="text-gray-500">
-            Update patient medical details
-          </p>
         </div>
 
       </div>

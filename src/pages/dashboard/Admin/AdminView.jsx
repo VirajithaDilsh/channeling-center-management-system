@@ -137,7 +137,6 @@ const AdminView = () => {
 
         <div>
           <Typography variant="h5">User Details</Typography>
-          <p className="text-gray-500 text-sm">Account details (read-only)</p>
         </div>
 
         <div className="ml-auto">

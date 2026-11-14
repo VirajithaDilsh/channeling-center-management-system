@@ -111,7 +111,6 @@ export default function AvailabilityTab({ showSnackbar }) {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-lg font-semibold">Availability</h2>
-          <p className="text-gray-500 text-sm">Set the days and times you're available. Patients can only book you on these slots.</p>
         </div>
         <Button variant="contained" onClick={openCreateForm}>+ Add Slot</Button>
       </div>

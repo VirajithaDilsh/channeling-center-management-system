@@ -86,7 +86,6 @@ export default function DoctorHome() {
         <h1 className="text-2xl font-semibold">
           Welcome{doctorName ? `, Dr. ${doctorName.replace(/^dr\.?\s+/i, "")}` : ""}
         </h1>
-        <p className="text-gray-500 text-sm">Your appointments for today and what's coming up</p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
@@ -118,7 +117,6 @@ export default function DoctorHome() {
               Today
               <span className="ml-2 text-sm font-normal text-gray-500">({total})</span>
             </h2>
-            <p className="text-gray-500 text-xs">Your consultation queue for today</p>
           </div>
         </div>
 
@@ -174,9 +172,6 @@ export default function DoctorHome() {
                 ({upcomingAppointments.length})
               </span>
             </h2>
-            <p className="text-gray-500 text-xs">
-              Your scheduled bookings after today, soonest first
-            </p>
           </div>
         </div>
 

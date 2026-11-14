@@ -135,7 +135,6 @@ const RegisterPatient = () => {
           <Typography variant="h5" className="font-semibold">
             Register Patient
           </Typography>
-          <p className="text-gray-500">Add a new patient with medical details</p>
         </div>
       </div>
 

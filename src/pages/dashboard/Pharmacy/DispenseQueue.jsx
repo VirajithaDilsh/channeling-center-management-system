@@ -90,7 +90,6 @@ export default function DispenseQueue({ embedded = false }) {
           <PillIcon className="text-emerald-600" />
           <div>
             <Typography variant="h5" className="font-semibold">Pharmacy Dispense Queue</Typography>
-            <p className="text-gray-500 text-sm">Prescription items waiting to be dispensed</p>
           </div>
         </div>
       )}

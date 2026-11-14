@@ -73,7 +73,6 @@ const ViewPatient = () => {
           <Typography variant="h5" className="font-semibold">
             View Patient
           </Typography>
-          <p className="text-gray-500">Patient details (read-only)</p>
         </div>
       </div>
 

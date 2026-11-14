@@ -147,9 +147,6 @@ export default function Billing() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Billing & Payments</h1>
-          <p className="text-gray-500 text-sm">
-            Unified patient ledger — bills are generated automatically from bookings and pharmacy dispensing
-          </p>
         </div>
       </div>
 

@@ -130,9 +130,6 @@ export default function AdminManagement() {
 
         <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
           <h1 className="text-2xl font-semibold">Admin Management</h1>
-          <p className="text-gray-500 text-sm">
-            View and manage admin users
-          </p>
         </div>
 
         <div className="flex gap-3 ml-auto">

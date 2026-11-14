@@ -43,7 +43,6 @@ export function AppointmentsTrendChart({ source, onRetry }) {
   return (
     <WidgetCard
       title="Appointments, last 7 days"
-      subtitle="Today highlighted"
       icon={<ShowChartIcon className="text-blue-500" />}
       state={source.status === "skipped" ? "success" : source.status}
       error={source.error}
