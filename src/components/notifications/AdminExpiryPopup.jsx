@@ -24,7 +24,7 @@ function playSubtleChime() {
   }
 }
 
-const AdminNotificationBell = () => {
+const AdminExpiryPopup = () => {
   const navigate = useNavigate();
   const [data, setData] = useState({
     enabled: true,
@@ -89,4 +89,4 @@ const AdminNotificationBell = () => {
   );
 };
 
-export default AdminNotificationBell;
+export default AdminExpiryPopup;
