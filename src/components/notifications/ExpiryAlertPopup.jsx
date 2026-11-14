@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
 import { formatColomboYmd } from "../../utils/inventory";
+import { EXPIRY_ALERT_LABELS, labelFor } from "../../utils/statusLabels";
 
 const STATUS_COLOR = {
   EXPIRED: "error",
@@ -56,7 +57,7 @@ const ExpiryAlertPopup = ({
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Chip
-                  label={item.status.replace("_", " ")}
+                  label={labelFor(EXPIRY_ALERT_LABELS, item.status)}
                   color={STATUS_COLOR[item.status] || "default"}
                   size="small"
                 />

@@ -16,11 +16,11 @@ import { getPublicSettings } from "../../api/SettingsApi";
 import { getMyAccount } from "../../api/AdminApi";
 import { clearSession } from "../../utils/session";
 import { getViewer } from "../../utils/permissions";
-import AdminNotificationBell from "../notifications/AdminNotificationBell";
+import AdminExpiryPopup from "../notifications/AdminExpiryPopup";
 
 const Navbar = ({ setSidebarOpen }) => {
     const navigate = useNavigate();
-    const [centerName, setCenterName] = useState("Lahiru ");
+    const [centerName, setCenterName] = useState("");
     const [account, setAccount] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -78,7 +78,7 @@ const Navbar = ({ setSidebarOpen }) => {
                 {/* Right Side */}
                 <div className="flex items-center gap-4 md:gap-6">
 
-                    {isAdmin && <AdminNotificationBell />}
+                    {isAdmin && <AdminExpiryPopup />}
 
                     {/* Signed-in user */}
                     <div className="flex items-center gap-2">

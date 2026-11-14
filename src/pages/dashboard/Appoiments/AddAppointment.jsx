@@ -8,12 +8,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress,
-  MenuItem
+  CircularProgress
 } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
 import { getDoctors, getDoctorAvailability } from "../../../api/DoctorApi";
-import { DAY_SHORT } from "../../../utils/availability";
+import AvailabilityCalendar from "./AvailabilityCalendar";
 import { getPatients } from "../../../api/PatientApi";
 import { createAppointment } from "../../../api/AppointmentApi";
 
@@ -24,10 +23,10 @@ const emptyState = {
   reason: ""
 };
 
-// "Mon, 2026-11-16 · 10:00–12:00 · 4 left"
-const slotLabel = (s) => {
+// "10:00\u201312:00 \u00b7 4 left"
+const sessionLabel = (s) => {
   const capacity = s.full ? "Fully booked" : s.remaining === null ? "open" : `${s.remaining} left`;
-  return `${DAY_SHORT[s.dayOfWeek]}, ${s.date} \u00b7 ${s.startTime}\u2013${s.endTime} \u00b7 ${capacity}`;
+  return `${s.startTime}\u2013${s.endTime} \u00b7 ${capacity}`;
 };
 const keyOf = (s) => `${s.date}|${s.scheduleId}`;
 
@@ -38,6 +37,7 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
   const [selectedDoctor, setSelectedDoctor] = useState(emptyState.selectedDoctor);
   const [selectedPatient, setSelectedPatient] = useState(emptyState.selectedPatient);
   const [slotKey, setSlotKey] = useState(emptyState.slotKey);
+  const [selectedDate, setSelectedDate] = useState("");
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [slotsError, setSlotsError] = useState("");
@@ -66,6 +66,7 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
   // Whenever the doctor changes, load the dates they're actually available.
   useEffect(() => {
     setSlotKey("");
+    setSelectedDate("");
     setSlots([]);
     setSlotsError("");
     if (!selectedDoctor) return;
@@ -92,7 +93,20 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
     setSelectedDoctor(emptyState.selectedDoctor);
     setSelectedPatient(emptyState.selectedPatient);
     setSlotKey(emptyState.slotKey);
+    setSelectedDate("");
     setReason(emptyState.reason);
+  };
+
+  // Calendar data derived from the doctor's availability.
+  const availableDates = [...new Set(slots.map((s) => s.date))];
+  const fullDates = availableDates.filter((d) => slots.filter((s) => s.date === d).every((s) => s.full));
+  const sessionsForDate = slots.filter((s) => s.date === selectedDate);
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    const open = slots.filter((s) => s.date === date && !s.full);
+    // A single open session is selected automatically.
+    setSlotKey(open.length === 1 ? keyOf(open[0]) : "");
   };
 
   // "Busy" is a transient in-clinic state and still bookable for a future date,
@@ -167,29 +181,51 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
             renderInput={(params) => <TextField {...params} label="Select Patient" />}
           />
 
-          <TextField
-            select
-            label="Available Date & Time"
-            className="col-span-2"
-            fullWidth
-            disabled={!selectedDoctor || slotsLoading || slots.length === 0}
-            value={slotKey}
-            onChange={(e) => setSlotKey(e.target.value)}
-            error={Boolean(slotsError)}
-            helperText={
-              !selectedDoctor
-                ? "Select a doctor to see their available dates"
-                : slotsLoading
-                ? "Loading availability..."
-                : slotsError || "Only dates the doctor is available are shown"
-            }
-          >
-            {slots.map((s) => (
-              <MenuItem key={keyOf(s)} value={keyOf(s)} disabled={s.full}>
-                {slotLabel(s)}
-              </MenuItem>
-            ))}
-          </TextField>
+          <div className="col-span-2">
+            <Typography variant="subtitle2" className="!mb-1">
+              Available Date
+            </Typography>
+            {slots.length > 0 ? (
+              <AvailabilityCalendar
+                key={selectedDoctor?._id}
+                availableDates={availableDates}
+                fullDates={fullDates}
+                value={selectedDate}
+                onChange={handleDateSelect}
+              />
+            ) : (
+              <Typography variant="body2" color={slotsError ? "error" : "text.secondary"}>
+                {!selectedDoctor
+                  ? "Select a doctor to see their available dates"
+                  : slotsLoading
+                  ? "Loading availability..."
+                  : slotsError || "No available dates"}
+              </Typography>
+            )}
+          </div>
+
+          {selectedDate && (
+            <div className="col-span-2">
+              <Typography variant="subtitle2" className="!mb-1">
+                Select Session &middot; {selectedDate}
+              </Typography>
+              <div className="flex flex-wrap gap-2">
+                {sessionsForDate.map((s) => {
+                  const selected = keyOf(s) === slotKey;
+                  return (
+                    <Button
+                      key={keyOf(s)}
+                      variant={selected ? "contained" : "outlined"}
+                      disabled={s.full}
+                      onClick={() => setSlotKey(keyOf(s))}
+                    >
+                      {sessionLabel(s)}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <TextField label="Reason" name="reason" multiline rows={2} className="col-span-2" fullWidth value={reason} onChange={(e) => setReason(e.target.value)} />
         </div>

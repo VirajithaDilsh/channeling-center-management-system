@@ -51,14 +51,14 @@ export default function ExternalPrescription() {
       .then(setPatients)
       .catch((err) => {
         console.error("Could not load patients:", err);
-        showSnackbar("Could not load the patient list — you may not have patient read access.", "error");
+        showSnackbar("Could not load patients. You may not have permission to view them.", "error");
       });
 
     getMedicines()
       .then(setMedicines)
       .catch((err) => {
         console.error("Could not load medicines:", err);
-        showSnackbar("Could not load the medicine list — you may not have inventory read access.", "error");
+        showSnackbar("Could not load medicines. You may not have permission to view stock.", "error");
       });
 
     getPublicSettings()

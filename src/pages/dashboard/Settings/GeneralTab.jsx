@@ -7,7 +7,7 @@ const FIELDS = [
   { key: "contactNumber", label: "Contact Number" },
   { key: "email", label: "Email" },
   { key: "website", label: "Website" },
-  { key: "logoUrl", label: "Logo URL" },
+  { key: "logoUrl", label: "Logo link" },
 ];
 
 export default function GeneralTab({ showSnackbar }) {

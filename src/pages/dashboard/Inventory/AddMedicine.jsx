@@ -121,7 +121,10 @@ const AddMedicine = () => {
       navigate("/dashboard/inventory");
     } catch (error) {
       console.error(error);
-      alert(isEdit ? "Failed to update medicine" : "Failed to add medicine");
+      alert(
+        error.response?.data?.message ||
+          (isEdit ? "Failed to update medicine" : "Failed to add medicine")
+      );
     } finally {
       setIsSubmitting(false);
     }

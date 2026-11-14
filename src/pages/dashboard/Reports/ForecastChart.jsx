@@ -80,7 +80,6 @@ export default function ForecastChart() {
               <div className="flex flex-wrap gap-2 items-center">
                 <Chip size="small" label="Estimate, not actual revenue" sx={{ bgcolor: "#fdf0dc", color: "#92400e" }} />
                 <span>Forecast period: <b>{formatMonth(f.forecast[0].month)}{f.forecast.length > 1 ? ` – ${formatMonth(f.forecast[f.forecast.length - 1].month)}` : ""}</b></span>
-                <span>Model: <b>{f.model.replace(/_/g, " ")}</b></span>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-1">
                 {f.forecast.map((p) => (
@@ -88,18 +87,15 @@ export default function ForecastChart() {
                 ))}
               </div>
               <p className="text-xs text-gray-500">
-                Validation: {f.validation.method}, {f.validation.folds} folds. Average error {formatLkr(f.validation.mae)} per month
-                {f.validation.wape !== null && ` (${(f.validation.wape * 100).toFixed(1)}% of revenue)`};
-                baseline (repeat last month) error {formatLkr(f.validation.baselineMae)}
-                {f.validation.beatsBaseline ? " — the model beats the baseline." : " — the model does not beat the baseline."}
-                {" "}Range is approximate (~80%).
+                Typically off by about {formatLkr(f.validation.mae)} a month
+                {f.validation.wape !== null && ` (${(f.validation.wape * 100).toFixed(1)}%)`}.
               </p>
               {f.dataQuality.warnings.map((w) => <p key={w} className="text-xs text-amber-700">{w}</p>)}
             </div>
           )}
           {partial && (
             <p className="text-xs text-gray-500">
-              {formatMonth(partial.month)} is still in progress ({formatLkr(partial.value)} so far) and is not used for training.
+              {formatMonth(partial.month)} is still in progress ({formatLkr(partial.value)} so far), so it isn't used for the forecast.
             </p>
           )}
         </div>
