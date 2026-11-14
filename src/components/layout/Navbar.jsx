@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { getPublicSettings } from "../../api/SettingsApi";
 import { getMyAccount } from "../../api/AdminApi";
 import { clearSession } from "../../utils/session";
+import { getViewer } from "../../utils/permissions";
+import AdminNotificationBell from "../notifications/AdminNotificationBell";
 
 const Navbar = ({ setSidebarOpen }) => {
     const navigate = useNavigate();
@@ -37,6 +39,8 @@ const Navbar = ({ setSidebarOpen }) => {
     // Falls back to the role cached at login if the account request failed.
     const displayName = account?.name || "Signed in";
     const displayRole = account?.role || localStorage.getItem("userRole") || "";
+    const isAdmin =
+        String(displayRole).trim().toLowerCase() === "admin" || getViewer().isAdmin;
 
     const handleLogout = () => {
         setAnchorEl(null);
@@ -73,6 +77,8 @@ const Navbar = ({ setSidebarOpen }) => {
 
                 {/* Right Side */}
                 <div className="flex items-center gap-4 md:gap-6">
+
+                    {isAdmin && <AdminNotificationBell />}
 
                     {/* Signed-in user */}
                     <div className="flex items-center gap-2">

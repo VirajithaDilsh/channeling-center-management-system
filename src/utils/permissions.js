@@ -39,12 +39,14 @@ export const getViewer = () => {
   // rather than falling back to the whole clinic: an unlinked doctor account
   // seeing every doctor's patients is the leak worth erring against.
   const actsAsDoctor = Boolean(doctorId || doctorName) || role === "doctor";
+  const isAdmin = String(role).trim().toLowerCase() === "admin";
 
   return {
     permissions,
     role,
     doctorId,
     doctorName,
+    isAdmin,
     isDoctor: actsAsDoctor,
     hasDoctorProfile: Boolean(doctorId || doctorName),
     can: (required) => hasAny(permissions, required),

@@ -12,10 +12,17 @@ import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMedicines } from "../../context/MedicineContext.jsx";
 import TableActionButtons from "../TableActionButton.jsx";
-import { isLowStock } from "../../utils/inventory";
+import {
+  isLowStock,
+  formatColomboYmd,
+  getExpiryStatus,
+  EXPIRY_STATUS_LABELS,
+  EXPIRY_STATUS_CLASSES,
+} from "../../utils/inventory";
 import { getViewer } from "../../utils/permissions";
+import { formatLkr } from "../../utils/formatMoney";
 
-const InventoryTable = ({ medicines: medicinesProp }) => {
+const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
   const { medicines: allMedicines, deleteMedicine } = useMedicines();
   const medicines = medicinesProp ?? allMedicines;
   const navigate = useNavigate();
@@ -70,6 +77,10 @@ const InventoryTable = ({ medicines: medicinesProp }) => {
               parseFloat(med.unitPrice || 0);
 
             const lowStock = isLowStock(med);
+            const expiryStatus = getExpiryStatus(med, thresholdDays);
+            const expiryLabel = EXPIRY_STATUS_LABELS[expiryStatus] || "Normal";
+            const expiryClass = EXPIRY_STATUS_CLASSES[expiryStatus] || EXPIRY_STATUS_CLASSES.NORMAL;
+            const formattedExpiry = formatColomboYmd(med.expiryDate) || "—";
 
             return (
               <TableRow key={med._id} hover>
@@ -77,15 +88,24 @@ const InventoryTable = ({ medicines: medicinesProp }) => {
                 <TableCell>{med.manufacturer}</TableCell>
                 <TableCell>{med.category || "—"}</TableCell>
                 <TableCell>{med.batchNumber}</TableCell>
-                <TableCell>{med.expiryDate}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col items-start gap-1">
+                    <span>{formattedExpiry}</span>
+                    {med.expiryDate && (
+                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-lg ${expiryClass}`}>
+                        {expiryLabel}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell align="right">
                   {med.stockQuantity} {med.unitType}
                 </TableCell>
                 <TableCell align="right">
-                  ${parseFloat(med.unitPrice || 0).toFixed(2)}
+                  {formatLkr(med.unitPrice)}
                 </TableCell>
                 <TableCell align="right" className="font-semibold">
-                  ${totalValue.toFixed(2)}
+                  {formatLkr(totalValue)}
                 </TableCell>
                 <TableCell align="center">
                   {lowStock ? (

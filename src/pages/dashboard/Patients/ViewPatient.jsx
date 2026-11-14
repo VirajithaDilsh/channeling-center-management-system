@@ -30,37 +30,37 @@ const ViewPatient = () => {
   const [consultations, setConsultations] = useState([]);
 
   useEffect(() => {
+    const fetchPatient = async () => {
+      try {
+        const data = await getPatientById(id);
+        setPatient(data);
+      } catch (err) {
+        console.error(err);
+        alert("Patient not found");
+      }
+    };
+
+    const fetchConsultations = async () => {
+      try {
+        setConsultations((await getConsultationsByPatient(id)) || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const fetchChannelingHistory = async () => {
+      try {
+        const history = await getChannelingHistory(id);
+        setChannelingHistory(history);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     fetchPatient();
     fetchChannelingHistory();
     fetchConsultations();
-  }, []);
-
-  const fetchPatient = async () => {
-    try {
-      const data = await getPatientById(id);
-      setPatient(data);
-    } catch (err) {
-      console.error(err);
-      alert("Patient not found");
-    }
-  };
-
-  const fetchConsultations = async () => {
-    try {
-      setConsultations((await getConsultationsByPatient(id)) || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchChannelingHistory = async () => {
-    try {
-      const history = await getChannelingHistory(id);
-      setChannelingHistory(history);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  }, [id]);
 
   if (!patient) return <p>Loading patient details...</p>;
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Tabs, Tab, Snackbar, Alert } from "@mui/material";
 
 import ProfileTab from "./ProfileTab";
@@ -9,6 +9,8 @@ import AppointmentsTab from "./AppointmentsTab";
 import PaymentsTab from "./PaymentsTab";
 import UsersRolesTab from "./UsersRolesTab";
 import PrescriptionTemplatesTab from "./PrescriptionTemplatesTab";
+import NotificationsTab from "./NotificationsTab";
+import { getViewer } from "../../../utils/permissions";
 
 export default function Settings() {
   const userRole = localStorage.getItem("userRole") || "";
@@ -17,13 +19,17 @@ export default function Settings() {
   // Not permission-based: admin holds every permission key (including
   // doctor_portal) by design, but isn't an actual doctor with a Doctor profile.
   const isDoctor = userRole === "doctor";
+  const isAdmin = getViewer().isAdmin;
   // Doctors only get Profile, Availability and Account & Security, even if
   // their role was granted the settings permission.
   const canManageSystemSettings =
     !isDoctor && (permissions.includes("settings_read") || permissions.includes("settings_allow_all"));
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-  const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
+  const showSnackbar = useCallback(
+    (message, severity = "success") => setSnackbar({ open: true, message, severity }),
+    []
+  );
 
   // Every role gets Profile + Account & Security. Availability is doctor-only.
   // The system-level tabs only render for whoever holds the "settings" permission.
@@ -33,6 +39,9 @@ export default function Settings() {
       list.push({ key: "general", label: "General", component: GeneralTab });
       list.push({ key: "appointments", label: "Appointments", component: AppointmentsTab });
       list.push({ key: "payments", label: "Payments", component: PaymentsTab });
+      if (isAdmin) {
+        list.push({ key: "notifications", label: "Notifications", component: NotificationsTab });
+      }
       list.push({ key: "usersRoles", label: "Users & Roles", component: UsersRolesTab });
     }
     list.push({ key: "profile", label: "Profile", component: ProfileTab });
@@ -42,7 +51,7 @@ export default function Settings() {
     }
     list.push({ key: "security", label: "Account & Security", component: SecurityTab });
     return list;
-  }, [canManageSystemSettings, isDoctor]);
+  }, [canManageSystemSettings, isDoctor, isAdmin]);
 
   const [activeTab, setActiveTab] = useState(0);
   const ActiveComponent = tabs[activeTab]?.component;

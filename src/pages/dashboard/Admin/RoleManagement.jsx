@@ -21,7 +21,6 @@ import {
   Checkbox,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 
 import BackButton from "../../../components/BackButton";
 import TableActionButtons from "../../../components/TableActionButton";
@@ -37,7 +36,6 @@ import { getViewer } from "../../../utils/permissions";
 const PROTECTED_ROLE_NAMES = ["doctor", "admin"];
 
 export default function RoleManagement() {
-  const navigate = useNavigate();
   const viewer = getViewer();
   const canWrite = viewer.can(["admin_write", "admin_allow_all"]);
   const canEdit = viewer.can(["admin_edit", "admin_allow_all"]);
