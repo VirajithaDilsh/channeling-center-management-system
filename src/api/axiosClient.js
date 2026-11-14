@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
+const API_BASE_URL = import.meta.env.PROD
   ? "https://channeling-center-management-system.onrender.com"  // Render backend
   : "http://localhost:5000";  // Local backend
   

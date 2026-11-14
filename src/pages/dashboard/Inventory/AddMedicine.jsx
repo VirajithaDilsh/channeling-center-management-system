@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useMedicines } from "../../../context/MedicineContext.jsx";
 import BackButton from "../../../components/BackButton";
+import { formatColomboYmd } from "../../../utils/inventory";
 
 const AddMedicine = () => {
   const { id } = useParams();
@@ -36,7 +37,7 @@ const AddMedicine = () => {
     reorderLevel: "",
     batchNumber: "",
     expiryDate: "",
-    storageCondition: "",
+    storageCondition: "Room Temperature (15-25°C)",
     prescriptionRequired: false,
   });
   const categories = [
@@ -84,12 +85,21 @@ const AddMedicine = () => {
       const med = medicines.find((m) => m._id === id);
 
       if (med) {
-        setForm(med);
+        setForm({
+          ...med,
+          expiryDate: med.expiryDate ? formatColomboYmd(med.expiryDate) : "",
+        });
       }
     }
-  }, [id, medicines]);
+  }, [id, isEdit, medicines]);
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.expiryDate || Number.isNaN(new Date(form.expiryDate).getTime())) {
+      alert("Please enter a valid expiry date.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

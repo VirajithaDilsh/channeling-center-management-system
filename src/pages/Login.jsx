@@ -13,7 +13,6 @@ import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getPublicSettings } from "../api/SettingsApi";
 import axiosClient from '../api/axiosClient';

@@ -43,3 +43,75 @@ export const isExpiringSoon = (medicine, withinDays = 30) => {
 
 export const STOCK_STATE_LABELS = { out: "Out of stock", low: "Low", ok: "In stock" };
 export const STOCK_STATE_COLORS = { out: "error", low: "warning", ok: "success" };
+
+const COLOMBO_TZ = "Asia/Colombo";
+const MS_PER_DAY = 86400000;
+
+const colomboFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: COLOMBO_TZ,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+export const getColomboDateParts = (dateInput = new Date()) => {
+  if (!dateInput) return null;
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = colomboFormatter.formatToParts(date);
+  let year;
+  let month;
+  let day;
+  for (const part of parts) {
+    if (part.type === "year") year = Number(part.value);
+    else if (part.type === "month") month = Number(part.value);
+    else if (part.type === "day") day = Number(part.value);
+  }
+  if (!year || !month || !day) return null;
+  return { year, month, day };
+};
+
+export const formatColomboYmd = (dateInput) => {
+  const parts = getColomboDateParts(dateInput);
+  if (!parts) return "";
+  return `${parts.year}-${String(parts.month).padStart(2, "0")}-${String(parts.day).padStart(2, "0")}`;
+};
+
+export const getDaysRemainingInColombo = (expiryDate, now = new Date()) => {
+  const expiryParts = getColomboDateParts(expiryDate);
+  const todayParts = getColomboDateParts(now);
+  if (!expiryParts || !todayParts) return null;
+
+  const expiryDay = Math.floor(Date.UTC(expiryParts.year, expiryParts.month - 1, expiryParts.day) / MS_PER_DAY);
+  const todayDay = Math.floor(Date.UTC(todayParts.year, todayParts.month - 1, todayParts.day) / MS_PER_DAY);
+  return expiryDay - todayDay;
+};
+
+export const getExpiryStatus = (medicine, thresholdDays = 30) => {
+  const daysRemaining = getDaysRemainingInColombo(medicine?.expiryDate);
+  if (daysRemaining === null) return "NORMAL";
+
+  const safeThreshold = Number.isFinite(Number(thresholdDays)) && Number(thresholdDays) >= 1
+    ? Number(thresholdDays)
+    : 30;
+
+  if (daysRemaining < 0) return "EXPIRED";
+  if (daysRemaining <= 7) return "URGENT";
+  if (daysRemaining <= safeThreshold) return "EXPIRING_SOON";
+  return "NORMAL";
+};
+
+export const EXPIRY_STATUS_LABELS = {
+  EXPIRED: "Expired",
+  URGENT: "Urgent",
+  EXPIRING_SOON: "Expiring Soon",
+  NORMAL: "Normal",
+};
+
+export const EXPIRY_STATUS_CLASSES = {
+  EXPIRED: "text-red-700 bg-red-100",
+  URGENT: "text-orange-700 bg-orange-100",
+  EXPIRING_SOON: "text-amber-700 bg-amber-100",
+  NORMAL: "text-emerald-700 bg-emerald-100",
+};

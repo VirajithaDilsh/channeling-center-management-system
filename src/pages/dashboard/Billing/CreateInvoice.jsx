@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { User, Stethoscope, Receipt, DollarSign } from 'lucide-react';
 import BackButton from '../../../components/BackButton';
 import { getVisitSession, addPayment } from '../../../api/VisitSessionApi';
@@ -16,7 +16,6 @@ const paymentMethodLabel = { cash: 'Cash', card: 'Card', insurance: 'Insurance' 
 
 export default function CreateInvoice() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   const [session, setSession] = useState(null);
   const [error, setError] = useState('');

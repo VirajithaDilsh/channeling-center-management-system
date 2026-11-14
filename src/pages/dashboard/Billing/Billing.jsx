@@ -39,7 +39,6 @@ export default function Billing() {
   const [sessions, setSessions] = useState([]);
   const [statusFilter, setStatusFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const [viewData, setViewData] = useState(null);
   const [cancelRow, setCancelRow] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [currencySymbol, setCurrencySymbol] = useState("Rs.");
