@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
   Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
-  TextField, CircularProgress,
+  TextField, CircularProgress, MenuItem,
 } from "@mui/material";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getMySchedules, addMySchedule, updateMySchedule, deleteMySchedule } from "../../../api/DoctorApi";
+import { DAY_NAMES, DAY_ORDER, sortWindows } from "../../../utils/availability";
 
-const emptyForm = { date: "", startTime: "", endTime: "", maxPatients: "" };
+const emptyForm = { dayOfWeek: "", startTime: "", endTime: "", maxPatients: "" };
 
 export default function AvailabilityTab({ showSnackbar }) {
   const [schedules, setSchedules] = useState([]);
@@ -23,7 +24,7 @@ export default function AvailabilityTab({ showSnackbar }) {
   const fetchSchedules = async () => {
     try {
       const data = await getMySchedules();
-      setSchedules(data);
+      setSchedules(sortWindows(data));
     } catch (err) {
       console.error(err);
       showSnackbar("Failed to load your availability", "error");
@@ -45,23 +46,34 @@ export default function AvailabilityTab({ showSnackbar }) {
   const openEditForm = (schedule) => {
     setEditingId(schedule._id);
     setForm({
-      date: schedule.date,
+      dayOfWeek: schedule.dayOfWeek,
       startTime: schedule.startTime,
       endTime: schedule.endTime,
-      maxPatients: schedule.maxPatients,
+      maxPatients: schedule.maxPatients ?? "",
     });
     setFormOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.date || !form.startTime || !form.endTime || !form.maxPatients) {
-      showSnackbar("Please fill in date, start time, end time, and max patients", "warning");
+    if (form.dayOfWeek === "" || !form.startTime || !form.endTime) {
+      showSnackbar("Please choose a day, start time and end time", "warning");
+      return;
+    }
+    if (form.endTime <= form.startTime) {
+      showSnackbar("End time must be after start time", "warning");
       return;
     }
 
     setSaving(true);
     try {
-      const payload = { ...form, maxPatients: Number(form.maxPatients) };
+      // Blank max patients = unlimited (sent as null).
+      // Blank max patients = unlimited (sent as null).
+      const payload = {
+        dayOfWeek: Number(form.dayOfWeek),
+        startTime: form.startTime,
+        endTime: form.endTime,
+        maxPatients: form.maxPatients === "" ? null : Number(form.maxPatients),
+      };
       if (editingId) {
         await updateMySchedule(editingId, payload);
         showSnackbar("Availability slot updated");
@@ -99,7 +111,7 @@ export default function AvailabilityTab({ showSnackbar }) {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-lg font-semibold">Availability</h2>
-          <p className="text-gray-500 text-sm">Add the dates and time slots you're available for consultations.</p>
+          <p className="text-gray-500 text-sm">Set the days and times you're available. Patients can only book you on these slots.</p>
         </div>
         <Button variant="contained" onClick={openCreateForm}>+ Add Slot</Button>
       </div>
@@ -108,7 +120,7 @@ export default function AvailabilityTab({ showSnackbar }) {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Date</TableCell>
+              <TableCell>Day</TableCell>
               <TableCell>Start Time</TableCell>
               <TableCell>End Time</TableCell>
               <TableCell>Max Patients</TableCell>
@@ -124,10 +136,10 @@ export default function AvailabilityTab({ showSnackbar }) {
             )}
             {schedules.map((s) => (
               <TableRow key={s._id} hover>
-                <TableCell>{s.date}</TableCell>
+                <TableCell>{DAY_NAMES[s.dayOfWeek]}</TableCell>
                 <TableCell>{s.startTime}</TableCell>
                 <TableCell>{s.endTime}</TableCell>
-                <TableCell>{s.maxPatients}</TableCell>
+                <TableCell>{s.maxPatients ?? "No limit"}</TableCell>
                 <TableCell>{s.status}</TableCell>
                 <TableCell>
                   <TableActionButtons onEdit={() => openEditForm(s)} onDelete={() => setDeleteId(s._id)} />
@@ -143,11 +155,15 @@ export default function AvailabilityTab({ showSnackbar }) {
         <DialogContent>
           <div className="grid grid-cols-2 gap-4 pt-2">
             <TextField
-              type="date" label="Date" fullWidth InputLabelProps={{ shrink: true }}
-              value={form.date} onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-            />
+              select label="Day" fullWidth
+              value={form.dayOfWeek} onChange={(e) => setForm((f) => ({ ...f, dayOfWeek: e.target.value }))}
+            >
+              {DAY_ORDER.map((d) => <MenuItem key={d} value={d}>{DAY_NAMES[d]}</MenuItem>)}
+            </TextField>
             <TextField
-              type="number" label="Max Patients" fullWidth
+              type="number" label="Max Patients (optional)" fullWidth
+              inputProps={{ min: 1 }}
+              helperText="Leave blank for no limit"
               value={form.maxPatients} onChange={(e) => setForm((f) => ({ ...f, maxPatients: e.target.value }))}
             />
             <TextField

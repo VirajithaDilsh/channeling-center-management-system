@@ -69,3 +69,10 @@ export const deleteMySchedule = async (id) => {
   const res = await axiosClient.delete(`${API_URL}/me/schedules/${id}`);
   return res.data;
 };
+
+// Bookable dates for a doctor (weekly slots expanded into upcoming dates,
+// with remaining capacity; remaining === null means unlimited)
+export const getDoctorAvailability = async (id) => {
+  const res = await axiosClient.get(`${API_URL}/${id}/availability`);
+  return res.data;
+};

@@ -8,20 +8,28 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  CircularProgress
+  CircularProgress,
+  MenuItem
 } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
-import { getDoctors } from "../../../api/DoctorApi";
+import { getDoctors, getDoctorAvailability } from "../../../api/DoctorApi";
+import { DAY_SHORT } from "../../../utils/availability";
 import { getPatients } from "../../../api/PatientApi";
 import { createAppointment } from "../../../api/AppointmentApi";
 
 const emptyState = {
   selectedDoctor: null,
   selectedPatient: null,
-  date: "",
-  time: "",
+  slotKey: "",
   reason: ""
 };
+
+// "Mon, 2026-11-16 · 10:00–12:00 · 4 left"
+const slotLabel = (s) => {
+  const capacity = s.full ? "Fully booked" : s.remaining === null ? "open" : `${s.remaining} left`;
+  return `${DAY_SHORT[s.dayOfWeek]}, ${s.date} \u00b7 ${s.startTime}\u2013${s.endTime} \u00b7 ${capacity}`;
+};
+const keyOf = (s) => `${s.date}|${s.scheduleId}`;
 
 const AddAppointment = ({ open, onClose, onCreated, onError }) => {
   const [doctors, setDoctors] = useState([]);
@@ -29,8 +37,10 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
 
   const [selectedDoctor, setSelectedDoctor] = useState(emptyState.selectedDoctor);
   const [selectedPatient, setSelectedPatient] = useState(emptyState.selectedPatient);
-  const [date, setDate] = useState(emptyState.date);
-  const [time, setTime] = useState(emptyState.time);
+  const [slotKey, setSlotKey] = useState(emptyState.slotKey);
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsError, setSlotsError] = useState("");
   const [reason, setReason] = useState(emptyState.reason);
 
   const [loading, setLoading] = useState(false);
@@ -53,11 +63,35 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
       });
   }, [open]);
 
+  // Whenever the doctor changes, load the dates they're actually available.
+  useEffect(() => {
+    setSlotKey("");
+    setSlots([]);
+    setSlotsError("");
+    if (!selectedDoctor) return;
+
+    let cancelled = false;
+    setSlotsLoading(true);
+    getDoctorAvailability(selectedDoctor._id)
+      .then((data) => {
+        if (cancelled) return;
+        if (data.onLeave) setSlotsError("This doctor is currently on leave.");
+        else if (!data.dates.length) setSlotsError("This doctor has no available dates to book.");
+        setSlots(data.onLeave ? [] : data.dates);
+      })
+      .catch((err) => {
+        if (!cancelled) setSlotsError(err.response?.data?.message || "Could not load the doctor's availability.");
+      })
+      .finally(() => !cancelled && setSlotsLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDoctor]);
+
   const resetForm = () => {
     setSelectedDoctor(emptyState.selectedDoctor);
     setSelectedPatient(emptyState.selectedPatient);
-    setDate(emptyState.date);
-    setTime(emptyState.time);
+    setSlotKey(emptyState.slotKey);
     setReason(emptyState.reason);
   };
 
@@ -71,8 +105,13 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedDoctor || !selectedPatient || !date) {
-      onError("Please select a doctor, a patient, and a date.");
+    const slot = slots.find((s) => keyOf(s) === slotKey);
+    if (!selectedDoctor || !selectedPatient || !slot) {
+      onError("Please select a doctor, a patient, and an available date.");
+      return;
+    }
+    if (slot.full) {
+      onError("That slot is fully booked. Please choose another date.");
       return;
     }
 
@@ -83,8 +122,8 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
         doctorName: selectedDoctor.name,
         patientId: selectedPatient.patientId,
         patientName: selectedPatient.name,
-        date,
-        time,
+        date: slot.date,
+        time: slot.startTime,
         reason
       });
 
@@ -128,9 +167,29 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
             renderInput={(params) => <TextField {...params} label="Select Patient" />}
           />
 
-          <TextField type="date" label="Date" fullWidth InputLabelProps={{ shrink: true }} value={date} onChange={(e) => setDate(e.target.value)} />
-
-          <TextField type="time" label="Time" fullWidth InputLabelProps={{ shrink: true }} value={time} onChange={(e) => setTime(e.target.value)} />
+          <TextField
+            select
+            label="Available Date & Time"
+            className="col-span-2"
+            fullWidth
+            disabled={!selectedDoctor || slotsLoading || slots.length === 0}
+            value={slotKey}
+            onChange={(e) => setSlotKey(e.target.value)}
+            error={Boolean(slotsError)}
+            helperText={
+              !selectedDoctor
+                ? "Select a doctor to see their available dates"
+                : slotsLoading
+                ? "Loading availability..."
+                : slotsError || "Only dates the doctor is available are shown"
+            }
+          >
+            {slots.map((s) => (
+              <MenuItem key={keyOf(s)} value={keyOf(s)} disabled={s.full}>
+                {slotLabel(s)}
+              </MenuItem>
+            ))}
+          </TextField>
 
           <TextField label="Reason" name="reason" multiline rows={2} className="col-span-2" fullWidth value={reason} onChange={(e) => setReason(e.target.value)} />
         </div>
@@ -138,7 +197,7 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
 
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={loading}>
+        <Button variant="contained" onClick={handleSubmit} disabled={loading || !slotKey}>
           {loading ? <CircularProgress size={20} /> : "Create Appointment"}
         </Button>
       </DialogActions>

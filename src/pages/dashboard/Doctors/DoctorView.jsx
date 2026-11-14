@@ -17,6 +17,7 @@ import {
 import { getDoctorById, updateDoctor } from "../../../api/DoctorApi";
 import BackButton from "../../../components/BackButton";
 import { getViewer } from "../../../utils/permissions";
+import { DAY_NAMES, DAY_ORDER, maxLabel } from "../../../utils/availability";
 
 const DoctorView = () => {
   const { id } = useParams();
@@ -231,6 +232,37 @@ const canManageAvailability = canEdit || canWrite;
           value={doctor.specialization}
         />
 
+      </div>
+
+      {/* Weekly availability (read-only, visible to everyone who can view the doctor) */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-green-50 rounded-lg">
+            <CalendarDays className="text-green-600" size={22} />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-800">Weekly Availability</h3>
+            <p className="text-sm text-gray-500">Days and times patients can book this doctor</p>
+          </div>
+        </div>
+        {doctor.weeklySchedule?.length ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {DAY_ORDER.filter((d) => doctor.weeklySchedule.some((w) => w.dayOfWeek === d)).map((d) => (
+              <div key={d} className="border border-gray-100 rounded-lg px-4 py-3">
+                <div className="font-medium text-gray-800 mb-1">{DAY_NAMES[d]}</div>
+                {doctor.weeklySchedule
+                  .filter((w) => w.dayOfWeek === d)
+                  .map((w) => (
+                    <div key={w._id} className="text-sm text-gray-600">
+                      {w.startTime}&ndash;{w.endTime} &middot; {maxLabel(w)}
+                    </div>
+                  ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No weekly availability set yet.</p>
+        )}
       </div>
 
       {/* Availability Management */}
