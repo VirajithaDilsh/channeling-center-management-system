@@ -72,8 +72,7 @@ export default function DoctorHome() {
       <div className="p-6 bg-gray-50 min-h-screen">
         <Paper elevation={0} className="p-6 rounded-2xl shadow-sm">
           <p className="text-gray-600">
-            No doctor profile is linked to this account yet. Ask an admin to make sure
-            your login email matches the email on your Doctor record.
+            Your account isn't set up as a doctor yet. Please ask the clinic administrator.
           </p>
         </Paper>
       </div>

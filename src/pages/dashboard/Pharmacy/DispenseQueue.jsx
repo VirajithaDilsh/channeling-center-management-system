@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import PillIcon from "@mui/icons-material/Medication";
 import { getPharmacyQueue, dispenseItem, rejectItem } from "../../../api/PrescriptionApi";
+import { DISPENSE_STATUS_LABELS, labelFor } from "../../../utils/statusLabels";
 
 const statusColors = {
   QUEUED: "warning",
@@ -130,7 +131,7 @@ export default function DispenseQueue({ embedded = false }) {
                   )}
                 </TableCell>
                 <TableCell align="center">
-                  <Chip size="small" label={item.status} color={statusColors[item.status] || "default"} />
+                  <Chip size="small" label={labelFor(DISPENSE_STATUS_LABELS, item.status)} color={statusColors[item.status] || "default"} />
                 </TableCell>
                 <TableCell align="center">
                   <div className="flex gap-2 justify-center">
@@ -154,7 +155,7 @@ export default function DispenseQueue({ embedded = false }) {
         <DialogContent>
           <p className="text-sm text-gray-500 mb-3">
             Prescribed: {dispenseTarget?.item?.qtyPrescribed}, already dispensed: {dispenseTarget?.item?.qtyDispensed}.
-            Enter less than the remaining quantity if stock is short — the rest stays queued as a partial dispense.
+            Enter less than the remaining quantity if stock is short — the rest will stay waiting in the queue.
           </p>
           <TextField
             label="Quantity to dispense"

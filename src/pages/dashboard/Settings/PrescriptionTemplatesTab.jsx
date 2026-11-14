@@ -115,7 +115,7 @@ export default function PrescriptionTemplatesTab({ showSnackbar }) {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
           <h2 className="text-lg font-semibold">Prescription Templates</h2>
-          <p className="text-sm text-gray-500">Reusable prescriptions, visible only to you. Applying one copies it into a consultation — nothing is linked back.</p>
+          <p className="text-sm text-gray-500">Reusable prescriptions that only you can see. Changing a template later does not change past prescriptions.</p>
         </div>
         <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>New Template</Button>
       </div>

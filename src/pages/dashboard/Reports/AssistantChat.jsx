@@ -78,7 +78,6 @@ export default function AssistantChat() {
                   <span className={`inline-block text-xs rounded px-1.5 py-0.5 mb-1 ${KIND[m.kind].cls}`}>{KIND[m.kind].label}</span>
                 )}
                 <p className="whitespace-pre-wrap">{m.text}</p>
-                {m.usedLlm && <p className="text-[11px] text-gray-500 mt-1">Reworded by AI from the figures above; amounts are verified against the data.</p>}
               </div>
             </div>
           ))}

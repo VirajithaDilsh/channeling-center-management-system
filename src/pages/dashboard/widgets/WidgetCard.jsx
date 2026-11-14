@@ -64,7 +64,7 @@ export default function WidgetCard({
           <div className="py-4">
             <p className="text-sm text-gray-600">
               Couldn&apos;t load {error?.label || "this data"}
-              {error?.status ? ` (${error.status})` : ""}.
+              .
             </p>
             {onRetry && (
               <Button size="small" onClick={onRetry} sx={{ textTransform: "none", px: 0 }}>

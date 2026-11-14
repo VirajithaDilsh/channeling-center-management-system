@@ -181,7 +181,7 @@ const AddDoctor = () => {
             <input
               type="email"
               name="email"
-              placeholder="jane.doe@clinicconnect.com"
+              placeholder="doctor@example.com"
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />

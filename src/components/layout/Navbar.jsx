@@ -20,7 +20,7 @@ import AdminExpiryPopup from "../notifications/AdminExpiryPopup";
 
 const Navbar = ({ setSidebarOpen }) => {
     const navigate = useNavigate();
-    const [centerName, setCenterName] = useState("Lahiru ");
+    const [centerName, setCenterName] = useState("");
     const [account, setAccount] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
 

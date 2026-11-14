@@ -4,6 +4,7 @@ import { User, Stethoscope, Receipt, DollarSign } from 'lucide-react';
 import BackButton from '../../../components/BackButton';
 import { getVisitSession, addPayment } from '../../../api/VisitSessionApi';
 import { getPublicSettings } from '../../../api/SettingsApi';
+import { VISIT_STATUS_LABELS, labelFor } from "../../../utils/statusLabels";
 
 const lineItemLabel = {
   DOCTOR_FEE: 'Consultation Fee',
@@ -94,7 +95,7 @@ export default function CreateInvoice() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Visit Invoice</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Status: <span className="font-medium">{session.status.replaceAll('_', ' ')}</span>
+            Status: <span className="font-medium">{labelFor(VISIT_STATUS_LABELS, session.status)}</span>
           </p>
         </div>
       </div>
@@ -203,7 +204,7 @@ export default function CreateInvoice() {
               </div>
             ) : (
               <p className="text-sm text-slate-400 text-center">
-                {session.status === 'CLOSED' ? 'Fully paid.' : `No payment can be collected while status is ${session.status.replaceAll('_', ' ')}.`}
+                {session.status === 'CLOSED' ? 'Fully paid.' : `Payment can't be taken yet — this visit is ${labelFor(VISIT_STATUS_LABELS, session.status).toLowerCase()}.`}
               </p>
             )}
 
