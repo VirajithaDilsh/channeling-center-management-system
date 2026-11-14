@@ -12,6 +12,7 @@ import { getMedicines } from "../../../api/MedicineApi";
 import { listVisitSessions } from "../../../api/VisitSessionApi";
 import { dispenseExternalPrescription } from "../../../api/ExternalPrescriptionApi";
 import { getPublicSettings } from "../../../api/SettingsApi";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const emptyLine = { medicineId: "", qty: 1 };
 
@@ -113,6 +114,8 @@ export default function ExternalPrescription() {
   const validate = () => {
     if (isGuest) {
       if (!guestName.trim()) return "Enter the guest's name.";
+      const phoneProblem = phoneError(guestPhone);
+      if (phoneProblem) return phoneProblem;
     } else if (!selectedPatient) {
       return "Select a patient.";
     }
@@ -208,7 +211,8 @@ export default function ExternalPrescription() {
               <TextField
                 label="Guest Phone (optional)"
                 value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
+                onChange={(e) => setGuestPhone(digitsOnly(e.target.value))}
+                slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 10 } }}
               />
             </>
           ) : (

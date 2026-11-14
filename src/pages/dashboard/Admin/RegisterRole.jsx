@@ -18,6 +18,7 @@ import { createAdmin } from "../../../api/AdminApi";
 import { getRoles } from "../../../api/RoleApi";
 import { SPECIALIZATIONS } from "../../../constants/specializations";
 import { QUALIFICATIONS } from "../../../constants/qualifications";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const DOCTOR_FIELDS_DEFAULT = {
   specialization: "",
@@ -58,7 +59,7 @@ const RegisterRole = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const wasDoctorRole = isDoctorRole;
-    const nextFormData = { ...formData, [name]: value };
+    const nextFormData = { ...formData, [name]: name === "contact" ? digitsOnly(value) : value };
 
     // Clear doctor-specific fields when switching away from the Doctor role,
     // so stale data can't leak into a non-doctor submission.
@@ -81,6 +82,12 @@ const RegisterRole = () => {
             message: "Please fill in all required fields.",
             severity: "warning",
         });
+        return;
+    }
+
+    const phoneProblem = phoneError(formData.contact);
+    if (phoneProblem) {
+        setSnackbar({ open: true, message: phoneProblem, severity: "warning" });
         return;
     }
 
@@ -221,6 +228,8 @@ const RegisterRole = () => {
             fullWidth
             value={formData.contact}
             onChange={handleChange}
+            slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 10 } }}
+           
           />
 
           <TextField

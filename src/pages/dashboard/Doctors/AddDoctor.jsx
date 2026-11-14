@@ -6,6 +6,7 @@ import BackButton from "../../../components/BackButton";
 import { createDoctor } from "../../../api/DoctorApi";
 import { SPECIALIZATIONS } from "../../../constants/specializations";
 import { QUALIFICATIONS } from "../../../constants/qualifications";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 
 
@@ -27,13 +28,20 @@ const AddDoctor = () => {
 
 
   const handleChange = (e) => {
-    setDoctor({...doctor,[e.target.name]: e.target.value});
+    const { name, value } = e.target;
+    setDoctor({ ...doctor, [name]: name === "phone" ? digitsOnly(value) : value });
   };
 
   const handleSubmit = async () => {
 
     if (!doctor.name || !doctor.specialization || !doctor.fee || !doctor.email || !doctor.password) {
       alert("Please fill in Name, Specialization, Fee, Email and Password ❌");
+      return;
+    }
+
+    const phoneProblem = phoneError(doctor.phone);
+    if (phoneProblem) {
+      alert(phoneProblem);
       return;
     }
 
@@ -166,7 +174,10 @@ const AddDoctor = () => {
             <input
               type="text"
               name="phone"
-              placeholder="555-123-4567"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="0771234567"
+              value={doctor.phone || ""}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />

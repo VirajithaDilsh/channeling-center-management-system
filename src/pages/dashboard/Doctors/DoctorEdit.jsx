@@ -6,6 +6,7 @@ import BackButton from "../../../components/BackButton";
 import { getDoctorById, updateDoctor } from "../../../api/DoctorApi";
 import { SPECIALIZATIONS } from "../../../constants/specializations";
 import { QUALIFICATIONS } from "../../../constants/qualifications";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const DoctorEdit = () => {
 
@@ -40,7 +41,7 @@ const DoctorEdit = () => {
 
     setDoctor({
       ...doctor,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : name === "phone" ? digitsOnly(value) : value
     });
 
   };
@@ -49,6 +50,12 @@ const DoctorEdit = () => {
   const handleSubmit = async (e) => {
 
     e.preventDefault();
+
+    const phoneProblem = phoneError(doctor.phone);
+    if (phoneProblem) {
+      alert(phoneProblem);
+      return;
+    }
 
     try {
 
@@ -183,7 +190,9 @@ const DoctorEdit = () => {
             <input
               type="text"
               name="phone"
-              value={doctor.phone}
+              inputMode="numeric"
+              maxLength={10}
+              value={doctor.phone || ""}
               className="w-full border rounded-lg p-2 mt-1"
               onChange={handleChange}
             />
