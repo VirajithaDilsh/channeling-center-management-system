@@ -25,6 +25,7 @@ import { listVisitSessions, cancelVisitSession } from "../../../api/VisitSession
 import { getPublicSettings } from "../../../api/SettingsApi";
 import { totalOf, paidOf, balanceOf } from "../../../utils/visitSessions";
 import { VISIT_STATUS_LABELS, labelFor } from "../../../utils/statusLabels";
+import { getViewer } from "../../../utils/permissions";
 
 const statusColors = {
   OPEN: "default",
@@ -44,6 +45,8 @@ export default function Billing() {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [currencySymbol, setCurrencySymbol] = useState("Rs.");
   const navigate = useNavigate();
+  const viewer = getViewer();
+  const canCancel = viewer.can(["billing_edit", "billing_allow_all", "pharmacy_edit", "pharmacy_allow_all"]);
 
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
 
@@ -115,7 +118,7 @@ export default function Billing() {
             </IconButton>
           </Tooltip>
 
-          {["OPEN", "PENDING_PHARMACY", "READY_FOR_PAYMENT"].includes(params.row.status) && (
+          {canCancel && ["OPEN", "PENDING_PHARMACY", "READY_FOR_PAYMENT"].includes(params.row.status) && (
             <Tooltip title="Cancel Visit">
               <IconButton
                 size="small"
