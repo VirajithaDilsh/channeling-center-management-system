@@ -76,7 +76,9 @@ export default function Billing() {
       balance: balanceOf(s),
       status: s.status,
       raw: s,
-    }));
+    }))
+    // Show visits that are ready for payment first (stable sort keeps the rest in order)
+    .sort((a, b) => (b.status === "READY_FOR_PAYMENT") - (a.status === "READY_FOR_PAYMENT"));
 
   const revenue = sessions.filter((s) => s.status === "CLOSED").reduce((sum, s) => sum + paidOf(s), 0);
   const pending = sessions.filter((s) => s.status === "READY_FOR_PAYMENT").reduce((sum, s) => sum + balanceOf(s), 0);
