@@ -90,7 +90,7 @@ const EditAdmin = () => {
 
       setSnackbar({
         open: true,
-        message: "Admin updated successfully.",
+        message: "User updated successfully.",
         severity: "success",
       });
 
@@ -103,7 +103,7 @@ const EditAdmin = () => {
 
       setSnackbar({
         open: true,
-        message: "Failed to update admin.",
+        message: "Failed to update user.",
         severity: "error",
       });
 
@@ -131,11 +131,11 @@ const EditAdmin = () => {
   {/* Title */}
   <div>
     <Typography variant="h5">
-      Edit Admin
+      Edit User
     </Typography>
 
     <p className="text-gray-500 text-sm">
-      Update admin details
+      Update user details
     </p>
   </div>
 </div>
@@ -209,7 +209,7 @@ const EditAdmin = () => {
             {loading ? (
               <CircularProgress size={20} />
             ) : (
-              "Update Admin"
+              "Update User"
             )}
           </Button>
 
