@@ -15,24 +15,6 @@ const Footer = () => {
 
                     <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm font-medium">
                         <Link
-                            to="/privacy-policy"
-                            className="text-slate-500 hover:text-[#0284C7] transition-colors"
-                        >
-                            Privacy Policy
-                        </Link>
-
-                        <span className="hidden sm:block h-3.5 w-px bg-slate-200" />
-
-                        <Link
-                            to="/terms-and-conditions"
-                            className="text-slate-500 hover:text-[#0284C7] transition-colors"
-                        >
-                            Terms & Conditions
-                        </Link>
-
-                        <span className="hidden sm:block h-3.5 w-px bg-slate-200" />
-
-                        <Link
                             to="/contact-us"
                             className="text-[#0284C7] hover:text-[#026694] transition-colors"
                         >
