@@ -56,3 +56,9 @@ export const changeMyPassword = async ({ currentPassword, newPassword }) => {
   });
   return response.data;
 };
+
+// ADMIN ONLY: set another user's password
+export const resetAdminPassword = async (id, newPassword) => {
+  const response = await axiosClient.put(`${BASE_URL}/${id}/password`, { newPassword });
+  return response.data;
+};

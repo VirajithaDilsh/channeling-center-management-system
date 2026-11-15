@@ -27,6 +27,7 @@ import BackButton from "../../../components/BackButton";
 
 import { updatePatient, getPatientById } from "../../../api/PatientApi";
 import { getChannelingHistory, addChannelingRecord } from "../../../api/ChannelingApi";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const doctors = [
   "Dr. John Smith",
@@ -152,12 +153,18 @@ const EditPatient = () => {
 
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.name === "contact" ? digitsOnly(e.target.value) : e.target.value
     });
 
   };
 
   const handleUpdate = async () => {
+
+    const phoneProblem = phoneError(formData.contact);
+    if (phoneProblem) {
+      setSnackbar({ open: true, message: phoneProblem, severity: "warning" });
+      return;
+    }
 
     setLoading(true);
 
@@ -256,6 +263,8 @@ const EditPatient = () => {
                 fullWidth
                 value={formData.contact}
                 onChange={handleChange}
+                slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 10 } }}
+               
               />
 
               <TextField

@@ -3,8 +3,9 @@ import Tooltip from "@mui/material/Tooltip";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
 
-const TableActionButtons = ({ onView, onEdit, onDelete }) => {
+const TableActionButtons = ({ onView, onEdit, onDelete, onChangePassword }) => {
   return (
     <div className="flex gap-1 justify-center">
       {onView && (
@@ -19,6 +20,14 @@ const TableActionButtons = ({ onView, onEdit, onDelete }) => {
         <Tooltip title="Edit">
           <IconButton size="small" color="success" onClick={onEdit}>
             <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {onChangePassword && (
+        <Tooltip title="Set password">
+          <IconButton size="small" color="warning" onClick={onChangePassword}>
+            <VpnKeyIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       )}

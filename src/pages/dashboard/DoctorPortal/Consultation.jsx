@@ -11,10 +11,11 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import HistoryIcon from "@mui/icons-material/History";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import BookmarkAddIcon from "@mui/icons-material/BookmarkAdd";
-import BackButton from "../../../components/BackButton";
+import MicIcon from "@mui/icons-material/Mic";import BackButton from "../../../components/BackButton";
 import Icd10Select from "../../../components/Icd10Select";
 import AddButton from "../../../components/AddButton";
 import { getAppointmentById } from "../../../api/AppointmentApi";
@@ -25,6 +26,7 @@ import { getMedicines } from "../../../api/MedicineApi";
 import UseTemplateDialog from "../../../components/prescription/UseTemplateDialog";
 import { ISSUE_LABELS } from "../../../components/prescription/templateIssues";
 import SaveTemplateDialog from "../../../components/prescription/SaveTemplateDialog";
+import VoicePrescriptionDialog from "../../../components/prescription/VoicePrescriptionDialog";
 import {
   getConsultationByAppointment,
   getConsultationsByPatient,
@@ -56,6 +58,38 @@ const diagnosisSummary = ({ diagnoses = [], diagnosis = "" }) =>
     .filter(Boolean)
     .join("; ");
 
+// Saved prescription items are held in the browser until the consultation is
+// completed, and only then sent to the pharmacy. They're mirrored to
+// localStorage so a refresh doesn't lose them (storage may be unavailable,
+// so every access is guarded).
+const pendingKey = (appointmentId) => `pendingPrescription:${appointmentId}`;
+const loadPending = (appointmentId) => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(pendingKey(appointmentId)) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+const storePending = (appointmentId, items) => {
+  try {
+    if (items.length === 0) localStorage.removeItem(pendingKey(appointmentId));
+    else localStorage.setItem(pendingKey(appointmentId), JSON.stringify(items));
+  } catch {
+    // storage unavailable — items still live in component state
+  }
+};
+
+const toPrescriptionItem = (m) => ({
+  medicineId: m.medicineId,
+  name: m.name,
+  dosage: m.dosage || "",
+  frequency: m.frequency || "",
+  duration: m.duration || "",
+  instructions: m.instructions || "",
+  qtyPrescribed: Number(m.qtyPrescribed),
+});
+
 const HeaderField = ({ label, value }) => (
   <div>
     <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
@@ -82,19 +116,35 @@ export default function Consultation() {
   // between "Other" and a predefined value never loses what was typed. The
   // saved diagnosis is always the actual text, never the word "Other".
   const [medicines, setMedicines] = useState([{ ...emptyMedicine }]);
+  // Prescription items the doctor has saved but that have NOT reached the
+  // pharmacy yet — they're sent when the consultation is completed.
+  const [pendingItems, setPendingItems] = useState(() => loadPending(appointmentId));
 
   const [savingDraft, setSavingDraft] = useState(false);
   const [savingPrescription, setSavingPrescription] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [useTemplateOpen, setUseTemplateOpen] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [voiceOpen, setVoiceOpen] = useState(false);  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     loadConsultation();
   }, [appointmentId]);
 
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
+
+  const updatePending = (items) => {
+    setPendingItems(items);
+    storePending(appointmentId, items);
+  };
+
+  // Moves a held item back into the form so it can be edited.
+  const editPendingItem = (index) => {
+    const item = pendingItems[index];
+    const isBlank = (m) => !m.medicineId && !m.name && !m.dosage && !m.frequency && !m.duration && !m.instructions;
+    setMedicines((prev) => [...prev.filter((m) => !isBlank(m)), { ...item }]);
+    updatePending(pendingItems.filter((_, i) => i !== index));
+  };
 
   const loadConsultation = async () => {
     try {
@@ -166,8 +216,39 @@ export default function Consultation() {
 
   const handleMedicineSelect = (index, selected) => {
     setMedicines((prev) => prev.map((m, i) => (i === index
-      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "", templateIssue: null }
+      ? { ...m, medicineId: selected?._id || "", name: selected?.name || "", templateIssue: null, voiceIssue: null }
       : m)));
+  };
+
+  // Adds rows produced by the voice dialog. Like applyTemplate, only local
+  // state changes — the doctor reviews/edits and saves as usual. Rows whose
+  // medicine wasn't recognised keep an empty medicineId and a voiceIssue flag,
+  // which blocks saving until the doctor picks a medicine or removes the row.
+  const applyVoiceRows = (rows) => {
+    const isBlank = (m) => !m.medicineId && !m.name && !m.dosage && !m.frequency && !m.duration && !m.instructions;
+    const existing = medicines.filter((m) => !isBlank(m));
+    const present = new Set(existing.filter((m) => m.medicineId).map((m) => m.medicineId));
+    const incoming = [];
+    let skipped = 0;
+
+    rows.forEach((row) => {
+      if (row.medicineId && present.has(row.medicineId)) {
+        skipped += 1;
+        return;
+      }
+      if (row.medicineId) present.add(row.medicineId);
+      incoming.push({ ...row, templateIssue: null });
+    });
+
+    const next = [...existing, ...incoming];
+    setMedicines(next.length > 0 ? next : [{ ...emptyMedicine }]);
+    setVoiceOpen(false);
+
+    const flagged = incoming.filter((r) => r.voiceIssue).length;
+    const parts = [`${incoming.length} medicine${incoming.length === 1 ? "" : "s"} added by voice — review before saving.`];
+    if (skipped) parts.push(`${skipped} already in the prescription, skipped.`);
+    if (flagged) parts.push(`${flagged} need a medicine chosen.`);
+    showSnackbar(parts.join(" "), flagged ? "warning" : "success");
   };
 
   // Copies a template's items into the form. Only local state changes — the
@@ -246,6 +327,12 @@ export default function Consultation() {
       return;
     }
 
+    const unrecognised = medicines.filter((m) => !m.medicineId && m.voiceIssue);
+    if (unrecognised.length > 0) {
+      showSnackbar(`Choose the medicine or remove the row for: ${unrecognised.map((m) => m.spoken || m.name).join(", ")}.`, "error");
+      return;
+    }
+
     const validMedicines = medicines.filter((m) => m.medicineId);
     if (validMedicines.length === 0) {
       showSnackbar("Add at least one medicine.", "error");
@@ -260,31 +347,18 @@ export default function Consultation() {
 
     setSavingPrescription(true);
     try {
-      // Save the clinical record first so the diagnosis lives on the
-      // consultation, not on the pharmacy's work order.
+      // Save the clinical record so the diagnosis lives on the consultation.
       await saveConsultationDraft(appointmentId, draftPayload());
 
-      // No doctorId/doctorName is sent — the backend attributes the
-      // prescription to the authenticated doctor's own profile.
-      await createPrescription({
-        appointmentId,
-        patientId: appointment.patientId,
-        patientName: appointment.patientName,
-        diagnosis: diagnosisSummary(clinical),
-        notes: clinical.notes,
-        items: validMedicines.map((m) => ({
-          medicineId: m.medicineId,
-          dosage: m.dosage,
-          frequency: m.frequency,
-          duration: m.duration,
-          instructions: m.instructions,
-          qtyPrescribed: Number(m.qtyPrescribed),
-        })),
-      });
+      // Nothing is sent to the pharmacy here. The items are held until the
+      // consultation is completed. Saving the same medicine again replaces
+      // the earlier held entry.
+      const held = validMedicines.map(toPrescriptionItem);
+      const heldIds = new Set(held.map((m) => m.medicineId));
+      updatePending([...pendingItems.filter((p) => !heldIds.has(p.medicineId)), ...held]);
 
-      showSnackbar("Prescription saved and sent to the pharmacy.", "success");
+      showSnackbar("Prescription saved. It will be sent to the pharmacy when you complete the consultation.", "success");
       setMedicines([{ ...emptyMedicine }]);
-      setPrescriptions((await getPrescriptionsByPatient(appointment.patientId).catch(() => [])) || []);
     } catch (err) {
       console.error(err);
       showSnackbar(err.response?.data?.message || "Failed to save prescription. Please try again.", "error");
@@ -307,16 +381,69 @@ export default function Consultation() {
       return;
     }
 
+    const typed = prescriptionMode === PRESCRIPTION_MODES.TYPED;
+    if (typed) {
+      // Rows still sitting in the form haven't been saved, so they would be
+      // silently left out of the prescription.
+      const unsaved = medicines.filter((m) => m.medicineId || m.templateIssue === "DELETED");
+      if (unsaved.length > 0) {
+        showSnackbar("Click Save Prescription (or remove the unsaved medicine rows) before completing.", "error");
+        return;
+      }
+      const alreadySent = prescriptions.some((p) => String(p.appointmentId) === String(appointmentId));
+      if (pendingItems.length === 0 && !alreadySent) {
+        showSnackbar("Save the prescription before completing, or choose Handwritten Prescription / No Prescription.", "error");
+        return;
+      }
+    }
+
     setCompleting(true);
+    let sentToPharmacy = false;
     try {
+      // The prescription only reaches the pharmacy now, as part of completing.
+      if (typed && pendingItems.length > 0) {
+        // No doctorId/doctorName is sent — the backend attributes the
+        // prescription to the authenticated doctor's own profile.
+        await createPrescription({
+          appointmentId,
+          patientId: appointment.patientId,
+          patientName: appointment.patientName,
+          diagnosis: diagnosisSummary(clinical),
+          notes: clinical.notes,
+          items: pendingItems.map((m) => ({
+            medicineId: m.medicineId,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            duration: m.duration,
+            instructions: m.instructions,
+            qtyPrescribed: Number(m.qtyPrescribed),
+          })),
+        });
+        sentToPharmacy = true;
+        updatePending([]);
+      }
+
       // One call: the backend records the clinical notes, closes the
       // appointment, and works out the billing transition from the method.
       await completeConsultation(appointmentId, draftPayload());
-      showSnackbar("Consultation completed.", "success");
+      // Drop any leftover held items (e.g. the doctor switched to handwritten).
+      updatePending([]);
+      showSnackbar(
+        typed ? "Consultation completed. Prescription sent to the pharmacy." : "Consultation completed.",
+        "success",
+      );
       setTimeout(() => navigate("/dashboard/doctor-home"), 900);
     } catch (err) {
       console.error(err);
-      showSnackbar(err.response?.data?.message || "Failed to complete the consultation.", "error");
+      const reason = err.response?.data?.message || "Failed to complete the consultation.";
+      if (sentToPharmacy) {
+        // The prescription is already queued, so a retry of Complete will
+        // go straight through without sending it twice.
+        setPrescriptions((await getPrescriptionsByPatient(appointment.patientId).catch(() => [])) || []);
+        showSnackbar(`The prescription was sent to the pharmacy, but the consultation was not completed: ${reason} Fix the issue and click Complete again.`, "error");
+      } else {
+        showSnackbar(reason, "error");
+      }
     } finally {
       setCompleting(false);
     }
@@ -516,7 +643,15 @@ export default function Consultation() {
                           {m.templateIssue === "DELETED" ? " — choose a replacement or remove this row" : " — check before prescribing"}
                         </p>
                       )}
-                      <div className={`grid grid-cols-12 gap-2 items-center ${m.templateIssue ? "rounded-lg bg-amber-50 p-1" : ""}`}>
+                      {m.voiceIssue && !m.medicineId && (
+                        <p className="text-xs text-amber-700 mb-1">
+                          <WarningAmberIcon sx={{ fontSize: 14 }} className="mr-1" />
+                          Heard “{m.spoken}” —{" "}
+                          {m.voiceIssue === "AMBIGUOUS" ? "several medicines are similar" : "not found in inventory"}
+                          {" "}— choose the medicine or remove this row
+                        </p>
+                      )}
+                      <div className={`grid grid-cols-12 gap-2 items-center ${m.templateIssue || (m.voiceIssue && !m.medicineId) ? "rounded-lg bg-amber-50 p-1" : ""}`}>
                         <Autocomplete
                           className="col-span-3"
                           size="small"
@@ -525,7 +660,7 @@ export default function Consultation() {
                           value={selectedMedicine}
                           disabled={readOnly}
                           onChange={(event, value) => handleMedicineSelect(i, value)}
-                          renderInput={(params) => <TextField {...params} label="Medicine" error={m.templateIssue === "DELETED" && !m.medicineId} />}
+                          renderInput={(params) => <TextField {...params} label="Medicine" error={(m.templateIssue === "DELETED" || !!m.voiceIssue) && !m.medicineId} />}
                         />
                         <TextField className="col-span-1" label="Qty" type="number" size="small" value={m.qtyPrescribed} disabled={readOnly}
                           inputProps={{ min: 1 }}
@@ -558,6 +693,10 @@ export default function Consultation() {
                       Use Template
                     </Button>
 
+                    <Button size="small" startIcon={<MicIcon />} onClick={() => setVoiceOpen(true)}>
+                      Voice
+                    </Button>
+
                     <Tooltip title={templateSourceRows.length === 0 ? "Add at least one medicine to save a template" : ""}>
                       <span>
                         <Button size="small" startIcon={<BookmarkAddIcon />} disabled={templateSourceRows.length === 0}
@@ -571,6 +710,37 @@ export default function Consultation() {
                       label={savingPrescription ? "Saving..." : "Save Prescription"}
                       onClick={handleSavePrescription}
                     />
+                  </div>
+                )}
+
+                {!readOnly && pendingItems.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                    <p className="text-sm font-medium text-amber-800 mb-2">
+                      Saved — will be sent to the pharmacy when you complete the consultation
+                    </p>
+                    <ul className="space-y-1">
+                      {pendingItems.map((item, i) => (
+                        <li key={item.medicineId} className="flex items-center justify-between gap-2 text-sm text-gray-800">
+                          <span>
+                            <b>{item.name}</b>
+                            {[item.dosage, item.frequency, item.duration].filter(Boolean).length > 0
+                              && ` — ${[item.dosage, item.frequency, item.duration].filter(Boolean).join(", ")}`}
+                            {` · Qty ${item.qtyPrescribed}`}
+                          </span>
+                          <span className="shrink-0">
+                            <Tooltip title="Edit">
+                              <IconButton size="small" onClick={() => editPendingItem(i)}><EditIcon fontSize="small" /></IconButton>
+                            </Tooltip>
+                            <Tooltip title="Remove">
+                              <IconButton size="small" color="error"
+                                onClick={() => updatePending(pendingItems.filter((_, idx) => idx !== i))}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
@@ -737,6 +907,14 @@ export default function Consultation() {
       </div>
 
       <UseTemplateDialog open={useTemplateOpen} onClose={() => setUseTemplateOpen(false)} onSelect={applyTemplate} />
+      {voiceOpen && (
+        <VoicePrescriptionDialog
+          open
+          onClose={() => setVoiceOpen(false)}
+          medicineOptions={medicineOptions}
+          onConfirm={applyVoiceRows}
+        />
+      )}
       <SaveTemplateDialog
         open={saveTemplateOpen}
         items={templateSourceRows}

@@ -20,6 +20,7 @@ import {
   updateAdmin,
 } from "../../../api/AdminApi";
 import { getRoles } from "../../../api/RoleApi";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const EditAdmin = () => {
   const navigate = useNavigate();
@@ -71,11 +72,17 @@ const EditAdmin = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.name === "contact" ? digitsOnly(e.target.value) : e.target.value,
     });
   };
 
   const handleUpdate = async () => {
+    const phoneProblem = phoneError(formData.contact);
+    if (phoneProblem) {
+      setSnackbar({ open: true, message: phoneProblem, severity: "warning" });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -172,6 +179,8 @@ const EditAdmin = () => {
             fullWidth
             value={formData.contact}
             onChange={handleChange}
+            slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 10 } }}
+           
           />
 
           <TextField

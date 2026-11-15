@@ -172,7 +172,7 @@ export default function Appoiments() {
       setDoctors(await getDoctors());
     } catch (err) {
       console.error(err);
-      showSnackbar("Failed to load doctors — doctor names may be out of date", "warning");
+      showSnackbar("Couldn't refresh doctor details", "warning");
     } finally {
       setDoctorsLoaded(true);
     }

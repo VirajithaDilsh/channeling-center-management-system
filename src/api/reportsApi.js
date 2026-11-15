@@ -9,3 +9,5 @@ export const compareMonths = async (monthA, monthB) =>
   (await axiosClient.get(`${API_URL}/compare`, { params: { monthA, monthB } })).data;
 export const getRevenueForecast = async (horizon = 1) =>
   (await axiosClient.get(`${API_URL}/forecast`, { params: { horizon } })).data;
+// One health probe of the forecasting service: { status: "ready" | "waking" }.
+export const wakeForecastService = async () => (await axiosClient.post(`${API_URL}/forecast/wake`)).data;

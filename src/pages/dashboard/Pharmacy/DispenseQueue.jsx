@@ -4,7 +4,8 @@ import {
   Chip, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert
 } from "@mui/material";
 import PillIcon from "@mui/icons-material/Medication";
-import { getPharmacyQueue, dispenseItem, rejectItem } from "../../../api/PrescriptionApi";
+import { getPharmacyQueue, dispenseItem, rejectItem, handoffToBilling } from "../../../api/PrescriptionApi";
+import { DISPENSE_STATUS_LABELS, labelFor } from "../../../utils/statusLabels";
 
 const statusColors = {
   QUEUED: "warning",
@@ -16,6 +17,9 @@ const statusColors = {
 
 export default function DispenseQueue({ embedded = false }) {
   const [prescriptions, setPrescriptions] = useState([]);
+  // True while a dispense/reject/handoff request is in flight — disables every
+  // action button so a double click can't send the same action twice.
+  const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dispenseTarget, setDispenseTarget] = useState(null); // { prescription, item }
   const [dispenseQty, setDispenseQty] = useState("");
@@ -48,40 +52,65 @@ export default function DispenseQueue({ embedded = false }) {
   };
 
   const handleDispense = async () => {
+    if (busy) return;
     const { prescription, item } = dispenseTarget;
+    setBusy(true);
     try {
       await dispenseItem(prescription._id, item._id, Number(dispenseQty) || undefined);
       showSnackbar(`Dispensed ${item.name}.`, "success");
       setDispenseTarget(null);
-      fetchQueue();
+      await fetchQueue();
     } catch (err) {
       console.error(err);
       showSnackbar(err.response?.data?.message || "Failed to dispense item.", "error");
+    } finally {
+      setBusy(false);
     }
   };
 
   const handleReject = async () => {
+    if (busy) return;
     const { prescription, item } = rejectTarget;
+    setBusy(true);
     try {
       await rejectItem(prescription._id, item._id, rejectReason);
       showSnackbar(`Rejected ${item.name}.`, "success");
       setRejectTarget(null);
       setRejectReason("");
-      fetchQueue();
+      await fetchQueue();
     } catch (err) {
       console.error(err);
       showSnackbar(err.response?.data?.message || "Failed to reject item.", "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleHandoff = async (prescription) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await handoffToBilling(prescription._id);
+      showSnackbar(`${prescription.patientName} sent to billing.`, "success");
+      await fetchQueue();
+    } catch (err) {
+      console.error(err);
+      showSnackbar(err.response?.data?.message || "Failed to send to billing.", "error");
+      fetchQueue();
+    } finally {
+      setBusy(false);
     }
   };
 
   // An item is outstanding while the pharmacy still owes quantity: QUEUED
-  // (nothing handed over) and PARTIAL (some still owed). Dropping PARTIAL here
-  // would hide the remainder from the counter even though it can be dispensed.
-  const pendingItems = prescriptions.flatMap((p) =>
-    p.items
-      .filter((i) => i.status === "QUEUED" || i.status === "PARTIAL")
-      .map((item) => ({ prescription: p, item }))
-  );
+  // (nothing handed over) and PARTIAL (some still owed). Finished items stay
+  // on the card so the pharmacist can see the outcome until it's sent to billing.
+  const isOutstanding = (i) => i.status === "QUEUED" || i.status === "PARTIAL";
+  const pendingRx = prescriptions
+    // Send to Billing is allowed once nothing is untouched (QUEUED); partly
+    // dispensed items are accepted as-is when the pharmacist sends it on.
+    .map((p) => ({ prescription: p, items: p.items, queuedCount: p.items.filter((i) => i.status === "QUEUED").length }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <div className={embedded ? "" : "p-6 bg-gray-50 min-h-screen"}>
@@ -94,31 +123,52 @@ export default function DispenseQueue({ embedded = false }) {
         </div>
       )}
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Patient</TableCell>
-              <TableCell>Doctor</TableCell>
-              <TableCell>Medicine</TableCell>
-              <TableCell>Dosage</TableCell>
-              <TableCell align="right">Qty (Prescribed / Dispensed)</TableCell>
-              <TableCell align="center">Status</TableCell>
-              <TableCell align="center">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!loading && pendingItems.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center text-gray-500">
-                  Queue is empty — nothing waiting on the pharmacy.
-                </TableCell>
-              </TableRow>
+      {!loading && pendingRx.length === 0 && (
+        <Paper className="p-6 text-center text-gray-500">
+          Queue is empty — nothing waiting on the pharmacy.
+        </Paper>
+      )}
+
+      {pendingRx.map(({ prescription, items, queuedCount }) => (
+        <Paper key={prescription._id} className="mb-4 overflow-hidden">
+          <div className="px-4 py-3 bg-emerald-50 border-b flex flex-wrap items-center gap-x-4 gap-y-1">
+            <Typography variant="subtitle1" className="font-semibold">
+              {prescription.patientName}
+            </Typography>
+            <span className="text-sm text-gray-600">{prescription.doctorName}</span>
+            {prescription.diagnosis && (
+              <span className="text-sm text-gray-600">Dx: {prescription.diagnosis}</span>
             )}
-            {pendingItems.map(({ prescription, item }) => (
+            <span className="text-sm text-gray-500 ml-auto">
+              {items.length} medicine{items.length > 1 ? "s" : ""}
+              {prescription.createdAt ? ` • ${new Date(prescription.createdAt).toLocaleString()}` : ""}
+            </span>
+            {queuedCount > 0 && (
+              <Chip size="small" color="warning" label={`${queuedCount} pending`} />
+            )}
+            {queuedCount === 0 && (
+              <Button size="small" variant="contained" color="success" disabled={busy} onClick={() => handleHandoff(prescription)}>
+                Send to Billing
+              </Button>
+            )}
+            {prescription.notes && (
+              <p className="w-full text-xs text-gray-500">Note: {prescription.notes}</p>
+            )}
+          </div>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Medicine</TableCell>
+                  <TableCell>Dosage</TableCell>
+                  <TableCell align="right">Qty (Prescribed / Dispensed)</TableCell>
+                  <TableCell align="center">Status</TableCell>
+                  <TableCell align="center">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+            {items.map((item) => (
               <TableRow key={item._id} hover>
-                <TableCell>{prescription.patientName}</TableCell>
-                <TableCell>{prescription.doctorName}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.dosage || "-"} {item.frequency ? `• ${item.frequency}` : ""}</TableCell>
                 <TableCell align="right">
@@ -130,23 +180,31 @@ export default function DispenseQueue({ embedded = false }) {
                   )}
                 </TableCell>
                 <TableCell align="center">
-                  <Chip size="small" label={item.status} color={statusColors[item.status] || "default"} />
+                  <Chip size="small" label={labelFor(DISPENSE_STATUS_LABELS, item.status)} color={statusColors[item.status] || "default"} />
                 </TableCell>
                 <TableCell align="center">
-                  <div className="flex gap-2 justify-center">
-                    <Button size="small" variant="contained" onClick={() => openDispenseDialog(prescription, item)}>
-                      Dispense
-                    </Button>
-                    <Button size="small" color="error" onClick={() => setRejectTarget({ prescription, item })}>
-                      Reject
-                    </Button>
-                  </div>
+                  {isOutstanding(item) ? (
+                    <div className="flex gap-2 justify-center">
+                      <Button size="small" variant="contained" disabled={busy} onClick={() => openDispenseDialog(prescription, item)}>
+                        Dispense
+                      </Button>
+                      <Button size="small" color="error" disabled={busy} onClick={() => setRejectTarget({ prescription, item })}>
+                        Reject
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      {item.status === "REJECTED" ? (item.rejectionReason || "Rejected") : "Done"}
+                    </span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      ))}
 
       {/* Dispense Dialog */}
       <Dialog open={Boolean(dispenseTarget)} onClose={() => setDispenseTarget(null)} maxWidth="xs" fullWidth>
@@ -154,7 +212,7 @@ export default function DispenseQueue({ embedded = false }) {
         <DialogContent>
           <p className="text-sm text-gray-500 mb-3">
             Prescribed: {dispenseTarget?.item?.qtyPrescribed}, already dispensed: {dispenseTarget?.item?.qtyDispensed}.
-            Enter less than the remaining quantity if stock is short — the rest stays queued as a partial dispense.
+            Enter less than the remaining quantity if stock is short — the rest will stay waiting in the queue.
           </p>
           <TextField
             label="Quantity to dispense"
@@ -167,7 +225,9 @@ export default function DispenseQueue({ embedded = false }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDispenseTarget(null)}>Cancel</Button>
-          <Button variant="contained" onClick={handleDispense}>Confirm Dispense</Button>
+          <Button variant="contained" disabled={busy} onClick={handleDispense}>
+            {busy ? "Dispensing…" : "Confirm Dispense"}
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -186,7 +246,9 @@ export default function DispenseQueue({ embedded = false }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setRejectTarget(null)}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleReject}>Confirm Reject</Button>
+          <Button color="error" variant="contained" disabled={busy} onClick={handleReject}>
+            {busy ? "Rejecting…" : "Confirm Reject"}
+          </Button>
         </DialogActions>
       </Dialog>
 

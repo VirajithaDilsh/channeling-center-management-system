@@ -9,8 +9,9 @@ import { useNavigate } from "react-router-dom";
 import AddButton from "../../../components/AddButton";
 import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
-import { getDoctors, deleteDoctor } from "../../../api/DoctorApi";
+import { getDoctors, deleteDoctor, setDoctorPassword } from "../../../api/DoctorApi";
 import { getViewer } from "../../../utils/permissions";
+import SetPasswordDialog from "../../../components/SetPasswordDialog";
 
 const ROWS_PER_PAGE = 8;
 
@@ -38,6 +39,7 @@ const DoctorManagement = () => {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [passwordDoctor, setPasswordDoctor] = useState(null);
 
   const navigate = useNavigate();
 
@@ -110,7 +112,7 @@ const DoctorManagement = () => {
         </div>
 
         {canWrite && (
-          <AddButton label="Add New Doctor" onClick={() => navigate("add-doctors")} />
+          <AddButton label="+ Add New Doctor" onClick={() => navigate("add-doctors")} />
         )}
       </div>
 
@@ -202,6 +204,7 @@ const DoctorManagement = () => {
                     onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
                     onEdit={canEdit ? () => navigate(`/dashboard/doctor/edit/${doc._id}`) : undefined}
                     onDelete={canDelete ? () => handleDeleteClick(doc._id) : undefined}
+                    onChangePassword={viewer.isAdmin ? () => setPasswordDoctor(doc) : undefined}
                   />
                 </TableCell>
               </TableRow>
@@ -217,6 +220,26 @@ const DoctorManagement = () => {
           <Pagination count={pageCount} page={page} onChange={(e, value) => setPage(value)} color="primary" />
         )}
       </div>
+
+      {/* SET PASSWORD (admin only) */}
+      {viewer.isAdmin && passwordDoctor && (
+        <SetPasswordDialog
+          key={passwordDoctor._id}
+          title={`${passwordDoctor.hasAccount ? "Reset password" : "Create login"} \u2014 ${passwordDoctor.name}`}
+          description={
+            passwordDoctor.hasAccount
+              ? "Enter a new password for this doctor. It replaces their current one."
+              : "This doctor has no login yet. Enter a password to create one."
+          }
+          onSubmit={(password) => setDoctorPassword(passwordDoctor._id, password)}
+          onClose={() => setPasswordDoctor(null)}
+          onDone={(message) => {
+            setPasswordDoctor(null);
+            showSnackbar(message);
+            fetchDoctors();
+          }}
+        />
+      )}
 
       {/* SNACKBAR */}
       <Snackbar

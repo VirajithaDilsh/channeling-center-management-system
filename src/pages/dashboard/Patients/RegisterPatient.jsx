@@ -18,6 +18,7 @@ import SummarizeIcon from "@mui/icons-material/Summarize";
 import BackButton from "../../../components/BackButton";
 import { createPatient } from "../../../api/PatientApi";
 import { addChannelingRecord } from "../../../api/ChannelingApi";
+import { digitsOnly, phoneError } from "../../../utils/phone";
 
 const doctors = [
   "Dr. John Smith",
@@ -59,6 +60,12 @@ const RegisterPatient = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const handleSubmit = async () => {
+    const phoneProblem = phoneError(formData.contact);
+    if (phoneProblem) {
+      setSnackbar({ open: true, message: phoneProblem, severity: "warning" });
+      return;
+    }
+
     setLoading(true);
 
     const patientId = `P-${Date.now()}`;
@@ -114,7 +121,7 @@ const RegisterPatient = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.name === "contact" ? digitsOnly(e.target.value) : e.target.value
     });
   };
 
@@ -149,7 +156,7 @@ const RegisterPatient = () => {
             <div className="grid grid-cols-2 gap-4">
               <TextField label="Patient Name" name="patientName" fullWidth value={formData.patientName} onChange={handleChange} sx={{ borderRadius: 3 }} />
 
-              <TextField label="Contact" name="contact" fullWidth value={formData.contact} onChange={handleChange} />
+              <TextField label="Contact" name="contact" fullWidth value={formData.contact} onChange={handleChange} slotProps={{ htmlInput: { inputMode: "numeric", maxLength: 10 } }} />
 
               <TextField label="Age" name="age" fullWidth value={formData.age} onChange={handleChange} />
 

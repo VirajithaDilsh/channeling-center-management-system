@@ -24,6 +24,7 @@ import CancelIcon from "@mui/icons-material/CancelOutlined";
 import { listVisitSessions, cancelVisitSession } from "../../../api/VisitSessionApi";
 import { getPublicSettings } from "../../../api/SettingsApi";
 import { totalOf, paidOf, balanceOf } from "../../../utils/visitSessions";
+import { VISIT_STATUS_LABELS, labelFor } from "../../../utils/statusLabels";
 
 const statusColors = {
   OPEN: "default",
@@ -75,7 +76,9 @@ export default function Billing() {
       balance: balanceOf(s),
       status: s.status,
       raw: s,
-    }));
+    }))
+    // Show visits that are ready for payment first (stable sort keeps the rest in order)
+    .sort((a, b) => (b.status === "READY_FOR_PAYMENT") - (a.status === "READY_FOR_PAYMENT"));
 
   const revenue = sessions.filter((s) => s.status === "CLOSED").reduce((sum, s) => sum + paidOf(s), 0);
   const pending = sessions.filter((s) => s.status === "READY_FOR_PAYMENT").reduce((sum, s) => sum + balanceOf(s), 0);
@@ -92,7 +95,7 @@ export default function Billing() {
       headerName: "Status",
       flex: 1.2,
       renderCell: (params) => (
-        <Chip size="small" label={params.value.replaceAll("_", " ")} color={statusColors[params.value] || "default"} />
+        <Chip size="small" label={labelFor(VISIT_STATUS_LABELS, params.value)} color={statusColors[params.value] || "default"} />
       ),
     },
     {
@@ -113,7 +116,7 @@ export default function Billing() {
           </Tooltip>
 
           {["OPEN", "PENDING_PHARMACY", "READY_FOR_PAYMENT"].includes(params.row.status) && (
-            <Tooltip title="Cancel Session">
+            <Tooltip title="Cancel Visit">
               <IconButton
                 size="small"
                 className="hover:bg-red-100 transition"
@@ -131,7 +134,7 @@ export default function Billing() {
   const handleCancel = async () => {
     try {
       await cancelVisitSession(cancelRow.id, "Canceled from billing desk");
-      showSnackbar("Session canceled (or cancellation queued pending pharmacy).", "success");
+      showSnackbar("Visit cancelled.", "success");
       fetchSessions();
     } catch (err) {
       console.error(err);
@@ -155,7 +158,6 @@ export default function Billing() {
             <p className="text-gray-500 text-sm">Revenue Collected</p>
             <h2 className="text-2xl font-semibold">{currencySymbol} {revenue.toFixed(2)}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center">{currencySymbol}</div>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm flex justify-between">
@@ -163,7 +165,6 @@ export default function Billing() {
             <p className="text-gray-500 text-sm">Pending Payments</p>
             <h2 className="text-2xl font-semibold">{currencySymbol} {pending.toFixed(2)}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">!</div>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm flex justify-between">
@@ -171,7 +172,6 @@ export default function Billing() {
             <p className="text-gray-500 text-sm">Awaiting Pharmacy</p>
             <h2 className="text-2xl font-semibold">{atPharmacy}</h2>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">Rx</div>
         </div>
       </div>
 
@@ -192,11 +192,11 @@ export default function Billing() {
             className="w-56"
           >
             <MenuItem value="All">All Status</MenuItem>
-            <MenuItem value="OPEN">Open</MenuItem>
-            <MenuItem value="PENDING_PHARMACY">Pending Pharmacy</MenuItem>
+            <MenuItem value="OPEN">In consultation</MenuItem>
+            <MenuItem value="PENDING_PHARMACY">At pharmacy</MenuItem>
             <MenuItem value="READY_FOR_PAYMENT">Ready for Payment</MenuItem>
-            <MenuItem value="CLOSED">Closed</MenuItem>
-            <MenuItem value="CANCELED">Canceled</MenuItem>
+            <MenuItem value="CLOSED">Paid</MenuItem>
+            <MenuItem value="CANCELED">Cancelled</MenuItem>
           </TextField>
         </div>
 
@@ -217,17 +217,17 @@ export default function Billing() {
 
       {/* Cancel Confirmation */}
       <Dialog open={Boolean(cancelRow)} onClose={() => setCancelRow(null)}>
-        <DialogTitle>Cancel Visit Session</DialogTitle>
+        <DialogTitle>Cancel Visit</DialogTitle>
         <DialogContent>
           <Typography>
             {cancelRow?.status === "PENDING_PHARMACY"
-              ? "This session has items still at the pharmacy. Cancellation will be queued and finalized once dispensing resolves."
-              : "Are you sure you want to cancel this visit session?"}
+              ? "This visit still has medicines at the pharmacy. It will be cancelled once the pharmacy has finished with them."
+              : "Are you sure you want to cancel this visit?"}
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCancelRow(null)}>Keep It</Button>
-          <Button color="error" variant="contained" onClick={handleCancel}>Cancel Session</Button>
+          <Button color="error" variant="contained" onClick={handleCancel}>Cancel Visit</Button>
         </DialogActions>
       </Dialog>
 

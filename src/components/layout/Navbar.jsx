@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
-import { Hospital, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import {
     Menu as MuiMenu,
     MenuItem,
@@ -16,11 +16,11 @@ import { getPublicSettings } from "../../api/SettingsApi";
 import { getMyAccount } from "../../api/AdminApi";
 import { clearSession } from "../../utils/session";
 import { getViewer } from "../../utils/permissions";
-import AdminNotificationBell from "../notifications/AdminNotificationBell";
+import AdminExpiryPopup from "../notifications/AdminExpiryPopup";
 
 const Navbar = ({ setSidebarOpen }) => {
     const navigate = useNavigate();
-    const [centerName, setCenterName] = useState("Lahiru ");
+    const [centerName, setCenterName] = useState("");
     const [account, setAccount] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -61,15 +61,13 @@ const Navbar = ({ setSidebarOpen }) => {
 
                 {/* Left Side */}
                 <div className="flex items-center gap-3">
-                    <div className="bg-[#1FB1F9FF] p-2 rounded-xl flex items-center justify-center">
-                        <Hospital className="text-white text-sm" />
-                    </div>
+                    <img src="/logo-icon.png" alt="Logo" className="h-10 w-10 object-contain" />
 
                     <div className="flex flex-col leading-tight">
                         <span className="text-lg text-[#0F172A] font-bold tracking-tight hidden sm:block">
-                            {centerName} <span className="text-[#0284C7]"> Medical</span>
+                            {centerName} <span className="text-[#0284C7] font-semibold"> Medical</span>
                         </span>
-                        <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 hidden sm:block">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest text-[#64748B] hidden sm:block">
                             Medical Center
                         </span>
                     </div>
@@ -78,7 +76,7 @@ const Navbar = ({ setSidebarOpen }) => {
                 {/* Right Side */}
                 <div className="flex items-center gap-4 md:gap-6">
 
-                    {isAdmin && <AdminNotificationBell />}
+                    {isAdmin && <AdminExpiryPopup />}
 
                     {/* Signed-in user */}
                     <div className="flex items-center gap-2">

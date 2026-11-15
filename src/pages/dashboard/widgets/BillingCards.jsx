@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import WidgetCard from "./WidgetCard";
 import { balanceOf, totalOf } from "../../../utils/visitSessions";
 import { isToday } from "../../../utils/appointments";
+import { VISIT_STATUS_LABELS, labelFor } from "../../../utils/statusLabels";
 
 const ROW_CAP = 5;
 
@@ -119,7 +120,7 @@ export function StuckVisitsCard({ source, onRetry, money }) {
             <TableRow key={s._id} hover>
               <TableCell>{new Date(s.createdAt).toLocaleDateString()}</TableCell>
               <TableCell>{s.patientName || "-"}</TableCell>
-              <TableCell>{s.status === "OPEN" ? "In consultation" : "At pharmacy"}</TableCell>
+              <TableCell>{labelFor(VISIT_STATUS_LABELS, s.status)}</TableCell>
               <TableCell align="right">{money(totalOf(s))}</TableCell>
               <TableCell align="right">
                 <Button size="small" sx={{ textTransform: "none" }} onClick={() => navigate(`/dashboard/billing/${s._id}`)}>

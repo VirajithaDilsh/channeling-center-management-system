@@ -41,7 +41,7 @@ export default function DashboardHome() {
         <div>
           <Typography variant="h5" className="font-semibold">Dashboard</Typography>
           <p className="text-gray-500 text-sm">
-            {viewer.role ? `Signed in as ${viewer.role}` : "Overview"}
+            Overview
             {lastLoadedAt && ` · as of ${lastLoadedAt.toLocaleTimeString()}`}
           </p>
         </div>

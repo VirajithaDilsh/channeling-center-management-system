@@ -52,7 +52,7 @@ export default function Icd10Select({ value = [], onChange, disabled = false, la
       inputValue={input}
       onInputChange={(_, next, reason) => { if (reason !== "reset") setInput(next); }}
       onChange={(_, next) => onChange(next)}
-      noOptionsText={input.trim().length < 2 ? "Type a code or diagnosis (min 2 characters)" : "No matching codes"}
+      noOptionsText={input.trim().length < 2 ? "Type at least 2 letters" : "No matching codes"}
       renderTags={(tags, getTagProps) =>
         tags.map((tag, index) => {
           const { key, ...tagProps } = getTagProps({ index });
