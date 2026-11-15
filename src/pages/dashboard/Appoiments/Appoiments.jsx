@@ -130,9 +130,15 @@ const AppointmentsTable = ({
 };
 
 export default function Appoiments() {
+  // const viewer = getViewer();
+  // const canWrite = viewer.can(["appointments_write", "appointments_allow_all"]);
+  // const canEdit = viewer.can(["appointments_edit", "appointments_allow_all"]);
+
   const viewer = getViewer();
-  const canWrite = viewer.can(["appointments_write", "appointments_allow_all"]);
   const canEdit = viewer.can(["appointments_edit", "appointments_allow_all"]);
+  const isDoctorOnly = !viewer.can(["appointments_read", "appointments_allow_all"]);
+  const canListDoctors = viewer.can(["doctors_read", "doctors_allow_all"]);
+
 
   const [appointments, setAppointments] = useState([]);
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -149,16 +155,11 @@ export default function Appoiments() {
   // A doctor holding only doctor_portal gets just their own appointments from
   // the backend, read-only. They also can't list doctors, so skip that request;
   // the doctor name falls back to the snapshot stored on the appointment.
-  const viewer = getViewer();
-  const canEdit = viewer.can(["appointments_edit", "appointments_allow_all"]);
-  const isDoctorOnly = !viewer.can(["appointments_read", "appointments_allow_all"]);
-  const canListDoctors = viewer.can(["doctors_read", "doctors_allow_all"]);
-
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    if (canListDoctors) setSnackbarOpen(true);
-  };
+  
+  useEffect(() => {
+    fetchAppointments();
+    fetchDoctors();
+  }, []);
 
   const fetchAppointments = async () => {
     try {
