@@ -186,7 +186,7 @@ export default function AdminManagement() {
 
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
+              <TableCell>User Name</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
               <TableCell>Contact Number</TableCell>
