@@ -20,13 +20,6 @@ import { createPatient } from "../../../api/PatientApi";
 import { addChannelingRecord } from "../../../api/ChannelingApi";
 import { digitsOnly, phoneError } from "../../../utils/phone";
 
-const doctors = [
-  "Dr. John Smith",
-  "Dr. Emily Watson",
-  "Dr. Michael Brown",
-  "Dr. Sarah Johnson",
-  "Dr. David Lee"
-];
 
 const emptyFormData = {
   patientName: "",
