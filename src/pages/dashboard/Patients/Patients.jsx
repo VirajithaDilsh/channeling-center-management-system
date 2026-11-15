@@ -31,9 +31,11 @@ export default function PatientManagement() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchPatients();
-  }, []);
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
 
   const fetchPatients = async () => {
     try {
@@ -45,11 +47,9 @@ export default function PatientManagement() {
     }
   };
 
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
+  useEffect(() => {
+    fetchPatients();
+  }, []);
 
   const handleDeleteClick = (id) => {
     setSelectedPatientId(id);

@@ -203,7 +203,7 @@ const DoctorManagement = () => {
                   <TableActionButtons
                     onView={() => navigate(`/dashboard/doctor/${doc._id}`)}
                     onEdit={canEdit ? () => navigate(`/dashboard/doctor/edit/${doc._id}`) : undefined}
-                    onDelete={canDelete ? () => handleDeleteClick(doc._id) : undefined}
+                    onDelete={canEdit ? canDelete ? () => handleDeleteClick(doc._id) : undefined : undefined}
                     onChangePassword={viewer.isAdmin ? () => setPasswordDoctor(doc) : undefined}
                   />
                 </TableCell>

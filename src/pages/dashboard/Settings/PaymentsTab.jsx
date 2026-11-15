@@ -25,7 +25,7 @@ export default function PaymentsTab({ showSnackbar }) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [showSnackbar]);
 
   const toggleMethod = (key) => {
     setPayments((p) => {

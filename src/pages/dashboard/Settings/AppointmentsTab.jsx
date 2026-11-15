@@ -21,7 +21,7 @@ export default function AppointmentsTab({ showSnackbar }) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [showSnackbar]);
 
   const handleAppointmentChange = (field) => (e) =>
     setAppointments((a) => ({ ...a, [field]: Number(e.target.value) }));

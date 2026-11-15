@@ -61,7 +61,7 @@ const AddAppointment = ({ open, onClose, onCreated, onError }) => {
         console.error("Error fetching patients:", err);
         onError("Could not load the patient list. Please close and reopen this form.");
       });
-  }, [open]);
+  }, [open, onError]);
 
   // Whenever the doctor changes, load the dates they're actually available.
   useEffect(() => {

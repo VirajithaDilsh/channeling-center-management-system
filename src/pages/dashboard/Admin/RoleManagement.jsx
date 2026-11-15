@@ -42,7 +42,6 @@ export default function RoleManagement() {
 
   const [roles, setRoles] = useState([]);
   const [permissionCatalog, setPermissionCatalog] = useState([]);
-
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const [formOpen, setFormOpen] = useState(false);
@@ -53,9 +52,9 @@ export default function RoleManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const fetchData = async () => {
     try {
@@ -68,9 +67,9 @@ export default function RoleManagement() {
     }
   };
 
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
-  };
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const groupedPermissions = permissionCatalog.reduce((groups, perm) => {
     if (!groups[perm.module]) groups[perm.module] = [];

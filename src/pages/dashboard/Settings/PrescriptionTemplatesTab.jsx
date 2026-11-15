@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button,
   Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, TextField,
@@ -32,7 +32,7 @@ export default function PrescriptionTemplatesTab({ showSnackbar }) {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       setTemplates(await getPrescriptionTemplates());
     } catch (err) {
@@ -40,12 +40,12 @@ export default function PrescriptionTemplatesTab({ showSnackbar }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showSnackbar]);
 
   useEffect(() => {
     fetchTemplates();
     getMedicines().then((m) => setMedicineOptions(m || [])).catch(() => {});
-  }, []);
+  }, [fetchTemplates]);
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();

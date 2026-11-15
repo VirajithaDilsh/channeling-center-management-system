@@ -127,10 +127,6 @@ export default function Consultation() {
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
-  useEffect(() => {
-    loadConsultation();
-  }, [appointmentId]);
-
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
 
   const updatePending = (items) => {
@@ -201,6 +197,10 @@ export default function Consultation() {
       showSnackbar("Failed to load consultation details", "error");
     }
   };
+
+  useEffect(() => {
+    loadConsultation();
+  }, [appointmentId]);
 
   const handleClinicalChange = (field) => (e) =>
     setClinical((prev) => ({ ...prev, [field]: e.target.value }));

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert
@@ -29,7 +29,7 @@ export default function DispenseQueue({ embedded = false }) {
 
   const showSnackbar = (message, severity = "success") => setSnackbar({ open: true, message, severity });
 
-  const fetchQueue = async () => {
+  const fetchQueue = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getPharmacyQueue();
@@ -40,11 +40,11 @@ export default function DispenseQueue({ embedded = false }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchQueue();
-  }, []);
+  }, [fetchQueue]);
 
   const openDispenseDialog = (prescription, item) => {
     setDispenseTarget({ prescription, item });

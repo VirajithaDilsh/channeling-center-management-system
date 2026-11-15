@@ -125,7 +125,7 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
                       onEdit={() =>
                         navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
                       }
-                      onDelete={() => handleDelete(med._id)}
+                      onDelete={canEdit ? () => handleDelete(med._id) : undefined}
                     />
                   </TableCell>
                 )}

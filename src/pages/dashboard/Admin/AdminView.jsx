@@ -50,30 +50,6 @@ const AdminView = () => {
     severity: "error",
   });
 
-  useEffect(() => {
-    fetchAdmin();
-  }, [id]);
-
-  const fetchAdmin = async () => {
-    setLoading(true);
-
-    try {
-      const data = await getAdminById(id);
-      setAdmin(data);
-      fetchRolePermissions(data.role);
-    } catch (err) {
-      console.error(err);
-      setNotFound(true);
-      setSnackbar({
-        open: true,
-        message: "Failed to load user details.",
-        severity: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // The admin record stores only the role *name*, so the effective permissions
   // have to be looked up from the role list rather than read off the user.
   const fetchRolePermissions = async (roleName) => {
@@ -95,6 +71,30 @@ const AdminView = () => {
       console.error("Failed to load role permissions", err);
     }
   };
+
+  const fetchAdmin = async () => {
+    setLoading(true);
+
+    try {
+      const data = await getAdminById(id);
+      setAdmin(data);
+      fetchRolePermissions(data.role);
+    } catch (err) {
+      console.error(err);
+      setNotFound(true);
+      setSnackbar({
+        open: true,
+        message: "Failed to load user details.",
+        severity: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdmin();
+  }, [id]);
 
   // Group the role's granted permissions by module for display.
   const groupedPermissions = permissionCatalog

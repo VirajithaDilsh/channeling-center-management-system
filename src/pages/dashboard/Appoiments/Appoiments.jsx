@@ -130,7 +130,9 @@ const AppointmentsTable = ({
 };
 
 export default function Appoiments() {
-  const canWrite = getViewer().can(["appointments_write", "appointments_allow_all"]);
+  const viewer = getViewer();
+  const canWrite = viewer.can(["appointments_write", "appointments_allow_all"]);
+  const canEdit = viewer.can(["appointments_edit", "appointments_allow_all"]);
 
   const [appointments, setAppointments] = useState([]);
   const [upcomingPage, setUpcomingPage] = useState(1);
@@ -152,10 +154,11 @@ export default function Appoiments() {
   const isDoctorOnly = !viewer.can(["appointments_read", "appointments_allow_all"]);
   const canListDoctors = viewer.can(["doctors_read", "doctors_allow_all"]);
 
-  useEffect(() => {
-    fetchAppointments();
-    if (canListDoctors) fetchDoctors();
-  }, []);
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    if (canListDoctors) setSnackbarOpen(true);
+  };
 
   const fetchAppointments = async () => {
     try {
@@ -178,11 +181,10 @@ export default function Appoiments() {
     }
   };
 
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
+  useEffect(() => {
+    fetchAppointments();
+    fetchDoctors();
+  }, []);
 
   const handleDeleteClick = (id) => {
     setSelectedAppointmentId(id);

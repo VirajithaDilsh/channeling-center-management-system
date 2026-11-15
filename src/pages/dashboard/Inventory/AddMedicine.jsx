@@ -91,7 +91,7 @@ const AddMedicine = () => {
         });
       }
     }
-  }, [id, isEdit, medicines]);
+  }, [id, medicines, isEdit]);
   const handleSubmit = async (e) => {
     e.preventDefault();
 

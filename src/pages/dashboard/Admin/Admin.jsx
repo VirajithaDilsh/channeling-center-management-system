@@ -50,10 +50,6 @@ export default function AdminManagement() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
   // ✅ FIXED: normalize properly
   const fetchAdmins = async () => {
     try {
@@ -73,6 +69,10 @@ export default function AdminManagement() {
       showSnackbar("Failed to fetch admins", "error");
     }
   };
+
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbarMessage(message);

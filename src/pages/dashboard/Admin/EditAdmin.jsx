@@ -45,13 +45,6 @@ const EditAdmin = () => {
     severity: "success",
   });
 
-  useEffect(() => {
-    fetchAdmin();
-    getRoles()
-      .then(setRoleOptions)
-      .catch((err) => console.error("Failed to load roles", err));
-  }, []);
-
   const fetchAdmin = async () => {
     try {
       const data = await getAdminById(id);
@@ -68,6 +61,13 @@ const EditAdmin = () => {
       console.error(err);
     }
   };
+
+  useEffect(() => {
+    fetchAdmin();
+    getRoles()
+      .then(setRoleOptions)
+      .catch((err) => console.error("Failed to load roles", err));
+  }, [id]);
 
   const handleChange = (e) => {
     setFormData({

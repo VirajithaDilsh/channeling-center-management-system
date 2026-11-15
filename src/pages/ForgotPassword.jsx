@@ -12,7 +12,6 @@ import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
 import axiosClient from '../api/axiosClient';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 const ForgotPassword = () => {
 

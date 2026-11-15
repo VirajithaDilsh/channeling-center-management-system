@@ -193,7 +193,7 @@ const ViewPatient = () => {
 
             <div className="flex justify-center mb-4">
               <Avatar sx={{ width: 70, height: 70, bgcolor: "#3b82f6", fontSize: 28 }}>
-                {patient.name.charAt(0)}
+                {patient.name?.charAt(0) || "P"}
               </Avatar>
             </div>
 

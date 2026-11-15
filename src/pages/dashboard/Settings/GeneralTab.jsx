@@ -27,7 +27,7 @@ export default function GeneralTab({ showSnackbar }) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [showSnackbar]);
 
   const handleChange = (field) => (e) => setGeneral((g) => ({ ...g, [field]: e.target.value }));
 

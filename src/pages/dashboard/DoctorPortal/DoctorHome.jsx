@@ -31,10 +31,6 @@ export default function DoctorHome() {
   const doctorId = localStorage.getItem("doctorId");
   const doctorName = localStorage.getItem("doctorName");
 
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
-
   const fetchAppointments = async () => {
     try {
       const data = await getAppointments();
@@ -52,6 +48,10 @@ export default function DoctorHome() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
 
   const todaysAppointments = myAppointments
     .filter((a) => isToday(a.date) && a.status !== "Cancelled")

@@ -24,7 +24,7 @@ function StaffProfile({ showSnackbar }) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [showSnackbar]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -93,7 +93,7 @@ function DoctorProfile({ showSnackbar }) {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [showSnackbar]);
 
   const handleSave = async () => {
     setSaving(true);

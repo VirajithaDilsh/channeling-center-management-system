@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   TextField,
   MenuItem,
@@ -80,44 +80,39 @@ const EditPatient = () => {
   const [channelingHistory, setChannelingHistory] = useState([]);
   const [savingVisit, setSavingVisit] = useState(false);
 
-  const loadChannelingHistory = async () => {
+  const loadChannelingHistory = useCallback(async () => {
     try {
       const history = await getChannelingHistory(id);
       setChannelingHistory(history);
     } catch (error) {
       console.error("Fetch channeling history error:", error);
     }
-  };
+  }, [id]);
 
   // Load patient data
   useEffect(() => {
-   const fetchPatient = async () => {
-  try {
+    const fetchPatient = async () => {
+      try {
+        const res = await getPatientById(id);
+        const data = res?.data || res;
+        if (!data) return;
 
-    const res = await getPatientById(id);
-
-    const data = res?.data || res;
-
-    if (!data) return;
-
-    setFormData({
-      patientName: data.name || "",
-      contact: data.phone || "",
-      age: data.age || "",
-      gender: data.gender || "",
-      address: data.address || "",
-      bloodGroup: data.blood || ""
-    });
-
-  } catch (error) {
-    console.error("Fetch patient error:", error);
-  }
-
+        setFormData({
+          patientName: data.name || "",
+          contact: data.phone || "",
+          age: data.age || "",
+          gender: data.gender || "",
+          address: data.address || "",
+          bloodGroup: data.blood || ""
+        });
+      } catch (error) {
+        console.error("Fetch patient error:", error);
+      }
     };
 
     fetchPatient();
     loadChannelingHistory();
-  }, [id]);
+  }, [id, loadChannelingHistory]);
 
   const handleVisitChange = (e) => {
     setVisitData({

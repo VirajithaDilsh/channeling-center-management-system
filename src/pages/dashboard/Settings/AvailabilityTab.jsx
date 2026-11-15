@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
   Button, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText,
@@ -21,7 +21,7 @@ export default function AvailabilityTab({ showSnackbar }) {
 
   const [deleteId, setDeleteId] = useState(null);
 
-  const fetchSchedules = async () => {
+  const fetchSchedules = useCallback(async () => {
     try {
       const data = await getMySchedules();
       setSchedules(sortWindows(data));
@@ -31,11 +31,11 @@ export default function AvailabilityTab({ showSnackbar }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showSnackbar]);
 
   useEffect(() => {
     fetchSchedules();
-  }, []);
+  }, [fetchSchedules]);
 
   const openCreateForm = () => {
     setEditingId(null);
