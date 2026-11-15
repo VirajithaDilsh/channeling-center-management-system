@@ -112,7 +112,7 @@ const DoctorManagement = () => {
         </div>
 
         {canWrite && (
-          <AddButton label="Add New Doctor" onClick={() => navigate("add-doctors")} />
+          <AddButton label="+ Add New Doctor" onClick={() => navigate("add-doctors")} />
         )}
       </div>
 

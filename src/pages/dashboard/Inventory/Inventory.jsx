@@ -82,7 +82,7 @@ const Inventory = () => {
                 {canWrite && (
                     <div className="flex justify-end shrink-0">
                         <AddButton
-                            label="Add Medicine"
+                            label="+ Add Medicine"
                             onClick={() => navigate("/dashboard/inventory/add-medicine")}
                         />
                     </div>

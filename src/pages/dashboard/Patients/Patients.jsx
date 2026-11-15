@@ -4,10 +4,12 @@
 import React, { useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Button, TextField, Select, MenuItem, Pagination,
+  Paper, Button, Pagination,
   Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import AddButton from "../../../components/AddButton";
+import SearchBar from "../../../components/SearchBar";
 import TableActionButtons from "../../../components/TableActionButton";
 import { getPatients, deletePatient } from "../../../api/PatientApi";
 import { getViewer } from "../../../utils/permissions";
@@ -22,7 +24,6 @@ export default function PatientManagement() {
   const [patients, setPatients] = useState([]);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [bloodFilter, setBloodFilter] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
@@ -86,8 +87,7 @@ export default function PatientManagement() {
       String(p.phone || "").toLowerCase().includes(term) ||
       matchesPhone;
 
-    const matchesBlood = !bloodFilter || p.blood === bloodFilter;
-    return matchesSearch && matchesBlood;
+    return matchesSearch;
   });
 
   const pageCount = Math.max(1, Math.ceil(filteredPatients.length / ROWS_PER_PAGE));
@@ -101,47 +101,24 @@ export default function PatientManagement() {
           <h1 className="text-2xl font-semibold">Patient Management</h1>
         </div>
         {canWrite && (
-          <Button
-            variant="contained"
-            color="success"
+          <AddButton
+            label="+ Register Patient"
             onClick={() => navigate("/dashboard/register-patient")}
-          >
-            + Register Patient
-          </Button>
+          />
         )}
       </div>
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Search by name, ID, or phone..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setPage(1);
-          }}
-        />
-        <Select
-          size="small"
-          displayEmpty
-          value={bloodFilter}
-          onChange={(e) => {
-            setBloodFilter(e.target.value);
-            setPage(1);
-          }}
-        >
-          <MenuItem value="">Blood Group</MenuItem>
-          <MenuItem value="O+">O+</MenuItem>
-          <MenuItem value="A+">A+</MenuItem>
-          <MenuItem value="B+">B+</MenuItem>
-        </Select>
-        <Select size="small" defaultValue="">
-          <MenuItem value="">Status</MenuItem>
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
-        </Select>
+        <div className="flex-1">
+          <SearchBar
+            placeholder="Search by name, ID, or phone..."
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
       </div>
 
       {/* Table */}
