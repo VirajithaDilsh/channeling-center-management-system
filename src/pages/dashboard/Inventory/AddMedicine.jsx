@@ -7,7 +7,6 @@ import {
   Building2,
   Hash,
   Package,
-  DollarSign,
   AlertCircle,
   Thermometer,
   Calendar,
@@ -16,6 +15,7 @@ import {
 import { useMedicines } from "../../../context/MedicineContext.jsx";
 import BackButton from "../../../components/BackButton";
 import { formatColomboYmd } from "../../../utils/inventory";
+import { formatLkr } from "../../../utils/formatMoney";
 
 const AddMedicine = () => {
   const { id } = useParams();
@@ -299,10 +299,10 @@ const AddMedicine = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                      Unit Price ($) <span className="text-red-500">*</span>
+                      Unit Price (LKR) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <DollarSign className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                      <span className="absolute left-3 top-2.5 text-xs font-medium text-slate-400">LKR</span>
                       <input
                         name={"unitPrice"}
                         required
@@ -311,8 +311,8 @@ const AddMedicine = () => {
                         step="0.01"
                         value={form.unitPrice}
                         onChange={handleChange}
-                        className="w-full pl-9 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
-                        placeholder="e.g. 12.50"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white/50  border border-slate-200  rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-shadow"
+                        placeholder="e.g. 1250.00"
                       />
                     </div>
                   </div>
@@ -477,7 +477,7 @@ const AddMedicine = () => {
                   <span className="text-slate-500">Unit Price</span>
                   <span className="font-medium text-slate-900 ">
                     {form.unitPrice
-                      ? `$${parseFloat(form.unitPrice).toFixed(2)}`
+                      ? formatLkr(form.unitPrice)
                       : "—"}
                   </span>
                 </div>
@@ -508,11 +508,10 @@ const AddMedicine = () => {
                   <div className="flex justify-between text-sm">
                     <span className="text-sky-700 ">Total Value</span>
                     <span className="font-bold text-sky-900 dark:text-sky-100">
-                      $
-                      {(
+                      {formatLkr(
                         parseFloat(form.stockQuantity) *
-                        parseFloat(form.unitPrice)
-                      ).toFixed(2)}
+                          parseFloat(form.unitPrice)
+                      )}
                     </span>
                   </div>
                 </div>
