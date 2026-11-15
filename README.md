@@ -1,4 +1,4 @@
-# ClinicConnect — Channeling Center Management System
+# Lahiru Medical — Channeling Center Management System
 
 A web app for managing a medical channeling center's day-to-day operations: doctors, patients, medicine inventory, billing, and admin/role management.
 
