@@ -4,8 +4,6 @@ import { getSettings, updateSettings } from "../../../api/SettingsApi";
 
 const PAYMENT_METHODS = [
   { key: "cash", label: "Cash" },
-  { key: "card", label: "Card" },
-  { key: "insurance", label: "Insurance" },
 ];
 
 export default function PaymentsTab({ showSnackbar }) {

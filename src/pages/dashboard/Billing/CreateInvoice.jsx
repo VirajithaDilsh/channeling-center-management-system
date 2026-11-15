@@ -12,7 +12,7 @@ const lineItemLabel = {
   ADJUSTMENT: 'Adjustment',
 };
 
-const paymentMethodLabel = { cash: 'Cash', card: 'Card', insurance: 'Insurance' };
+const paymentMethodLabel = { cash: 'Cash' };
 
 export default function CreateInvoice() {
   const { id } = useParams();
@@ -24,7 +24,7 @@ export default function CreateInvoice() {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [submitting, setSubmitting] = useState(false);
   const [currencySymbol, setCurrencySymbol] = useState('Rs.');
-  const [enabledPaymentMethods, setEnabledPaymentMethods] = useState(['cash', 'card', 'insurance']);
+  const [enabledPaymentMethods, setEnabledPaymentMethods] = useState(['cash']);
 
   const load = async () => {
     try {
@@ -44,11 +44,10 @@ export default function CreateInvoice() {
     getPublicSettings()
       .then((data) => {
         if (data.currencySymbol) setCurrencySymbol(data.currencySymbol);
-        if (data.enabledPaymentMethods?.length) {
-          setEnabledPaymentMethods(data.enabledPaymentMethods);
-          setPaymentMethod((current) =>
-            data.enabledPaymentMethods.includes(current) ? current : data.enabledPaymentMethods[0]
-          );
+        const methods = (data.enabledPaymentMethods || []).filter((m) => m in paymentMethodLabel);
+        if (methods.length) {
+          setEnabledPaymentMethods(methods);
+          setPaymentMethod((current) => (methods.includes(current) ? current : methods[0]));
         }
       })
       .catch((err) => console.error('Failed to load payment settings:', err));
