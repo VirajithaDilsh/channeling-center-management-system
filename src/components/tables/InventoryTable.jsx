@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -26,8 +31,9 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
   const { medicines: allMedicines, deleteMedicine } = useMedicines();
   const medicines = medicinesProp ?? allMedicines;
   const navigate = useNavigate();
-  // Backend: PUT/DELETE need inventory_edit (or allow_all). Read-only viewers
-  // get no Actions column.
+  const [viewMed, setViewMed] = useState(null);
+  // Backend: PUT/DELETE need inventory_edit (or allow_all). Everyone who can
+  // see the table can use View; Edit/Delete are only shown with edit access.
   const canEdit = getViewer().can(["inventory_edit", "inventory_allow_all"]);
 
   if (!medicines || medicines.length === 0) {
@@ -66,7 +72,7 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
             <TableCell align="right">Unit Price</TableCell>
             <TableCell align="right">Total Value</TableCell>
             <TableCell align="center">Status</TableCell>
-            {canEdit && <TableCell align="center">Actions</TableCell>}
+            <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
 
@@ -119,21 +125,61 @@ const InventoryTable = ({ medicines: medicinesProp, thresholdDays = 30 }) => {
                     </span>
                   )}
                 </TableCell>
-                {canEdit && (
-                  <TableCell align="center">
-                    <TableActionButtons
-                      onEdit={() =>
-                        navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
-                      }
-                      onDelete={() => handleDelete(med._id)}
-                    />
-                  </TableCell>
-                )}
+                <TableCell align="center">
+                  <TableActionButtons
+                    onView={() => setViewMed(med)}
+                    onEdit={
+                      canEdit
+                        ? () => navigate(`/dashboard/inventory/edit-medicine/${med._id}`)
+                        : undefined
+                    }
+                    onDelete={canEdit ? () => handleDelete(med._id) : undefined}
+                  />
+                </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+
+      <Dialog open={Boolean(viewMed)} onClose={() => setViewMed(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Medicine Details</DialogTitle>
+        <DialogContent dividers>
+          {viewMed && (
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              {[
+                ["Name", viewMed.name],
+                ["Generic Name", viewMed.genericName],
+                ["Manufacturer", viewMed.manufacturer],
+                ["Category", viewMed.category],
+                ["Batch Number", viewMed.batchNumber],
+                ["Expiry Date", formatColomboYmd(viewMed.expiryDate)],
+                ["Stock", viewMed.stockQuantity != null ? `${viewMed.stockQuantity} ${viewMed.unitType || ""}` : null],
+                ["Reorder Level", viewMed.reorderLevel],
+                ["Unit Price", formatLkr(viewMed.unitPrice)],
+                [
+                  "Total Value",
+                  formatLkr(parseFloat(viewMed.stockQuantity || 0) * parseFloat(viewMed.unitPrice || 0)),
+                ],
+                ["Storage Condition", viewMed.storageCondition],
+                [
+                  "Prescription Required",
+                  viewMed.prescriptionRequired == null ? null : viewMed.prescriptionRequired ? "Yes" : "No",
+                ],
+                ["Description", viewMed.description],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-gray-500">{label}</dt>
+                  <dd className="font-medium break-words">{value || value === 0 ? value : "—"}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewMed(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </TableContainer>
   );
 };
